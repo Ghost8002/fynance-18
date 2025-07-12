@@ -21,6 +21,8 @@ import Login from "./pages/Login";
 import AIAssistantPage from "./pages/AIAssistant";
 import Reports from "./pages/Reports";
 import Help from "./pages/Help";
+import LandingPage from "@/landingpage/LandingPage";
+import { useAuth } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +33,41 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppRoutes = () => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+  return (
+    <Routes>
+      <Route path="/" element={isAuthenticated ? <Dashboard /> : <LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      {/* Rotas em português para corresponder à sidebar */}
+      <Route path="/transacoes" element={<Transactions />} />
+      <Route path="/contas-dividas" element={<AccountsAndDebts />} />
+      <Route path="/cartoes" element={<Cards />} />
+      <Route path="/contas" element={<Accounts />} />
+      <Route path="/orcamentos" element={<Budgets />} />
+      <Route path="/metas" element={<Goals />} />
+      <Route path="/relatorios" element={<Reports />} />
+      <Route path="/calendario" element={<Calendar />} />
+      <Route path="/assistente-ia" element={<AIAssistantPage />} />
+      <Route path="/configuracoes" element={<Settings />} />
+      <Route path="/ajuda" element={<Help />} />
+      {/* Manter rotas antigas em inglês para compatibilidade */}
+      <Route path="/transactions" element={<Transactions />} />
+      <Route path="/cards" element={<Cards />} />
+      <Route path="/accounts" element={<Accounts />} />
+      <Route path="/categories" element={<Categories />} />
+      <Route path="/budgets" element={<Budgets />} />
+      <Route path="/goals" element={<Goals />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/accounts-debts" element={<AccountsAndDebts />} />
+      <Route path="/tags" element={<TagsDashboard />} />
+      <Route path="/calendar" element={<Calendar />} />
+    </Routes>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
@@ -38,34 +75,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            {/* Rotas em português para corresponder à sidebar */}
-            <Route path="/transacoes" element={<Transactions />} />
-            <Route path="/contas-dividas" element={<AccountsAndDebts />} />
-            <Route path="/cartoes" element={<Cards />} />
-            <Route path="/contas" element={<Accounts />} />
-            <Route path="/orcamentos" element={<Budgets />} />
-            <Route path="/metas" element={<Goals />} />
-            <Route path="/relatorios" element={<Reports />} />
-            <Route path="/calendario" element={<Calendar />} />
-            <Route path="/assistente-ia" element={<AIAssistantPage />} />
-            <Route path="/configuracoes" element={<Settings />} />
-            <Route path="/ajuda" element={<Help />} />
-            {/* Manter rotas antigas em inglês para compatibilidade */}
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/cards" element={<Cards />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/budgets" element={<Budgets />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/accounts-debts" element={<AccountsAndDebts />} />
-            <Route path="/tags" element={<TagsDashboard />} />
-            <Route path="/calendar" element={<Calendar />} />
-          </Routes>
+          <AppRoutes />
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>
