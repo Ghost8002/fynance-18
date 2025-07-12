@@ -1,0 +1,155 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 31 41 55;
+
+    --card: 255 255 255;
+    --card-foreground: 31 41 55;
+
+    --popover: 255 255 255;
+    --popover-foreground: 31 41 55;
+
+    --primary: 36 113 156;
+    --primary-foreground: 255 255 255;
+
+    --secondary: 248 250 252;
+    --secondary-foreground: 31 41 55;
+
+    --muted: 241 245 249;
+    --muted-foreground: 107 114 128;
+
+    --accent: 241 245 249;
+    --accent-foreground: 31 41 55;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 36 113 156;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 31 41 55;
+    --foreground: 255 255 255;
+
+    --card: 31 41 55;
+    --card-foreground: 255 255 255;
+
+    --popover: 31 41 55;
+    --popover-foreground: 255 255 255;
+
+    --primary: 36 113 156;
+    --primary-foreground: 255 255 255;
+
+    --secondary: 55 65 81;
+    --secondary-foreground: 255 255 255;
+
+    --muted: 55 65 81;
+    --muted-foreground: 156 163 175;
+
+    --accent: 55 65 81;
+    --accent-foreground: 255 255 255;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+
+    --border: 55 65 81;
+    --input: 55 65 81;
+    --ring: 36 113 156;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-geist tracking-tight;
+  }
+}
+
+@layer components {
+  .finance-card {
+    @apply bg-white text-finance-text-primary rounded-xl shadow-lg border border-gray-200 p-6 md:p-8 glass-hover;
+  }
+
+  .input-finance {
+    @apply px-4 py-3 rounded-lg border border-gray-200 bg-white text-finance-text-primary 
+           focus:outline-none focus:ring-2 focus:ring-finance-primary/20 focus:border-finance-primary
+           transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply button-gradient text-white px-6 py-3 rounded-lg font-medium
+           hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-finance-text-primary px-6 py-3 rounded-lg font-medium border border-gray-200
+           hover:bg-finance-background-secondary hover:shadow-md transform hover:-translate-y-0.5 
+           transition-all duration-300;
+  }
+
+  .btn-outline {
+    @apply border border-finance-primary text-finance-primary px-6 py-3 rounded-lg font-medium
+           hover:bg-finance-primary hover:text-white hover:shadow-lg transform hover:-translate-y-0.5
+           transition-all duration-300;
+  }
+
+  .btn-ghost {
+    @apply text-finance-text-primary px-6 py-3 rounded-lg font-medium
+           hover:bg-finance-background-alt hover:shadow-md transform hover:-translate-y-0.5
+           transition-all duration-300;
+  }
+
+  .section-padding {
+    @apply px-4 md:px-6 lg:px-8;
+  }
+
+  .section-spacing {
+    @apply py-20 md:py-24;
+  }
+
+  .glass-nav {
+    @apply bg-white/90 backdrop-blur-lg border border-white/20 shadow-lg;
+  }
+
+  .spotlight {
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                rgba(36, 113, 156, 0.1) 0%, 
+                rgba(36, 113, 156, 0.05) 25%, 
+                transparent 50%);
+  }
+}
+
+@layer utilities {
+  .animate-marquee {
+    animation: marquee 25s linear infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.4s ease-out;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

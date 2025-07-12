@@ -1,0 +1,59 @@
+
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import AppLayout from "@/components/shared/AppLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReceivablePaymentList from "@/components/receivables/ReceivablePaymentList";
+import ReceivableStats from "@/components/receivables/ReceivableStats";
+import DebtList from "@/components/debts/DebtList";
+import DebtStats from "@/components/debts/DebtStats";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+
+const AccountsAndDebts = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const { data: payments } = useSupabaseData('receivable_payments', user?.id);
+  const { data: debts } = useSupabaseData('debts', user?.id);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Contas e Dívidas</h1>
+          <p className="text-muted-foreground">Gerencie seus pagamentos a receber e dívidas a pagar</p>
+        </div>
+        
+        <Tabs defaultValue="receivables" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="receivables">Pagamentos a Receber</TabsTrigger>
+            <TabsTrigger value="debts">Dívidas a Pagar</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="receivables" className="space-y-6">
+            <ReceivableStats payments={payments || []} />
+            <ReceivablePaymentList />
+          </TabsContent>
+          
+          <TabsContent value="debts" className="space-y-6">
+            <DebtStats debts={debts || []} />
+            <DebtList />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default AccountsAndDebts;

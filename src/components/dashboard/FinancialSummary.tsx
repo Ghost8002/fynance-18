@@ -1,0 +1,234 @@
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp, TrendingDown, DollarSign, Wallet, CreditCard, Target, Calendar, PieChart } from "lucide-react";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
+import { formatFinancialPeriod } from "@/utils/financialPeriod";
+
+// Helper function to format Brazilian currency
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+};
+
+// Helper function to safely convert to number
+const toNumber = (value: any): number => {
+  const num = Number(value);
+  return isNaN(num) ? 0 : num;
+};
+
+interface FinancialSummaryProps {
+  hiddenWidgets?: string[];
+}
+
+const FinancialSummary = ({ hiddenWidgets = [] }: FinancialSummaryProps) => {
+  const { user } = useSupabaseAuth();
+  const { data: transactions, loading, error } = useSupabaseData('transactions', user?.id);
+  const { data: accounts } = useSupabaseData('accounts', user?.id);
+  const { data: cards } = useSupabaseData('cards', user?.id);
+  const { data: budgets } = useSupabaseData('budgets', user?.id);
+  const { data: goals } = useSupabaseData('goals', user?.id);
+  const { getCurrentFinancialPeriod, filterTransactionsByPeriod } = useFinancialPeriod();
+
+  // Calculate real account balances based on transactions
+  const calculateTotalAccountBalance = () => {
+    if (!transactions || !accounts) return 0;
+    
+    return accounts.reduce((totalSum, account) => {
+      // Use correct formula: Saldo Inicial + Entradas - Saídas
+      const initialBalance = Number(account.balance) || 0;
+      
+      // Get all transactions for this account
+      const accountTransactions = transactions.filter(t => t.account_id === account.id);
+      
+      // Calculate incomes and expenses separately
+      const incomes = accountTransactions.filter(t => t.type === 'income');
+      const expenses = accountTransactions.filter(t => t.type === 'expense');
+      
+      const totalIncome = incomes.reduce((sum, t) => sum + Number(t.amount) || 0, 0);
+      const totalExpense = expenses.reduce((sum, t) => sum + Number(t.amount) || 0, 0);
+      
+      const accountBalance = initialBalance + totalIncome - totalExpense;
+      console.log(`FinancialSummary - Account ${account.name}: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${accountBalance}`);
+      
+      return totalSum + accountBalance;
+    }, 0);
+  };
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(8)].map((_, i) => (
+          <Card key={i} className="bg-card border-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Carregando...</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-6 bg-muted animate-pulse rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6">
+          <p className="text-red-500">Erro ao carregar dados financeiros: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Filtrar transações do período financeiro atual
+  const currentPeriodTransactions = filterTransactionsByPeriod(transactions, 'current-month');
+  const currentPeriod = getCurrentFinancialPeriod();
+
+  const totalIncome = currentPeriodTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + toNumber(t.amount), 0);
+
+  const totalExpenses = currentPeriodTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + toNumber(t.amount), 0);
+
+  const balance = totalIncome - totalExpenses;
+  
+  // Calculate total account balance based on transactions instead of stored balance
+  const totalAccountBalance = calculateTotalAccountBalance();
+  
+  const totalCreditLimit = cards.reduce((sum, card) => sum + toNumber(card.credit_limit), 0);
+  const totalUsedCredit = cards.reduce((sum, card) => sum + toNumber(card.used_amount), 0);
+  const totalAvailableCredit = totalCreditLimit - totalUsedCredit;
+  const creditUsagePercentage = totalCreditLimit > 0 ? (totalUsedCredit / totalCreditLimit) * 100 : 0;
+  const totalBudgetLimit = budgets.reduce((sum, budget) => sum + toNumber(budget.limit_amount), 0);
+  const totalBudgetSpent = budgets.reduce((sum, budget) => sum + toNumber(budget.spent_amount), 0);
+  const budgetUsagePercentage = totalBudgetLimit > 0 ? (totalBudgetSpent / totalBudgetLimit) * 100 : 0;
+  const totalGoalsTarget = goals.reduce((sum, goal) => sum + toNumber(goal.target_amount), 0);
+  const totalGoalsCurrent = goals.reduce((sum, goal) => sum + toNumber(goal.current_amount), 0);
+  const goalsProgress = totalGoalsTarget > 0 ? (totalGoalsCurrent / totalGoalsTarget) * 100 : 0;
+  const thisMonthTransactions = currentPeriodTransactions.length;
+
+  const expensesByCategory = currentPeriodTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((acc, t) => {
+      const categoryName = t.category_id || 'Sem categoria';
+      const currentAmount = toNumber(acc[categoryName] || 0);
+      const transactionAmount = toNumber(t.amount);
+      acc[categoryName] = currentAmount + transactionAmount;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const topCategory = Object.entries(expensesByCategory)
+    .sort(([,a], [,b]) => toNumber(b) - toNumber(a))[0];
+
+  const allSummaryCards = [
+    {
+      id: "income",
+      title: "Receitas do Período",
+      value: formatCurrency(totalIncome),
+      icon: TrendingUp,
+      description: `Período: ${formatFinancialPeriod(currentPeriod)}`,
+      color: "text-green-600",
+      bgColor: "bg-green-100 dark:bg-green-900/20"
+    },
+    {
+      id: "expenses",
+      title: "Despesas do Período",
+      value: formatCurrency(totalExpenses),
+      icon: TrendingDown,
+      description: `Período: ${formatFinancialPeriod(currentPeriod)}`,
+      color: "text-red-600",
+      bgColor: "bg-red-100 dark:bg-red-900/20"
+    },
+    {
+      id: "balance",
+      title: "Saldo do Período",
+      value: formatCurrency(balance),
+      icon: DollarSign,
+      description: balance >= 0 ? "Resultado positivo" : "Resultado negativo",
+      color: balance >= 0 ? "text-green-600" : "text-red-600",
+      bgColor: balance >= 0 ? "bg-green-100 dark:bg-green-900/20" : "bg-red-100 dark:bg-red-900/20"
+    },
+    {
+      id: "account-balance",
+      title: "Saldo Total das Contas",
+      value: formatCurrency(totalAccountBalance),
+      icon: Wallet,
+      description: "Calculado com base nas transações",
+      color: totalAccountBalance >= 0 ? "text-blue-600" : "text-red-600",
+      bgColor: totalAccountBalance >= 0 ? "bg-blue-100 dark:bg-blue-900/20" : "bg-red-100 dark:bg-red-900/20"
+    },
+    {
+      id: "credit-limit",
+      title: "Limite de Crédito Disponível",
+      value: formatCurrency(totalAvailableCredit),
+      icon: CreditCard,
+      description: `${creditUsagePercentage.toFixed(1)}% utilizado`,
+      color: creditUsagePercentage > 80 ? "text-red-600" : "text-blue-600",
+      bgColor: creditUsagePercentage > 80 ? "bg-red-100 dark:bg-red-900/20" : "bg-blue-100 dark:bg-blue-900/20"
+    },
+    {
+      id: "budgets",
+      title: "Orçamentos",
+      value: `${budgetUsagePercentage.toFixed(1)}%`,
+      icon: PieChart,
+      description: `${formatCurrency(totalBudgetSpent)} de ${formatCurrency(totalBudgetLimit)}`,
+      color: budgetUsagePercentage > 80 ? "text-red-600" : "text-green-600",
+      bgColor: budgetUsagePercentage > 80 ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"
+    },
+    {
+      id: "goals",
+      title: "Progresso das Metas",
+      value: `${goalsProgress.toFixed(1)}%`,
+      icon: Target,
+      description: `${formatCurrency(totalGoalsCurrent)} de ${formatCurrency(totalGoalsTarget)}`,
+      color: goalsProgress > 50 ? "text-green-600" : "text-orange-600",
+      bgColor: goalsProgress > 50 ? "bg-green-100 dark:bg-green-900/20" : "bg-orange-100 dark:bg-orange-900/20"
+    },
+    {
+      id: "transactions",
+      title: "Transações do Mês",
+      value: thisMonthTransactions.toString(),
+      icon: Calendar,
+      description: topCategory ? `Maior gasto: ${formatCurrency(toNumber(topCategory[1]))}` : "Nenhum gasto registrado",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100 dark:bg-purple-900/20"
+    }
+  ];
+
+  // Filter out hidden widgets
+  const visibleCards = allSummaryCards.filter(card => !hiddenWidgets.includes(card.id));
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {visibleCards.map((card, index) => (
+        <Card key={card.id} className="bg-card border-border hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              {card.title}
+            </CardTitle>
+            <div className={`p-2 rounded-full ${card.bgColor}`}>
+              <card.icon className={`h-4 w-4 ${card.color}`} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${card.color}`}>
+              {card.value}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {card.description}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+export default FinancialSummary;
