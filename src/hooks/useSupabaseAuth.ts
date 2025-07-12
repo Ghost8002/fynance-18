@@ -1,8 +1,7 @@
 
-import { useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { createDefaultCategories } from '@/utils/createDefaultCategories';
+import type { User, Session } from '@supabase/supabase-js';
 
 export const useSupabaseAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -11,34 +10,23 @@ export const useSupabaseAuth = () => {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      
-      // Create default categories for existing users who don't have them
-      if (session?.user) {
-        setTimeout(() => {
-          createDefaultCategories(session.user.id);
-        }, 1000);
-      }
-    });
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      // Create default categories for new users
-      if (session?.user) {
-        setTimeout(() => {
-          createDefaultCategories(session.user.id);
-        }, 1000);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -51,14 +39,12 @@ export const useSupabaseAuth = () => {
     return { data, error };
   };
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: metadata,
       },
     });
     return { data, error };
@@ -69,11 +55,6 @@ export const useSupabaseAuth = () => {
     return { error };
   };
 
-  const resetPassword = async (email: string) => {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
-    return { data, error };
-  };
-
   return {
     user,
     session,
@@ -81,6 +62,5 @@ export const useSupabaseAuth = () => {
     signIn,
     signUp,
     signOut,
-    resetPassword,
   };
 };
