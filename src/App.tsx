@@ -18,6 +18,9 @@ import AccountsAndDebts from "./pages/AccountsAndDebts";
 import TagsDashboard from "./pages/TagsDashboard";
 import Calendar from "./pages/Calendar";
 import Login from "./pages/Login";
+import AIAssistantPage from "./pages/AIAssistant";
+import Reports from "./pages/Reports";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,19 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            {/* Rotas em português para corresponder à sidebar */}
+            <Route path="/transacoes" element={<Transactions />} />
+            <Route path="/contas-dividas" element={<AccountsAndDebts />} />
+            <Route path="/cartoes" element={<Cards />} />
+            <Route path="/contas" element={<Accounts />} />
+            <Route path="/orcamentos" element={<Budgets />} />
+            <Route path="/metas" element={<Goals />} />
+            <Route path="/relatorios" element={<Reports />} />
+            <Route path="/calendario" element={<Calendar />} />
+            <Route path="/assistente-ia" element={<AIAssistantPage />} />
+            <Route path="/configuracoes" element={<Settings />} />
+            <Route path="/ajuda" element={<Help />} />
+            {/* Manter rotas antigas em inglês para compatibilidade */}
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/cards" element={<Cards />} />
             <Route path="/accounts" element={<Accounts />} />
