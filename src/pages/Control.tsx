@@ -6,6 +6,7 @@ import { Plus, Shield, Star, Calendar, AlertTriangle, Clock, CheckCircle } from 
 import { ControlForm } from '@/components/control/ControlForm';
 import { ControlList } from '@/components/control/ControlList';
 import { ControlStats } from '@/components/control/ControlStats';
+import AppLayout from '@/components/shared/AppLayout';
 
 const Control = () => {
   const [showForm, setShowForm] = useState(false);
@@ -74,22 +75,23 @@ const Control = () => {
   const expiredWarranty = mockProducts.filter(p => p.status === 'Garantia vencida').length;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-finance-text-primary">Controle de Produtos</h1>
-          <p className="text-finance-text-secondary mt-1">
-            Gerencie suas garantias e pontos Livelo
-          </p>
+    <AppLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-finance-text-primary">Controle de Produtos</h1>
+            <p className="text-finance-text-secondary mt-1">
+              Gerencie suas garantias e pontos Livelo
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="bg-finance-primary hover:bg-finance-primary/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Produto
+          </Button>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)}
-          className="bg-finance-primary hover:bg-finance-primary/90"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar Produto
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <ControlStats
@@ -156,14 +158,15 @@ const Control = () => {
       {/* Products List */}
       <ControlList products={mockProducts} />
 
-      {/* Form Modal */}
-      {showForm && (
-        <ControlForm
-          onClose={() => setShowForm(false)}
-          onSave={handleSaveProduct}
-        />
-      )}
-    </div>
+        {/* Form Modal */}
+        {showForm && (
+          <ControlForm
+            onClose={() => setShowForm(false)}
+            onSave={handleSaveProduct}
+          />
+        )}
+      </div>
+    </AppLayout>
   );
 };
 
