@@ -1,6 +1,20 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Shield } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  Receipt, 
+  CreditCard, 
+  PiggyBank, 
+  BarChart3, 
+  Target, 
+  Settings, 
+  Calendar, 
+  Wallet, 
+  HelpCircle, 
+  FileText, 
+  Bot, 
+  Shield 
+} from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
 const navigationItems = [{
