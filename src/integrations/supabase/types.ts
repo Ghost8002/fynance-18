@@ -277,7 +277,9 @@ export type Database = {
           color: string
           created_at: string
           id: string
+          is_default: boolean | null
           name: string
+          sort_order: number | null
           type: string
           user_id: string
         }
@@ -285,7 +287,9 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          is_default?: boolean | null
           name: string
+          sort_order?: number | null
           type: string
           user_id: string
         }
@@ -293,7 +297,9 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          is_default?: boolean | null
           name?: string
+          sort_order?: number | null
           type?: string
           user_id?: string
         }
