@@ -1,28 +1,27 @@
 
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Upload } from "lucide-react";
 
-const ProfileSettings = () => {
+export default function ProfileSettings() {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { user } = useSupabaseAuth();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    birthdate: "",
-    avatar_url: "",
+    full_name: '',
+    avatar_url: ''
   });
 
   useEffect(() => {
     if (user) {
+      // Load existing profile data
       loadProfile();
     }
   }, [user]);
@@ -31,77 +30,57 @@ const ProfileSettings = () => {
     if (!user) return;
 
     try {
-      setLoading(true);
-
-      // Get user profile data
-      const { data: profileData, error: profileError } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
 
-      setProfile({
-        full_name: profileData?.full_name || user.user_metadata?.full_name || "",
-        email: user.email || "",
-        phone: user.user_metadata?.phone || "",
-        birthdate: user.user_metadata?.birthdate || "",
-        avatar_url: profileData?.avatar_url || user.user_metadata?.avatar_url || "",
-      });
-
+      if (data) {
+        setProfile({
+          full_name: data.full_name || '',
+          avatar_url: data.avatar_url || ''
+        });
+      }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+      console.error('Error loading profile:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar as informações do perfil.",
+        description: "Não foi possível carregar o perfil.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleUpdate = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
-
-      // Update user metadata
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
-          full_name: profile.full_name,
-          phone: profile.phone,
-          birthdate: profile.birthdate,
-        }
-      });
-
-      if (authError) throw authError;
-
-      // Update or insert user profile
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .upsert({
-          id: user.id,
+          user_id: user.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
         });
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       toast({
-        title: "Perfil atualizado",
-        description: "Suas informações foram atualizadas com sucesso.",
+        title: "Sucesso",
+        description: "Perfil atualizado com sucesso!",
       });
-
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('Error updating profile:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o perfil. Tente novamente.",
+        description: "Não foi possível atualizar o perfil.",
         variant: "destructive",
       });
     } finally {
@@ -109,108 +88,100 @@ const ProfileSettings = () => {
     }
   };
 
-  const handleInputChange = (field: keyof typeof profile, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file || !user) return;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+
+      toast({
+        title: "Sucesso",
+        description: "Avatar enviado com sucesso!",
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível fazer upload do avatar.",
+        variant: "destructive",
+      });
+    }
   };
 
-  if (loading && !profile.full_name) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">Carregando informações do perfil...</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-              <AvatarFallback className="text-2xl">
-                {profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+    <Card>
+      <CardHeader>
+        <CardTitle>Perfil</CardTitle>
+        <CardDescription>
+          Atualize suas informações pessoais e foto de perfil
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSave} className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <Avatar className="w-20 h-20">
+              <AvatarImage src={profile.avatar_url} />
+              <AvatarFallback>
+                {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="space-y-2">
-              <h3 className="text-xl font-medium">{profile.full_name || 'Usuário'}</h3>
-              <p className="text-sm text-gray-500">{profile.email}</p>
-              <Button size="sm" variant="outline" disabled>
-                Alterar foto
-              </Button>
+            <div>
+              <Label htmlFor="avatar-upload" className="cursor-pointer">
+                <div className="flex items-center space-x-2 px-4 py-2 border border-input rounded-md hover:bg-accent">
+                  <Upload className="w-4 h-4" />
+                  <span>Alterar foto</span>
+                </div>
+                <Input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </Label>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardContent className="pt-6">
-          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome completo</Label>
-                <Input 
-                  id="name" 
-                  value={profile.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Nome completo</Label>
+            <Input
+              id="full_name"
+              value={profile.full_name}
+              onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
+              placeholder="Seu nome completo"
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={profile.email}
-                  disabled
-                  className="bg-gray-100"
-                />
-                <p className="text-xs text-gray-500">
-                  Para alterar o e-mail, entre em contato com o suporte
-                </p>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              value={user?.email || ''}
+              disabled
+              placeholder="Email não pode ser alterado"
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input 
-                  id="phone" 
-                  value={profile.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="birthdate">Data de nascimento</Label>
-                <Input 
-                  id="birthdate" 
-                  type="date" 
-                  value={profile.birthdate}
-                  onChange={(e) => handleInputChange('birthdate', e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <Button 
-                type="submit"
-                className="bg-finance-blue hover:bg-blue-700"
-                disabled={loading}
-              >
-                {loading ? 'Salvando...' : 'Salvar alterações'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar alterações'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
-};
-
-export default ProfileSettings;
+}

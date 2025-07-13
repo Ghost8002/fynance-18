@@ -299,6 +299,72 @@ export type Database = {
         }
         Relationships: []
       }
+      debts: {
+        Row: {
+          account_id: string | null
+          amount: number
+          category_id: string | null
+          created_at: string | null
+          description: string
+          due_date: string
+          id: string
+          is_recurring: boolean | null
+          notes: string | null
+          paid_date: string | null
+          recurrence_type: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          category_id?: string | null
+          created_at?: string | null
+          description: string
+          due_date: string
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          paid_date?: string | null
+          recurrence_type?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          category_id?: string | null
+          created_at?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          paid_date?: string | null
+          recurrence_type?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           category: string | null
@@ -376,6 +442,36 @@ export type Database = {
           received_date?: string | null
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -501,6 +597,14 @@ export type Database = {
       adjust_card_limit: {
         Args: { p_card_id: string; p_new_limit: number; p_reason: string }
         Returns: Json
+      }
+      create_next_recurring_debt: {
+        Args: { debt_id: string }
+        Returns: string
+      }
+      create_next_recurring_payment: {
+        Args: { payment_id: string }
+        Returns: string
       }
       generate_monthly_bill: {
         Args: { p_card_id: string; p_month: number; p_year: number }
