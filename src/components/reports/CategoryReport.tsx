@@ -50,7 +50,10 @@ const CategoryReport = () => {
     const categoryTotals = new Map();
 
     filteredTransactions.forEach(transaction => {
-      const category = categories.find(c => c.id === transaction.category_id);
+      // Find the category and ensure it matches the transaction type
+      const category = categories.find(c => 
+        c.id === transaction.category_id && c.type === type
+      );
       const categoryName = category?.name || 'Sem categoria';
       const currentAmount = categoryTotals.get(categoryName) || 0;
       categoryTotals.set(categoryName, currentAmount + Number(transaction.amount));
@@ -106,7 +109,7 @@ const CategoryReport = () => {
       <CardContent className="pt-6">
         {chartData.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Nenhuma transação encontrada para o período selecionado
+            Nenhuma transação de {type === 'expense' ? 'despesa' : 'receita'} encontrada para o período selecionado
           </div>
         ) : (
           <>

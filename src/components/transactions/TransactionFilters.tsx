@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,8 +37,33 @@ const TransactionFilters = ({ onFiltersChange }: TransactionFiltersProps) => {
   }, [filters, onFiltersChange]);
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    // Clear category filter when transaction type changes
+    if (key === 'type' && filters.categoryId !== 'all') {
+      setFilters(prev => ({ ...prev, [key]: value, categoryId: 'all' }));
+    } else {
+      setFilters(prev => ({ ...prev, [key]: value }));
+    }
   };
+
+  // Filter categories based on selected transaction type
+  const filteredCategories = (categories || []).filter(category => {
+    if (filters.type === 'income') {
+      return category.type === 'income';
+    } else if (filters.type === 'expense') {
+      return category.type === 'expense';
+    }
+    return true; // Show all if no type filter
+  });
+
+  // Sort categories
+  const sortedCategories = filteredCategories.sort((a, b) => {
+    if (a.is_default && !b.is_default) return -1;
+    if (!a.is_default && b.is_default) return 1;
+    const sortOrderA = a.sort_order || 0;
+    const sortOrderB = b.sort_order || 0;
+    if (sortOrderA !== sortOrderB) return sortOrderA - sortOrderB;
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className="bg-card border border-border rounded-lg shadow p-6 mb-6">
@@ -94,11 +118,28 @@ const TransactionFilters = ({ onFiltersChange }: TransactionFiltersProps) => {
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               <SelectItem value="all">Todas</SelectItem>
-              {categories.map((category) => (
+              {sortedCategories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <span>{category.name}</span>
+                    {category.is_default && (
+                      <span className="text-xs text-muted-foreground">(Padrão)</span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
+              {sortedCategories.length === 0 && filters.type !== 'all' && (
+                <SelectItem value="" disabled>
+                  {filters.type === 'income' 
+                    ? 'Nenhuma categoria de receita'
+                    : 'Nenhuma categoria de despesa'
+                  }
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -110,7 +151,7 @@ const TransactionFilters = ({ onFiltersChange }: TransactionFiltersProps) => {
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               <SelectItem value="all">Todas</SelectItem>
-              {accounts.map((account) => (
+              {(accounts || []).map((account) => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.name} - {account.bank}
                 </SelectItem>
@@ -126,7 +167,7 @@ const TransactionFilters = ({ onFiltersChange }: TransactionFiltersProps) => {
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               <SelectItem value="all">Todos</SelectItem>
-              {cards.map((card) => (
+              {(cards || []).map((card) => (
                 <SelectItem key={card.id} value={card.id}>
                   {card.name} - *{card.last_four_digits}
                 </SelectItem>

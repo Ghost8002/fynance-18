@@ -1,7 +1,7 @@
 
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,8 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
-import { formatFinancialPeriod } from "@/utils/financialPeriod";
 
 interface TransactionFormFieldsProps {
   formData: {
@@ -32,23 +30,40 @@ const TransactionFormFields = ({
   onInputChange,
   onSelectChange,
 }: TransactionFormFieldsProps) => {
-  const { getCurrentFinancialPeriod } = useFinancialPeriod();
-  
-  // Filter categories by transaction type
-  const filteredCategories = categories.filter(cat => cat.type === formData.type);
+  // Filter categories based on transaction type
+  const filteredCategories = categories.filter(category => {
+    if (formData.type === 'income') {
+      return category.type === 'income';
+    } else if (formData.type === 'expense') {
+      return category.type === 'expense';
+    }
+    return true; // Show all if type is not set
+  });
 
-  // Obter período financeiro atual para exibir informação ao usuário
-  const currentPeriod = getCurrentFinancialPeriod();
+  // Sort categories: default categories first, then by sort_order, then by name
+  const sortedCategories = filteredCategories.sort((a, b) => {
+    // Default categories first
+    if (a.is_default && !b.is_default) return -1;
+    if (!a.is_default && b.is_default) return 1;
+    
+    // Then by sort_order
+    const sortOrderA = a.sort_order || 0;
+    const sortOrderB = b.sort_order || 0;
+    if (sortOrderA !== sortOrderB) return sortOrderA - sortOrderB;
+    
+    // Finally by name
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <>
-      {/* Description & Amount */}
       <div className="space-y-2">
         <Label htmlFor="description">Descrição *</Label>
         <Input
           id="description"
           name="description"
-          placeholder="Ex: Compras no supermercado"
+          type="text"
+          placeholder="Ex: Compra no supermercado"
           value={formData.description}
           onChange={onInputChange}
           required
@@ -56,7 +71,7 @@ const TransactionFormFields = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="amount">Valor (R$) *</Label>
+        <Label htmlFor="amount">Valor *</Label>
         <Input
           id="amount"
           name="amount"
@@ -69,9 +84,8 @@ const TransactionFormFields = ({
         />
       </div>
 
-      {/* Category */}
       <div className="space-y-2">
-        <Label htmlFor="category">Categoria *</Label>
+        <Label htmlFor="category_id">Categoria *</Label>
         <Select
           value={formData.category_id}
           onValueChange={(value) => onSelectChange("category_id", value)}
@@ -80,16 +94,35 @@ const TransactionFormFields = ({
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
-            {filteredCategories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
+            {sortedCategories.length > 0 ? (
+              sortedCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <span>{category.name}</span>
+                    {category.is_default && (
+                      <span className="text-xs text-muted-foreground">(Padrão)</span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="" disabled>
+                {formData.type === 'income' 
+                  ? 'Nenhuma categoria de receita encontrada'
+                  : formData.type === 'expense'
+                  ? 'Nenhuma categoria de despesa encontrada'
+                  : 'Selecione o tipo de transação primeiro'
+                }
               </SelectItem>
-            ))}
+            )}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Date with financial period info */}
       <div className="space-y-2">
         <Label htmlFor="date">Data *</Label>
         <Input
@@ -100,20 +133,17 @@ const TransactionFormFields = ({
           onChange={onInputChange}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Período financeiro atual: {formatFinancialPeriod(currentPeriod)}
-        </p>
       </div>
 
-      {/* Notes */}
       <div className="space-y-2">
         <Label htmlFor="notes">Observações</Label>
         <Textarea
           id="notes"
           name="notes"
-          placeholder="Adicione detalhes sobre esta transação"
+          placeholder="Observações adicionais (opcional)"
           value={formData.notes}
           onChange={onInputChange}
+          rows={3}
         />
       </div>
     </>
