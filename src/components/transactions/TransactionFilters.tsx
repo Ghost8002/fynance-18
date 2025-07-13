@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -114,7 +115,15 @@ const TransactionFilters = ({ onFiltersChange }: TransactionFiltersProps) => {
         <div>
           <Select value={filters.categoryId} onValueChange={(value) => handleFilterChange('categoryId', value)}>
             <SelectTrigger className="bg-background border-border text-foreground">
-              <SelectValue placeholder="Categoria" />
+              <SelectValue placeholder={
+                sortedCategories.length > 0 
+                  ? "Categoria"
+                  : filters.type === 'income' 
+                    ? 'Nenhuma categoria de receita'
+                    : filters.type === 'expense'
+                    ? 'Nenhuma categoria de despesa'
+                    : 'Categoria'
+              } />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               <SelectItem value="all">Todas</SelectItem>
@@ -132,14 +141,6 @@ const TransactionFilters = ({ onFiltersChange }: TransactionFiltersProps) => {
                   </div>
                 </SelectItem>
               ))}
-              {sortedCategories.length === 0 && filters.type !== 'all' && (
-                <SelectItem value="" disabled>
-                  {filters.type === 'income' 
-                    ? 'Nenhuma categoria de receita'
-                    : 'Nenhuma categoria de despesa'
-                  }
-                </SelectItem>
-              )}
             </SelectContent>
           </Select>
         </div>

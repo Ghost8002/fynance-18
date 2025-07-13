@@ -91,34 +91,31 @@ const TransactionFormFields = ({
           onValueChange={(value) => onSelectChange("category_id", value)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Selecione uma categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            {sortedCategories.length > 0 ? (
-              sortedCategories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span>{category.name}</span>
-                    {category.is_default && (
-                      <span className="text-xs text-muted-foreground">(Padrão)</span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="" disabled>
-                {formData.type === 'income' 
+            <SelectValue placeholder={
+              sortedCategories.length > 0 
+                ? "Selecione uma categoria"
+                : formData.type === 'income' 
                   ? 'Nenhuma categoria de receita encontrada'
                   : formData.type === 'expense'
                   ? 'Nenhuma categoria de despesa encontrada'
                   : 'Selecione o tipo de transação primeiro'
-                }
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {sortedCategories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: category.color }}
+                  />
+                  <span>{category.name}</span>
+                  {category.is_default && (
+                    <span className="text-xs text-muted-foreground">(Padrão)</span>
+                  )}
+                </div>
               </SelectItem>
-            )}
+            ))}
           </SelectContent>
         </Select>
       </div>

@@ -179,7 +179,15 @@ const TransactionFiltersAdvanced = ({
                 <Label>Categoria</Label>
                 <Select value={filters.categoryId} onValueChange={(value) => handleFilterChange('categoryId', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Categoria" />
+                    <SelectValue placeholder={
+                      sortedCategories.length > 0 
+                        ? "Categoria"
+                        : filters.type === 'income' 
+                          ? 'Nenhuma categoria de receita'
+                          : filters.type === 'expense'
+                          ? 'Nenhuma categoria de despesa'
+                          : 'Categoria'
+                    } />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
@@ -197,14 +205,6 @@ const TransactionFiltersAdvanced = ({
                         </div>
                       </SelectItem>
                     ))}
-                    {sortedCategories.length === 0 && filters.type !== 'all' && (
-                      <SelectItem value="" disabled>
-                        {filters.type === 'income' 
-                          ? 'Nenhuma categoria de receita'
-                          : 'Nenhuma categoria de despesa'
-                        }
-                      </SelectItem>
-                    )}
                   </SelectContent>
                 </Select>
               </div>
