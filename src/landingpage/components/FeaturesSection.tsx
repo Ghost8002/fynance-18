@@ -1,7 +1,7 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/landingpage/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeatureTab } from "./FeatureTab";
-import { features } from "@/landingpage/config/features";
+import { features } from "@/config/features";
 
 export const FeaturesSection = () => {
   return (
