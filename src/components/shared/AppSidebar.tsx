@@ -1,6 +1,8 @@
+
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Command } from 'lucide-react';
+import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Building2 } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+
 const navigationItems = [{
   title: 'Dashboard',
   icon: LayoutDashboard,
@@ -21,6 +23,10 @@ const navigationItems = [{
   title: 'Contas',
   icon: Wallet,
   href: '/contas'
+}, {
+  title: 'Patrimônio',
+  icon: Building2,
+  href: '/patrimonio'
 }, {
   title: 'Orçamentos',
   icon: PiggyBank,
@@ -50,6 +56,7 @@ const navigationItems = [{
   icon: HelpCircle,
   href: '/ajuda'
 }];
+
 export function AppSidebar() {
   const location = useLocation();
   return <Sidebar className="border-r border-finance-primary/10 glass backdrop-blur-xl">

@@ -21,6 +21,7 @@ import Login from "./pages/Login";
 import AIAssistantPage from "./pages/AIAssistant";
 import Reports from "./pages/Reports";
 import Help from "./pages/Help";
+import Assets from "./pages/Assets";
 import LandingPage from "@/landingpage/LandingPage";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -46,6 +47,7 @@ const AppRoutes = () => {
       <Route path="/contas-dividas" element={<AccountsAndDebts />} />
       <Route path="/cartoes" element={<Cards />} />
       <Route path="/contas" element={<Accounts />} />
+      <Route path="/patrimonio" element={<Assets />} />
       <Route path="/orcamentos" element={<Budgets />} />
       <Route path="/metas" element={<Goals />} />
       <Route path="/relatorios" element={<Reports />} />

@@ -77,6 +77,95 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_valuations: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          user_id: string
+          valuation_date: string
+          value: number
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          user_id: string
+          valuation_date: string
+          value: number
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          user_id?: string
+          valuation_date?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_valuations_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          category: string | null
+          condition: string | null
+          created_at: string | null
+          current_value: number
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          condition?: string | null
+          created_at?: string | null
+          current_value: number
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          condition?: string | null
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           category_id: string
