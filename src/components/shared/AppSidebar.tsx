@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Building2 } from 'lucide-react';
+import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Shield } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
 const navigationItems = [{
@@ -24,9 +24,9 @@ const navigationItems = [{
   icon: Wallet,
   href: '/contas'
 }, {
-  title: 'Patrimônio',
-  icon: Building2,
-  href: '/patrimonio'
+  title: 'Controle',
+  icon: Shield,
+  href: '/controle'
 }, {
   title: 'Orçamentos',
   icon: PiggyBank,
