@@ -52,6 +52,30 @@ export interface Database {
           account_number?: string | null;
         };
       };
+      ai_chat_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          message: string;
+          ai_response: string;
+          tokens_used: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          message: string;
+          ai_response: string;
+          tokens_used?: number;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          message?: string;
+          ai_response?: string;
+          tokens_used?: number;
+        };
+      };
       cards: {
         Row: {
           id: string;

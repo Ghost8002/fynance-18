@@ -16,6 +16,7 @@ import Goals from "@/pages/Goals";
 import Reports from "@/pages/Reports";
 import Cards from "@/pages/Cards";
 import Settings from "@/pages/Settings";
+import AIAssistantPage from "@/pages/AIAssistant";
 
 function App() {
   const { user, loading } = useSupabaseAuth();
@@ -50,6 +51,7 @@ function App() {
             <Route path="/reports" element={<Reports />} />
             <Route path="/cards" element={<Cards />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/assistente-ia" element={<AIAssistantPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>

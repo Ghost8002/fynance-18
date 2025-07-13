@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_chat_history: {
+        Row: {
+          ai_response: string
+          created_at: string
+          id: string
+          message: string
+          tokens_used: number
+          user_id: string
+        }
+        Insert: {
+          ai_response: string
+          created_at?: string
+          id?: string
+          message: string
+          tokens_used?: number
+          user_id: string
+        }
+        Update: {
+          ai_response?: string
+          created_at?: string
+          id?: string
+          message?: string
+          tokens_used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           category_id: string
