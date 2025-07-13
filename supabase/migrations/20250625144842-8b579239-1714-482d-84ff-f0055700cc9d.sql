@@ -1,13 +1,14 @@
 
 -- Add new columns to receivable_payments table for recurrence and account selection
 ALTER TABLE public.receivable_payments 
-ADD COLUMN is_recurring BOOLEAN DEFAULT FALSE,
-ADD COLUMN recurrence_type TEXT CHECK (recurrence_type IN ('monthly', 'weekly', 'yearly')) DEFAULT NULL,
-ADD COLUMN account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL;
+ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS recurrence_type TEXT CHECK (recurrence_type IN ('monthly', 'weekly', 'yearly')) DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
+ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL;
 
 -- Update the existing constraint to include the new recurrence fields
 ALTER TABLE public.receivable_payments 
-ADD CONSTRAINT check_recurrence_consistency 
+ADD CONSTRAINT IF NOT EXISTS check_recurrence_consistency 
 CHECK (
   (is_recurring = FALSE AND recurrence_type IS NULL) OR 
   (is_recurring = TRUE AND recurrence_type IS NOT NULL)
@@ -46,7 +47,7 @@ BEGIN
   -- Create the next recurring payment
   INSERT INTO public.receivable_payments (
     user_id, description, amount, due_date, status, notes,
-    is_recurring, recurrence_type, account_id
+    is_recurring, recurrence_type, account_id, category_id
   )
   VALUES (
     current_payment.user_id, 
@@ -57,7 +58,8 @@ BEGIN
     current_payment.notes,
     current_payment.is_recurring,
     current_payment.recurrence_type,
-    current_payment.account_id
+    current_payment.account_id,
+    current_payment.category_id
   )
   RETURNING id INTO new_payment_id;
   

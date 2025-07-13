@@ -205,6 +205,8 @@ export interface Database {
           name: string;
           type: 'income' | 'expense';
           color: string;
+          is_default: boolean;
+          sort_order: number;
           created_at: string;
         };
         Insert: {
@@ -213,6 +215,8 @@ export interface Database {
           name: string;
           type: 'income' | 'expense';
           color?: string;
+          is_default?: boolean;
+          sort_order?: number;
         };
         Update: {
           id?: string;
@@ -220,6 +224,8 @@ export interface Database {
           name?: string;
           type?: 'income' | 'expense';
           color?: string;
+          is_default?: boolean;
+          sort_order?: number;
         };
       };
       transactions: {
@@ -401,6 +407,10 @@ export interface Database {
           status: 'pending' | 'received' | 'overdue';
           received_date: string | null;
           notes: string | null;
+          account_id: string | null;
+          category_id: string | null;
+          is_recurring: boolean;
+          recurrence_type: 'weekly' | 'monthly' | 'yearly' | null;
           created_at: string;
           updated_at: string;
         };
@@ -413,6 +423,10 @@ export interface Database {
           status?: 'pending' | 'received' | 'overdue';
           received_date?: string | null;
           notes?: string | null;
+          account_id?: string | null;
+          category_id?: string | null;
+          is_recurring?: boolean;
+          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
         };
         Update: {
           id?: string;
@@ -423,6 +437,35 @@ export interface Database {
           status?: 'pending' | 'received' | 'overdue';
           received_date?: string | null;
           notes?: string | null;
+          account_id?: string | null;
+          category_id?: string | null;
+          is_recurring?: boolean;
+          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
+        };
+      };
+      tags: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          color: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          color?: string;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          color?: string;
+          is_active?: boolean;
         };
       };
     };
