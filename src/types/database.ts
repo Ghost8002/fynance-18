@@ -5,18 +5,21 @@ export interface Database {
       user_profiles: {
         Row: {
           id: string;
+          user_id: string;
           full_name: string | null;
           avatar_url: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
-          id: string;
+          id?: string;
+          user_id: string;
           full_name?: string | null;
           avatar_url?: string | null;
         };
         Update: {
           id?: string;
+          user_id?: string;
           full_name?: string | null;
           avatar_url?: string | null;
         };

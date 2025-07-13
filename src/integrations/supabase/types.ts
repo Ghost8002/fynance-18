@@ -124,6 +124,106 @@ export type Database = {
           },
         ]
       }
+      card_bills: {
+        Row: {
+          bill_month: number
+          bill_year: number
+          card_id: string
+          closing_date: string
+          created_at: string | null
+          due_date: string
+          id: string
+          paid_amount: number
+          remaining_amount: number
+          status: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bill_month: number
+          bill_year: number
+          card_id: string
+          closing_date: string
+          created_at?: string | null
+          due_date: string
+          id?: string
+          paid_amount?: number
+          remaining_amount?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bill_month?: number
+          bill_year?: number
+          card_id?: string
+          closing_date?: string
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          paid_amount?: number
+          remaining_amount?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_bills_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_limit_history: {
+        Row: {
+          amount: number
+          card_id: string
+          created_at: string | null
+          description: string
+          id: string
+          movement_type: string
+          new_used_amount: number
+          previous_used_amount: number
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_id: string
+          created_at?: string | null
+          description: string
+          id?: string
+          movement_type: string
+          new_used_amount: number
+          previous_used_amount: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          card_id?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          movement_type?: string
+          new_used_amount?: number
+          previous_used_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_limit_history_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cards: {
         Row: {
           closing_day: number
@@ -290,7 +390,10 @@ export type Database = {
           date: string
           description: string
           id: string
+          installment_number: number | null
+          installments_count: number | null
           notes: string | null
+          parent_transaction_id: string | null
           tags: Json | null
           type: string
           updated_at: string
@@ -305,7 +408,10 @@ export type Database = {
           date: string
           description: string
           id?: string
+          installment_number?: number | null
+          installments_count?: number | null
           notes?: string | null
+          parent_transaction_id?: string | null
           tags?: Json | null
           type: string
           updated_at?: string
@@ -320,7 +426,10 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          installment_number?: number | null
+          installments_count?: number | null
           notes?: string | null
+          parent_transaction_id?: string | null
           tags?: Json | null
           type?: string
           updated_at?: string
@@ -346,6 +455,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_parent_transaction_id_fkey"
+            columns: ["parent_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -382,7 +498,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      adjust_card_limit: {
+        Args: { p_card_id: string; p_new_limit: number; p_reason: string }
+        Returns: Json
+      }
+      generate_monthly_bill: {
+        Args: { p_card_id: string; p_month: number; p_year: number }
+        Returns: Json
+      }
+      process_bill_payment: {
+        Args: {
+          p_bill_id: string
+          p_amount: number
+          p_account_id?: string
+          p_description?: string
+        }
+        Returns: Json
+      }
+      process_card_payment: {
+        Args: {
+          p_card_id: string
+          p_amount: number
+          p_account_id?: string
+          p_description?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
