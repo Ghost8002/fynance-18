@@ -3,22 +3,21 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+// Mock interface for user devices since table doesn't exist yet
 interface UserDevice {
   id: string;
   device_name: string;
-  device_type: string;
-  browser?: string;
-  ip_address?: unknown;
+  device_type: 'mobile' | 'desktop';
+  browser: string;
   last_active: string;
   is_current: boolean;
-  created_at: string;
 }
 
 export const useUserDevices = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [devices, setDevices] = useState<UserDevice[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const loadDevices = async () => {
     if (!user?.id) return;
@@ -32,7 +31,7 @@ export const useUserDevices = () => {
       console.error('Erro ao carregar dispositivos:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar os dispositivos conectados.",
+        description: "Erro ao carregar dispositivos.",
         variant: "destructive",
       });
     } finally {
@@ -40,7 +39,7 @@ export const useUserDevices = () => {
     }
   };
 
-  const addCurrentDevice = async () => {
+  const registerCurrentDevice = async () => {
     if (!user?.id) return;
 
     try {
@@ -61,13 +60,13 @@ export const useUserDevices = () => {
       setDevices(devices.filter(device => device.id !== deviceId));
       toast({
         title: "Dispositivo removido",
-        description: "O dispositivo foi desconectado com sucesso.",
+        description: "O dispositivo foi removido com sucesso.",
       });
     } catch (error) {
       console.error('Erro ao remover dispositivo:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível remover o dispositivo.",
+        description: "Erro ao remover dispositivo.",
         variant: "destructive",
       });
     } finally {
@@ -76,11 +75,11 @@ export const useUserDevices = () => {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    if (user) {
       loadDevices();
-      addCurrentDevice();
+      registerCurrentDevice();
     }
-  }, [user?.id]);
+  }, [user]);
 
   return {
     devices,

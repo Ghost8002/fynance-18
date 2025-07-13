@@ -10,8 +10,10 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Index - Auth state:', { isAuthenticated, loading });
     if (!loading && isAuthenticated) {
-      navigate("/dashboard");
+      console.log('Redirecting to dashboard...');
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 
@@ -24,9 +26,11 @@ const Index = () => {
   }
 
   if (isAuthenticated) {
+    console.log('User is authenticated, showing dashboard');
     return <Dashboard />;
   }
 
+  console.log('User not authenticated, showing auth form');
   return <AuthForm />;
 };
 

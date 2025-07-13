@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ const AuthForm = () => {
 
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,16 +28,32 @@ const AuthForm = () => {
 
     try {
       if (isLogin) {
+        console.log('Attempting login...');
         const { error } = await signIn(email, password);
-        if (error) throw error;
+        if (error) {
+          console.error('Login error:', error);
+          throw error;
+        }
         
+        console.log('Login successful, showing toast...');
         toast({
           title: "Sucesso",
           description: "Login realizado com sucesso!",
         });
+
+        // Force navigation after successful login
+        setTimeout(() => {
+          console.log('Forcing navigation to dashboard...');
+          navigate("/dashboard", { replace: true });
+        }, 100);
+        
       } else {
+        console.log('Attempting signup...');
         const { error } = await signUp(email, password, { full_name: fullName });
-        if (error) throw error;
+        if (error) {
+          console.error('Signup error:', error);
+          throw error;
+        }
         
         toast({
           title: "Sucesso",
@@ -45,6 +63,11 @@ const AuthForm = () => {
     } catch (error: any) {
       console.error('Auth error:', error);
       setError(error.message || 'Ocorreu um erro durante a autenticação');
+      toast({
+        title: "Erro",
+        description: error.message || 'Ocorreu um erro durante a autenticação',
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

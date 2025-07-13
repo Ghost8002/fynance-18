@@ -1,16 +1,18 @@
 
 import { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const AuthForm = () => {
-  const { signIn, signUp } = useSupabaseAuth();
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const [signInData, setSignInData] = useState({
@@ -41,6 +43,11 @@ export const AuthForm = () => {
         title: 'Login realizado com sucesso!',
         description: 'Bem-vindo de volta.',
       });
+      
+      // Force navigation after successful login
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 100);
     }
 
     setLoading(false);
