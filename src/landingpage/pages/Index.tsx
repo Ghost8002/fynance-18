@@ -1,14 +1,14 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, Command } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Navigation from "@/components/Navigation";
-import { FeaturesSection } from "@/components/features/FeaturesSection";
-import { PricingSection } from "@/components/pricing/PricingSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
-import Footer from "@/components/Footer";
-import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
-import { SectionSpotlight } from "@/components/ui/SectionSpotlight";
+import { Button } from "@/landingpage/components/ui/button";
+import Navigation from "@/landingpage/components/Navigation";
+import { FeaturesSection } from "@/landingpage/components/features/FeaturesSection";
+import { PricingSection } from "@/landingpage/components/pricing/PricingSection";
+import TestimonialsSection from "@/landingpage/components/TestimonialsSection";
+import Footer from "@/landingpage/components/Footer";
+import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-effect";
+import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
 
 const Index = () => {
   return (
@@ -105,7 +105,7 @@ const Index = () => {
           <div 
             className="absolute inset-0 opacity-10"
             style={{
-              backgroundImage: 'url("/lovable-uploads/21f3edfb-62b5-4e35-9d03-7339d803b980.png")',
+              backgroundImage: 'url("/landingpage/lovable-uploads/21f3edfb-62b5-4e35-9d03-7339d803b980.png")',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
