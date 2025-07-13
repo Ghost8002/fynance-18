@@ -119,6 +119,82 @@ export interface Database {
           due_day?: number;
         };
       };
+      card_bills: {
+        Row: {
+          id: string;
+          user_id: string;
+          card_id: string;
+          bill_month: number;
+          bill_year: number;
+          due_date: string;
+          closing_date: string;
+          total_amount: number;
+          paid_amount: number;
+          remaining_amount: number;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          card_id: string;
+          bill_month: number;
+          bill_year: number;
+          due_date: string;
+          closing_date: string;
+          total_amount?: number;
+          paid_amount?: number;
+          remaining_amount?: number;
+          status?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          card_id?: string;
+          bill_month?: number;
+          bill_year?: number;
+          due_date?: string;
+          closing_date?: string;
+          total_amount?: number;
+          paid_amount?: number;
+          remaining_amount?: number;
+          status?: string;
+        };
+      };
+      card_limit_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          card_id: string;
+          movement_type: string;
+          amount: number;
+          previous_used_amount: number;
+          new_used_amount: number;
+          description: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          card_id: string;
+          movement_type: string;
+          amount: number;
+          previous_used_amount: number;
+          new_used_amount: number;
+          description: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          card_id?: string;
+          movement_type?: string;
+          amount?: number;
+          previous_used_amount?: number;
+          new_used_amount?: number;
+          description?: string;
+        };
+      };
       categories: {
         Row: {
           id: string;
@@ -156,6 +232,9 @@ export interface Database {
           date: string;
           notes: string | null;
           tags: Array<{id: string; name: string; color: string}>;
+          installments_count: number;
+          installment_number: number;
+          parent_transaction_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -171,6 +250,9 @@ export interface Database {
           date: string;
           notes?: string | null;
           tags?: Array<{id: string; name: string; color: string}>;
+          installments_count?: number;
+          installment_number?: number;
+          parent_transaction_id?: string | null;
         };
         Update: {
           id?: string;
@@ -184,6 +266,55 @@ export interface Database {
           date?: string;
           notes?: string | null;
           tags?: Array<{id: string; name: string; color: string}>;
+          installments_count?: number;
+          installment_number?: number;
+          parent_transaction_id?: string | null;
+        };
+      };
+      debts: {
+        Row: {
+          id: string;
+          user_id: string;
+          description: string;
+          amount: number;
+          due_date: string;
+          status: 'pending' | 'paid' | 'overdue';
+          paid_date: string | null;
+          notes: string | null;
+          account_id: string | null;
+          category_id: string | null;
+          is_recurring: boolean;
+          recurrence_type: 'weekly' | 'monthly' | 'yearly' | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          description: string;
+          amount: number;
+          due_date: string;
+          status?: 'pending' | 'paid' | 'overdue';
+          paid_date?: string | null;
+          notes?: string | null;
+          account_id?: string | null;
+          category_id?: string | null;
+          is_recurring?: boolean;
+          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          description?: string;
+          amount?: number;
+          due_date?: string;
+          status?: 'pending' | 'paid' | 'overdue';
+          paid_date?: string | null;
+          notes?: string | null;
+          account_id?: string | null;
+          category_id?: string | null;
+          is_recurring?: boolean;
+          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
         };
       };
       budgets: {
