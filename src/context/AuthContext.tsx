@@ -9,10 +9,13 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, options?: any) => Promise<{ error: any }>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,6 +66,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setIsLoading(false);
+        return { error };
+      }
+
+      toast.success('Login realizado com sucesso!');
+      return { error: null };
+    } catch (error: any) {
+      setIsLoading(false);
+      return { error };
+    }
+  };
+
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -95,6 +119,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signUp = async (email: string, password: string, options?: any) => {
+    setIsLoading(true);
+    try {
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          ...options,
+        },
+      });
+
+      if (error) {
+        setIsLoading(false);
+        return { error };
+      }
+
+      toast.success('Cadastro realizado com sucesso! Verifique seu email.');
+      return { error: null };
+    } catch (error: any) {
+      setIsLoading(false);
+      return { error };
+    }
+  };
+
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -115,10 +166,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         session,
         isLoading,
+        loading: isLoading,
         login,
         register,
         logout,
         isAuthenticated,
+        signIn,
+        signUp,
       }}
     >
       {children}

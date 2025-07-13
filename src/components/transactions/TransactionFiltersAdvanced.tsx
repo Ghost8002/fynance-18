@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,9 +34,9 @@ const TransactionFiltersAdvanced = ({
   const handleFilterChange = (key: keyof TransactionFilters, value: string) => {
     // Clear category filter when transaction type changes
     if (key === 'type' && filters.categoryId !== 'all') {
-      onFiltersChange({ ...filters, [key]: value, categoryId: 'all' });
+      onFiltersChange({ ...filters, [key]: value as any, categoryId: 'all' });
     } else {
-      onFiltersChange({ ...filters, [key]: value });
+      onFiltersChange({ ...filters, [key]: value as any });
     }
   };
 
