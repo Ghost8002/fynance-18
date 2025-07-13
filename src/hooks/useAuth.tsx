@@ -1,11 +1,3 @@
 
-import { useContext } from "react";
-import { AuthContext } from "@/context/AuthContext";
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+// This file now re-exports useAuth from AuthContext for backward compatibility
+export { useAuth } from '@/context/AuthContext';
