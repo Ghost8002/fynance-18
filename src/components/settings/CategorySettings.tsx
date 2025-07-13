@@ -61,22 +61,42 @@ const CategorySettings = () => {
       return;
     }
 
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Criando categoria:', {
+      name: newCategory.name.trim(),
+      type: newCategory.type,
+      color: newCategory.color,
+      is_default: false,
+      sort_order: 999,
+      user_id: user.id
+    });
+
     const { error } = await insert({
       name: newCategory.name.trim(),
       type: newCategory.type,
       color: newCategory.color,
       is_default: false,
       sort_order: 999,
-      user_id: user?.id
+      user_id: user.id
     });
 
     if (error) {
+      console.error('Erro ao criar categoria:', error);
       toast({
         title: "Erro",
         description: `Erro ao criar categoria: ${error}`,
         variant: "destructive",
       });
     } else {
+      console.log('Categoria criada com sucesso');
       toast({
         title: "Sucesso",
         description: "Categoria criada com sucesso",
