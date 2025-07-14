@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Shield, Star, Calendar, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { Plus, Shield, Star, Calendar, AlertTriangle, Clock, CheckCircle, Import } from 'lucide-react';
 import { ControlForm } from '@/components/control/ControlForm';
 import { ControlList } from '@/components/control/ControlList';
 import { ControlStats } from '@/components/control/ControlStats';
+import { TransactionImportModal } from '@/components/control/TransactionImportModal';
 import AppLayout from '@/components/shared/AppLayout';
 
 const Control = () => {
   const [showForm, setShowForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importedTransactions, setImportedTransactions] = useState<any[]>([]);
 
   // Dados mockados para controle de produtos
   const mockProducts = [
@@ -70,6 +73,12 @@ const Control = () => {
     setShowForm(false);
   };
 
+  const handleImportTransactions = (transactions: any[]) => {
+    console.log('Transações importadas:', transactions);
+    setImportedTransactions(transactions);
+    setShowForm(true); // Abre o formulário para configurar os produtos importados
+  };
+
   const totalLiveloPoints = mockProducts.reduce((sum, product) => sum + product.liveloPoints, 0);
   const productsInWarranty = mockProducts.filter(p => p.status === 'Dentro da garantia').length;
   const expiredWarranty = mockProducts.filter(p => p.status === 'Garantia vencida').length;
@@ -84,87 +93,146 @@ const Control = () => {
               Gerencie suas garantias e pontos Livelo
             </p>
           </div>
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="bg-finance-primary hover:bg-finance-primary/90"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Produto
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowImportModal(true)}
+              variant="outline"
+              className="border-finance-primary text-finance-primary hover:bg-finance-primary hover:text-white"
+            >
+              <Import className="mr-2 h-4 w-4" />
+              Importar Produto
+            </Button>
+            <Button 
+              onClick={() => setShowForm(true)}
+              className="bg-finance-primary hover:bg-finance-primary/90"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Produto
+            </Button>
+          </div>
         </div>
 
-      {/* Stats Cards */}
-      <ControlStats
-        totalProducts={mockProducts.length}
-        totalLiveloPoints={totalLiveloPoints}
-        productsInWarranty={productsInWarranty}
-        expiredWarranty={expiredWarranty}
-      />
+        {/* Transações Importadas */}
+        {importedTransactions.length > 0 && (
+          <Card className="bg-finance-card border-finance-border border-l-4 border-l-finance-primary">
+            <CardHeader>
+              <CardTitle className="text-finance-text-primary flex items-center gap-2">
+                <Import className="h-5 w-5" />
+                Transações Importadas ({importedTransactions.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-finance-text-secondary mb-4">
+                Configure os pontos Livelo e a garantia para os produtos importados das transações selecionadas.
+              </p>
+              <div className="space-y-2">
+                {importedTransactions.map((transaction) => (
+                  <div key={transaction.id} className="flex items-center justify-between p-3 bg-finance-background-secondary rounded-lg">
+                    <div>
+                      <span className="font-medium text-finance-text-primary">{transaction.description}</span>
+                      <span className="text-sm text-finance-text-secondary ml-2">
+                        R$ {Math.abs(transaction.amount).toFixed(2)}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      Aguardando configuração
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+              <Button 
+                onClick={() => setShowForm(true)}
+                className="mt-4 bg-finance-primary hover:bg-finance-primary/90"
+              >
+                Configurar Produtos
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Produtos por Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-finance-card border-finance-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-finance-text-secondary">
-              Garantia Válida
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-finance-text-primary">
-              {productsInWarranty}
-            </div>
-            <p className="text-xs text-finance-text-tertiary">
-              produtos protegidos
-            </p>
-          </CardContent>
-        </Card>
+        {/* Stats Cards */}
+        <ControlStats
+          totalProducts={mockProducts.length}
+          totalLiveloPoints={totalLiveloPoints}
+          productsInWarranty={productsInWarranty}
+          expiredWarranty={expiredWarranty}
+        />
 
-        <Card className="bg-finance-card border-finance-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-finance-text-secondary">
-              Garantia Vencida
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-finance-text-primary">
-              {expiredWarranty}
-            </div>
-            <p className="text-xs text-finance-text-tertiary">
-              produtos sem garantia
-            </p>
-          </CardContent>
-        </Card>
+        {/* Produtos por Status */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-finance-card border-finance-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-finance-text-secondary">
+                Garantia Válida
+              </CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-finance-text-primary">
+                {productsInWarranty}
+              </div>
+              <p className="text-xs text-finance-text-tertiary">
+                produtos protegidos
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-finance-card border-finance-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-finance-text-secondary">
-              Vencendo em 30 dias
-            </CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-finance-text-primary">
-              1
-            </div>
-            <p className="text-xs text-finance-text-tertiary">
-              necessita atenção
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="bg-finance-card border-finance-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-finance-text-secondary">
+                Garantia Vencida
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-finance-text-primary">
+                {expiredWarranty}
+              </div>
+              <p className="text-xs text-finance-text-tertiary">
+                produtos sem garantia
+              </p>
+            </CardContent>
+          </Card>
 
-      {/* Products List */}
-      <ControlList products={mockProducts} />
+          <Card className="bg-finance-card border-finance-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-finance-text-secondary">
+                Vencendo em 30 dias
+              </CardTitle>
+              <Clock className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-finance-text-primary">
+                1
+              </div>
+              <p className="text-xs text-finance-text-tertiary">
+                necessita atenção
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Products List */}
+        <ControlList products={mockProducts} />
 
         {/* Form Modal */}
         {showForm && (
           <ControlForm
-            onClose={() => setShowForm(false)}
+            onClose={() => {
+              setShowForm(false);
+              setImportedTransactions([]); // Limpa as transações importadas ao fechar
+            }}
             onSave={handleSaveProduct}
+            importedTransactions={importedTransactions}
           />
         )}
+
+        {/* Import Modal */}
+        <TransactionImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onImport={handleImportTransactions}
+        />
       </div>
     </AppLayout>
   );
