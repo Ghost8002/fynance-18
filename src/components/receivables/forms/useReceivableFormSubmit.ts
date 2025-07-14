@@ -1,56 +1,57 @@
 
 import { useState } from 'react';
-import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
-  const { user } = useSupabaseAuth();
-  const { insert, update } = useSupabaseData('receivable_payments', user?.id);
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { insert, update } = useSupabaseData('receivable_payments', user?.id);
 
   const handleSubmit = async (formData: any) => {
+    if (!user?.id) {
+      toast.error('Usuário não autenticado');
+      return false;
+    }
+
     setLoading(true);
 
     try {
-      const data = {
+      const submitData = {
+        user_id: user.id,
         description: formData.description,
-        amount: parseFloat(formData.amount.toString()),
-        due_date: format(formData.due_date, 'yyyy-MM-dd'),
+        amount: parseFloat(formData.amount),
+        due_date: formData.due_date.toISOString().split('T')[0],
         notes: formData.notes || null,
         account_id: formData.account_id || null,
         category_id: formData.category_id || null,
-        is_recurring: formData.is_recurring,
+        is_recurring: formData.is_recurring || false,
         recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
-        user_id: user?.id,
+        status: 'pending'
       };
 
       let result;
       if (payment) {
-        result = await update(payment.id, data);
+        // Updating existing payment
+        const { id, user_id, created_at, updated_at, ...updateData } = submitData;
+        result = await update(payment.id, updateData);
       } else {
-        result = await insert(data);
+        // Creating new payment
+        result = await insert(submitData);
       }
 
       if (result.error) {
         throw new Error(result.error);
       }
 
-      toast({
-        title: "Sucesso",
-        description: payment ? "Pagamento atualizado com sucesso!" : "Pagamento criado com sucesso!",
-      });
-
+      toast.success(payment ? 'Pagamento atualizado com sucesso!' : 'Pagamento criado com sucesso!');
       onSubmit();
-    } catch (error) {
-      console.error('Error saving payment:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar pagamento. Tente novamente.",
-        variant: "destructive",
-      });
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao salvar pagamento:', error);
+      toast.error('Erro ao salvar pagamento: ' + error.message);
+      return false;
     } finally {
       setLoading(false);
     }
