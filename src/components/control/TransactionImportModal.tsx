@@ -20,14 +20,14 @@ export const TransactionImportModal = ({ isOpen, onClose, onImport }: Transactio
   
   const { transactions, loading } = useTransactionsPaginated(
     {
-      type: '',
-      category: '',
-      account: '',
-      card: '',
-      tags: [],
-      dateRange: { from: undefined, to: undefined },
-      amountRange: { min: undefined, max: undefined },
-      description: ''
+      search: '',
+      dateRange: '',
+      type: 'all',
+      categoryId: '',
+      accountId: '',
+      cardId: '',
+      minAmount: '',
+      maxAmount: ''
     },
     100
   );
