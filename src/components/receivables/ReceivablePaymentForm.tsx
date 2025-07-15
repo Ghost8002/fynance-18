@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useAuth } from "@/hooks/useAuth";
 import ReceivableFormFields from "./forms/ReceivableFormFields";
 import { useReceivableFormValidation } from "./forms/useReceivableFormValidation";
 import { useReceivableFormSubmit } from "./forms/useReceivableFormSubmit";
@@ -20,7 +20,7 @@ const ReceivablePaymentForm: React.FC<ReceivablePaymentFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuth();
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
 
@@ -33,11 +33,10 @@ const ReceivablePaymentForm: React.FC<ReceivablePaymentFormProps> = ({
     category_id: payment?.category_id || '',
     is_recurring: payment?.is_recurring || false,
     recurrence_type: payment?.recurrence_type || '',
-    selectedTags: [],
   });
 
   // Filter income categories
-  const incomeCategories = categories.filter(cat => cat.type === 'income');
+  const incomeCategories = categories?.filter(cat => cat.type === 'income') || [];
 
   const { validateForm } = useReceivableFormValidation();
   const { handleSubmit, loading } = useReceivableFormSubmit(payment, onSubmit);
@@ -66,7 +65,7 @@ const ReceivablePaymentForm: React.FC<ReceivablePaymentFormProps> = ({
             <ReceivableFormFields
               formData={formData}
               setFormData={setFormData}
-              accounts={accounts}
+              accounts={accounts || []}
               incomeCategories={incomeCategories}
             />
 

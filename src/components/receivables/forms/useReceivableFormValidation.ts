@@ -1,5 +1,5 @@
 
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface FormData {
   description: string;
@@ -11,33 +11,19 @@ interface FormData {
 }
 
 export const useReceivableFormValidation = () => {
-  const { toast } = useToast();
-
   const validateForm = (formData: FormData): boolean => {
     if (!formData.description || !formData.amount || !formData.due_date) {
-      toast({
-        title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
-        variant: "destructive",
-      });
+      toast.error("Preencha todos os campos obrigatórios");
       return false;
     }
 
     if (formData.is_recurring && !formData.recurrence_type) {
-      toast({
-        title: "Erro",
-        description: "Selecione o tipo de recorrência",
-        variant: "destructive",
-      });
+      toast.error("Selecione o tipo de recorrência");
       return false;
     }
 
     if (!formData.account_id) {
-      toast({
-        title: "Atenção",
-        description: "Recomendamos selecionar uma conta para permitir a geração automática de transações ao marcar como recebido.",
-        variant: "default",
-      });
+      toast.success("Recomendamos selecionar uma conta para permitir a geração automática de transações ao marcar como recebido.");
     }
 
     return true;
