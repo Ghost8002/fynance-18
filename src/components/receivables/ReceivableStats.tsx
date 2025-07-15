@@ -29,10 +29,10 @@ const ReceivableStats = ({ payments }: ReceivableStatsProps) => {
       return p.status === 'pending' && isBefore(due, today);
     });
 
-    const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    const pendingAmount = pending.reduce((sum, p) => sum + Number(p.amount), 0);
-    const receivedAmount = received.reduce((sum, p) => sum + Number(p.amount), 0);
-    const overdueAmount = overdue.reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const pendingAmount = pending.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const receivedAmount = received.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const overdueAmount = overdue.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
     const receivedPercentage = totalAmount > 0 ? (receivedAmount / totalAmount) * 100 : 0;
 

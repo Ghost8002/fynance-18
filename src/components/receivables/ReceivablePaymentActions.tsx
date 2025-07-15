@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Calendar, Edit, Trash2 } from "lucide-react";
+import { CheckCircle, Calendar, Edit, Trash2, Repeat } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ReceivablePaymentActionsProps {
   payment: any;
@@ -36,7 +37,28 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
         throw new Error(result.error);
       }
 
-      toast.success('Pagamento marcado como recebido!');
+      // Create next payment if it's recurring
+      if (payment.is_recurring) {
+        try {
+          const { data, error } = await supabase.rpc('create_next_recurring_payment', {
+            payment_id: payment.id
+          });
+
+          if (error) {
+            console.error('Error creating next recurring payment:', error);
+          } else if (data) {
+            toast.success('Pagamento marcado como recebido e próximo pagamento criado!');
+          } else {
+            toast.success('Pagamento marcado como recebido!');
+          }
+        } catch (error) {
+          console.error('Error with recurring payment:', error);
+          toast.success('Pagamento marcado como recebido!');
+        }
+      } else {
+        toast.success('Pagamento marcado como recebido!');
+      }
+
       onRefresh();
     } catch (error: any) {
       console.error('Erro ao marcar pagamento como recebido:', error);
@@ -102,9 +124,10 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
             {getStatusLabel(payment.status)}
           </Badge>
           {payment.is_recurring && (
-            <Badge variant="outline">
-              Recorrente ({payment.recurrence_type === 'monthly' ? 'Mensal' : 
-                         payment.recurrence_type === 'weekly' ? 'Semanal' : 'Anual'})
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Repeat className="h-3 w-3" />
+              {payment.recurrence_type === 'monthly' ? 'Mensal' : 
+               payment.recurrence_type === 'weekly' ? 'Semanal' : 'Anual'}
             </Badge>
           )}
         </div>
