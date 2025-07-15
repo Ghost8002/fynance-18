@@ -18,31 +18,24 @@ export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
     setLoading(true);
 
     try {
+      // Only use fields that exist in the receivable_payments table
       const submitData = {
         user_id: user.id,
         description: formData.description,
         amount: parseFloat(formData.amount),
         due_date: formData.due_date.toISOString().split('T')[0],
         notes: formData.notes || null,
-        account_id: formData.account_id || null,
-        category_id: formData.category_id || null,
-        is_recurring: formData.is_recurring || false,
-        recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
         status: 'pending'
       };
 
       let result;
       if (payment) {
-        // Updating existing payment - exclude auto-generated fields
+        // Updating existing payment - only update allowed fields
         const updateData = {
           description: submitData.description,
           amount: submitData.amount,
           due_date: submitData.due_date,
           notes: submitData.notes,
-          account_id: submitData.account_id,
-          category_id: submitData.category_id,
-          is_recurring: submitData.is_recurring,
-          recurrence_type: submitData.recurrence_type,
           status: submitData.status
         };
         result = await update(payment.id, updateData);
