@@ -3,29 +3,53 @@ import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ReceivableFormFieldsProps {
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
+  accounts: any[];
+  incomeCategories: any[];
 }
 
 const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
   formData,
   setFormData,
+  accounts,
+  incomeCategories,
 }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
+
   const handleDateChange = (date: Date | undefined) => {
     setFormData((prev: any) => ({ ...prev, due_date: date }));
+  };
+
+  const handleRecurringChange = (checked: boolean) => {
+    setFormData((prev: any) => ({ 
+      ...prev, 
+      is_recurring: checked,
+      recurrence_type: checked ? 'monthly' : ''
+    }));
   };
 
   return (
@@ -87,6 +111,54 @@ const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
         </Popover>
       </div>
 
+      {incomeCategories && incomeCategories.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="category_id">Categoria</Label>
+          <Select
+            value={formData.category_id}
+            onValueChange={(value) => handleSelectChange("category_id", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              {incomeCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <span>{category.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {accounts && accounts.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="account_id">Conta</Label>
+          <Select
+            value={formData.account_id}
+            onValueChange={(value) => handleSelectChange("account_id", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma conta" />
+            </SelectTrigger>
+            <SelectContent>
+              {accounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name} - {account.bank}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="notes">Observações</Label>
         <Textarea
@@ -98,6 +170,34 @@ const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
           rows={3}
         />
       </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="is_recurring"
+          checked={formData.is_recurring}
+          onCheckedChange={handleRecurringChange}
+        />
+        <Label htmlFor="is_recurring">Pagamento recorrente</Label>
+      </div>
+
+      {formData.is_recurring && (
+        <div className="space-y-2">
+          <Label htmlFor="recurrence_type">Tipo de Recorrência</Label>
+          <Select
+            value={formData.recurrence_type}
+            onValueChange={(value) => handleSelectChange("recurrence_type", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a recorrência" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="weekly">Semanal</SelectItem>
+              <SelectItem value="monthly">Mensal</SelectItem>
+              <SelectItem value="yearly">Anual</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };
