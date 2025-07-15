@@ -13,15 +13,11 @@ import { cn } from "@/lib/utils";
 interface ReceivableFormFieldsProps {
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
-  accounts: any[];
-  incomeCategories: any[];
 }
 
 const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
   formData,
   setFormData,
-  accounts,
-  incomeCategories,
 }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

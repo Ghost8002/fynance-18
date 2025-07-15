@@ -52,8 +52,6 @@ const ReceivablePaymentForm: React.FC<ReceivablePaymentFormProps> = ({
             <ReceivableFormFields
               formData={formData}
               setFormData={setFormData}
-              accounts={[]}
-              incomeCategories={[]}
             />
 
             <div className="flex gap-2 pt-4">
