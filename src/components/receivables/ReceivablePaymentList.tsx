@@ -2,13 +2,11 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, DollarSign, Edit, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
-import { toast } from "sonner";
 import ReceivablePaymentForm from "./ReceivablePaymentForm";
+import ReceivablePaymentActions from "./ReceivablePaymentActions";
 
 const ReceivablePaymentList = () => {
   const { user } = useAuth();
@@ -35,28 +33,6 @@ const ReceivablePaymentList = () => {
   const handleFormCancel = () => {
     setShowForm(false);
     setEditingPayment(null);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'received':
-        return 'bg-green-100 text-green-800';
-      case 'overdue':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'received':
-        return 'Recebido';
-      case 'overdue':
-        return 'Vencido';
-      default:
-        return 'Pendente';
-    }
   };
 
   if (loading) {
@@ -88,54 +64,12 @@ const ReceivablePaymentList = () => {
           {payments && payments.length > 0 ? (
             <div className="space-y-4">
               {payments.map((payment) => (
-                <div
+                <ReceivablePaymentActions
                   key={payment.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-2">
-                      <h3 className="font-medium text-foreground">
-                        {payment.description}
-                      </h3>
-                      <Badge className={getStatusColor(payment.status)}>
-                        {getStatusLabel(payment.status)}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" />
-                        R$ {Number(payment.amount).toFixed(2)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        Vencimento: {format(new Date(payment.due_date), 'dd/MM/yyyy')}
-                      </div>
-                      {payment.received_date && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          Recebido: {format(new Date(payment.received_date), 'dd/MM/yyyy')}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {payment.notes && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        {payment.notes}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditPayment(payment)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                  payment={payment}
+                  onEdit={handleEditPayment}
+                  onRefresh={refetch}
+                />
               ))}
             </div>
           ) : (

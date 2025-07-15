@@ -33,8 +33,17 @@ export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
 
       let result;
       if (payment) {
-        // Updating existing payment
-        const { id, user_id, created_at, updated_at, ...updateData } = submitData;
+        // Updating existing payment - only send the fields that can be updated
+        const updateData = {
+          description: submitData.description,
+          amount: submitData.amount,
+          due_date: submitData.due_date,
+          notes: submitData.notes,
+          account_id: submitData.account_id,
+          category_id: submitData.category_id,
+          is_recurring: submitData.is_recurring,
+          recurrence_type: submitData.recurrence_type
+        };
         result = await update(payment.id, updateData);
       } else {
         // Creating new payment
