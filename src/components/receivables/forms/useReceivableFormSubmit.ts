@@ -18,10 +18,16 @@ export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
     setLoading(true);
 
     try {
+      // Validação de valor
+      const amount = parseFloat(formData.amount.toString());
+      if (isNaN(amount) || !isFinite(amount) || amount <= 0) {
+        throw new Error('O valor deve ser um número positivo válido');
+      }
+
       const submitData = {
         user_id: user.id,
         description: formData.description,
-        amount: parseFloat(formData.amount),
+        amount: amount, // Usar o valor validado
         due_date: formData.due_date.toISOString().split('T')[0],
         notes: formData.notes || null,
         account_id: formData.account_id || null,
@@ -58,8 +64,8 @@ export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
       onSubmit();
       return true;
     } catch (error: any) {
-      console.error('Erro ao salvar pagamento:', error);
-      toast.error('Erro ao salvar pagamento: ' + error.message);
+      console.error('Error submitting receivable payment:', error);
+      toast.error(error.message || 'Erro ao salvar pagamento');
       return false;
     } finally {
       setLoading(false);

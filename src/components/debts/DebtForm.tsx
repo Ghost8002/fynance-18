@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import TagSelector from "@/components/shared/TagSelector";
+import { isBefore } from "date-fns";
 
 interface Debt {
   id: string;
@@ -94,6 +95,27 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
       return;
     }
 
+    // Validação de data de vencimento
+    if (formData.due_date && isBefore(formData.due_date, new Date())) {
+      toast({
+        title: "Erro",
+        description: "A data de vencimento deve ser futura",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação de valor
+    const amount = parseFloat(formData.amount);
+    if (isNaN(amount) || !isFinite(amount) || amount <= 0) {
+      toast({
+        title: "Erro",
+        description: "O valor deve ser um número positivo válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (formData.is_recurring && !formData.recurrence_type) {
       toast({
         title: "Erro",
@@ -116,7 +138,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
       const debtData = {
         user_id: user.id,
         description: formData.description,
-        amount: parseFloat(formData.amount),
+        amount: amount, // Usar o valor validado
         due_date: format(formData.due_date, 'yyyy-MM-dd'),
         status: formData.status,
         notes: formData.notes || null,
@@ -158,7 +180,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
           const transactionData = {
             user_id: user.id,
             description: `Pagamento: ${formData.description}`,
-            amount: -Math.abs(parseFloat(formData.amount)),
+            amount: -Math.abs(amount), // Usar o valor validado
             type: 'expense',
             date: format(formData.due_date, 'yyyy-MM-dd'),
             account_id: formData.account_id

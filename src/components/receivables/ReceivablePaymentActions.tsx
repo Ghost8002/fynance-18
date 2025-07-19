@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Calendar, Edit, Trash2, Repeat } from "lucide-react";
+import { CheckCircle, Calendar, Edit, Trash2, Repeat, Loader2, AlertCircle } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ interface ReceivablePaymentActionsProps {
 const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaymentActionsProps) => {
   const { user } = useAuth();
   const { update, remove } = useSupabaseData('receivable_payments', user?.id);
-  const [loading, setLoading] = useState(false);
+  const [loadingOperations, setLoadingOperations] = useState<{[key: string]: boolean}>({});
 
   const handleMarkAsReceived = async () => {
     if (!user?.id) {
@@ -26,35 +26,34 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
       return;
     }
 
-    setLoading(true);
+    const operationId = `mark-received-${payment.id}`;
+    setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
+
     try {
-      const result = await update(payment.id, {
-        status: 'received',
-        received_date: new Date().toISOString().split('T')[0]
+      // Usar a nova função de rollback
+      const { data, error } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
+        p_payment_id: payment.id,
+        p_user_id: user.id,
+        p_amount: payment.amount,
+        p_description: payment.description,
+        p_account_id: payment.account_id,
+        p_category_id: payment.category_id,
+        p_is_recurring: payment.is_recurring,
+        p_recurrence_type: payment.recurrence_type,
+        p_due_date: payment.due_date
       });
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (error) {
+        throw new Error(error.message);
       }
 
-      // Create next payment if it's recurring
-      if (payment.is_recurring) {
-        try {
-          const { data, error } = await supabase.rpc('create_next_recurring_payment', {
-            payment_id: payment.id
-          });
+      if (data && !data.success) {
+        throw new Error(data.message || 'Erro ao processar pagamento');
+      }
 
-          if (error) {
-            console.error('Error creating next recurring payment:', error);
-          } else if (data) {
-            toast.success('Pagamento marcado como recebido e próximo pagamento criado!');
-          } else {
-            toast.success('Pagamento marcado como recebido!');
-          }
-        } catch (error) {
-          console.error('Error with recurring payment:', error);
-          toast.success('Pagamento marcado como recebido!');
-        }
+      // Feedback de sucesso
+      if (payment.is_recurring) {
+        toast.success('Pagamento marcado como recebido e próximo pagamento criado!');
       } else {
         toast.success('Pagamento marcado como recebido!');
       }
@@ -62,9 +61,46 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
       onRefresh();
     } catch (error: any) {
       console.error('Erro ao marcar pagamento como recebido:', error);
-      toast.error('Erro ao marcar pagamento como recebido');
+      toast.error(error.message || 'Erro ao marcar pagamento como recebido');
     } finally {
-      setLoading(false);
+      setLoadingOperations(prev => ({ ...prev, [operationId]: false }));
+    }
+  };
+
+  const handleUnmarkAsReceived = async () => {
+    if (!user?.id) {
+      toast.error('Usuário não autenticado');
+      return;
+    }
+
+    const operationId = `unmark-received-${payment.id}`;
+    setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
+
+    try {
+      // Usar a nova função de rollback
+      const { data, error } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
+        p_payment_id: payment.id,
+        p_user_id: user.id,
+        p_amount: payment.amount,
+        p_description: payment.description,
+        p_account_id: payment.account_id
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data && !data.success) {
+        throw new Error(data.message || 'Erro ao processar pagamento');
+      }
+
+      toast.success('Pagamento desmarcado como recebido!');
+      onRefresh();
+    } catch (error: any) {
+      console.error('Erro ao desmarcar pagamento como recebido:', error);
+      toast.error(error.message || 'Erro ao desmarcar pagamento como recebido');
+    } finally {
+      setLoadingOperations(prev => ({ ...prev, [operationId]: false }));
     }
   };
 
@@ -73,7 +109,9 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
       return;
     }
 
-    setLoading(true);
+    const operationId = `delete-${payment.id}`;
+    setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
+
     try {
       const result = await remove(payment.id);
 
@@ -87,7 +125,7 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
       console.error('Erro ao excluir pagamento:', error);
       toast.error('Erro ao excluir pagamento');
     } finally {
-      setLoading(false);
+      setLoadingOperations(prev => ({ ...prev, [operationId]: false }));
     }
   };
 
@@ -156,34 +194,59 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
       </div>
       
       <div className="flex items-center gap-2">
-        {payment.status === 'pending' && (
+        {payment.status === 'pending' ? (
           <Button
             variant="outline"
             size="sm"
             onClick={handleMarkAsReceived}
-            disabled={loading}
+            disabled={Object.values(loadingOperations).some(Boolean)}
             className="text-green-600 hover:text-green-700"
           >
-            <CheckCircle className="h-4 w-4 mr-1" />
-            Marcar como Recebido
+            {loadingOperations[`mark-received-${payment.id}`] ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle className="h-4 w-4" />
+            )}
+            <span className="ml-1">Marcar como Recebido</span>
           </Button>
-        )}
+        ) : payment.status === 'received' ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUnmarkAsReceived}
+            disabled={Object.values(loadingOperations).some(Boolean)}
+            className="text-orange-600 hover:text-orange-700"
+          >
+            {loadingOperations[`unmark-received-${payment.id}`] ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle className="h-4 w-4" />
+            )}
+            <span className="ml-1">Desmarcar</span>
+          </Button>
+        ) : null}
+        
         <Button
           variant="outline"
           size="sm"
           onClick={() => onEdit(payment)}
-          disabled={loading}
+          disabled={Object.values(loadingOperations).some(Boolean)}
         >
           <Edit className="h-4 w-4" />
         </Button>
+        
         <Button
           variant="outline"
           size="sm"
           onClick={handleDelete}
-          disabled={loading}
+          disabled={Object.values(loadingOperations).some(Boolean)}
           className="text-red-600 hover:text-red-700"
         >
-          <Trash2 className="h-4 w-4" />
+          {loadingOperations[`delete-${payment.id}`] ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>

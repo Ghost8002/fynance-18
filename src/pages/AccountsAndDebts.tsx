@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ReceivablePaymentList from "@/components/receivables/ReceivablePaymentList";
+import ReceivableList from "@/components/receivables/ReceivableList";
 import ReceivableStats from "@/components/receivables/ReceivableStats";
 import DebtList from "@/components/debts/DebtList";
 import DebtStats from "@/components/debts/DebtStats";
@@ -43,7 +43,7 @@ const AccountsAndDebts = () => {
           
           <TabsContent value="receivables" className="space-y-6">
             <ReceivableStats payments={payments || []} />
-            <ReceivablePaymentList />
+            <ReceivableList />
           </TabsContent>
           
           <TabsContent value="debts" className="space-y-6">

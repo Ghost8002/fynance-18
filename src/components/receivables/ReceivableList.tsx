@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +15,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { supabase } from "@/integrations/supabase/client";
-import DebtForm from "./DebtForm";
+import ReceivableForm from "./ReceivableForm";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -37,8 +37,8 @@ const getStatusBadge = (status: string, dueDate: string) => {
   }
 
   switch (actualStatus) {
-    case 'paid':
-      return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Paga</Badge>;
+    case 'received':
+      return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Recebido</Badge>;
     case 'overdue':
       return <Badge variant="destructive">Em Atraso</Badge>;
     case 'pending':
@@ -65,9 +65,9 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
   );
 };
 
-const DebtList: React.FC = () => {
+const ReceivableList: React.FC = () => {
   const { user } = useSupabaseAuth();
-  const { data: debts, loading, error, update, remove, refetch } = useSupabaseData('debts', user?.id);
+  const { data: receivables, loading, error, update, remove, refetch } = useSupabaseData('receivable_payments', user?.id);
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
   const { updateAccountBalance } = useBalanceUpdates();
@@ -75,88 +75,88 @@ const DebtList: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedDebt, setSelectedDebt] = useState<any>(null);
+  const [selectedReceivable, setSelectedReceivable] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
-  const [debtForAccountSelection, setDebtForAccountSelection] = useState<any>(null);
+  const [receivableForAccountSelection, setReceivableForAccountSelection] = useState<any>(null);
   
   // Estados de loading para feedback visual
   const [loadingOperations, setLoadingOperations] = useState<{[key: string]: boolean}>({});
 
-  // Find default expense category
-  const defaultExpenseCategory = categories.find(cat => 
-    cat.type === 'expense' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('despesa'))
-  ) || categories.find(cat => cat.type === 'expense');
+  // Find default income category
+  const defaultIncomeCategory = categories.find(cat => 
+    cat.type === 'income' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('receita'))
+  ) || categories.find(cat => cat.type === 'income');
 
-  // Filter and search debts
-  const filteredDebts = useMemo(() => {
-    return debts.filter(debt => {
-      const matchesSearch = debt.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter and search receivables
+  const filteredReceivables = useMemo(() => {
+    return receivables.filter(receivable => {
+      const matchesSearch = receivable.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (statusFilter === 'all') return matchesSearch;
       
       const today = startOfDay(new Date());
-      const due = startOfDay(new Date(debt.due_date));
-      let actualStatus = debt.status;
+      const due = startOfDay(new Date(receivable.due_date));
+      let actualStatus = receivable.status;
       
-      if (debt.status === 'pending' && isBefore(due, today)) {
+      if (receivable.status === 'pending' && isBefore(due, today)) {
         actualStatus = 'overdue';
       }
       
       return matchesSearch && actualStatus === statusFilter;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [debts, searchTerm, statusFilter]);
+  }, [receivables, searchTerm, statusFilter]);
 
   // Calculate totals
   const totals = useMemo(() => {
     const today = startOfDay(new Date());
     
-    return debts.reduce((acc, debt) => {
-      const due = startOfDay(new Date(debt.due_date));
-      let actualStatus = debt.status;
+    return receivables.reduce((acc, receivable) => {
+      const due = startOfDay(new Date(receivable.due_date));
+      let actualStatus = receivable.status;
       
-      if (debt.status === 'pending' && isBefore(due, today)) {
+      if (receivable.status === 'pending' && isBefore(due, today)) {
         actualStatus = 'overdue';
       }
       
-      const amount = Number(debt.amount);
+      const amount = Number(receivable.amount);
       if (!isNaN(amount) && isFinite(amount)) {
         acc[actualStatus] = (acc[actualStatus] || 0) + amount;
         acc.total += amount;
       }
       
       return acc;
-    }, { pending: 0, paid: 0, overdue: 0, total: 0 });
-  }, [debts]);
+    }, { pending: 0, received: 0, overdue: 0, total: 0 });
+  }, [receivables]);
 
-  const handleMarkAsPaid = async (debt: any) => {
-    const operationId = `mark-paid-${debt.id}`;
+  const handleMarkAsReceived = async (receivable: any) => {
+    const operationId = `mark-received-${receivable.id}`;
     
     try {
       // Iniciar loading
       setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
       
-      // Validation: check if debt has an associated account
-      if (!debt.account_id) {
+      // Validation: check if receivable has an associated account
+      if (!receivable.account_id) {
         // Em vez de bloquear, oferecer opção de selecionar conta
-        setDebtForAccountSelection(debt);
+        setReceivableForAccountSelection(receivable);
         setShowAccountSelector(true);
         return;
       }
 
-      console.log('Starting to mark debt as paid:', debt.id);
+      console.log('Starting to mark receivable as received:', receivable.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_debt_as_paid_with_rollback', {
-        p_debt_id: debt.id,
+      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
+        p_payment_id: receivable.id,
         p_user_id: user?.id,
-        p_amount: debt.amount,
-        p_description: debt.description,
-        p_account_id: debt.account_id,
-        p_category_id: defaultExpenseCategory?.id,
-        p_is_recurring: debt.is_recurring,
-        p_recurrence_type: debt.recurrence_type,
-        p_due_date: debt.due_date
+        p_amount: receivable.amount,
+        p_description: receivable.description,
+        p_account_id: receivable.account_id,
+        p_category_id: defaultIncomeCategory?.id,
+        p_is_recurring: receivable.is_recurring,
+        p_recurrence_type: receivable.recurrence_type,
+        p_due_date: receivable.due_date
       });
 
       if (transactionError) {
@@ -167,24 +167,24 @@ const DebtList: React.FC = () => {
       console.log('Database transaction completed successfully');
 
       // Feedback de sucesso
-      if (debt.is_recurring) {
+      if (receivable.is_recurring) {
         toast({
           title: "Sucesso",
-          description: "Dívida recorrente marcada como paga, transação criada automaticamente e próxima ocorrência gerada!",
+          description: "Pagamento recorrente marcado como recebido, transação criada automaticamente e próxima ocorrência gerada!",
         });
       } else {
         toast({
           title: "Sucesso",
-          description: "Dívida marcada como paga e transação criada automaticamente na aba Transações!",
+          description: "Pagamento marcado como recebido e transação criada automaticamente na aba Transações!",
         });
       }
 
       refetch();
     } catch (error) {
-      console.error('Error in handleMarkAsPaid:', error);
+      console.error('Error in handleMarkAsReceived:', error);
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao processar dívida. Tente novamente.",
+        description: error instanceof Error ? error.message : "Erro ao processar pagamento. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -193,12 +193,12 @@ const DebtList: React.FC = () => {
     }
   };
 
-  const handleSelectAccountAndMarkAsPaid = async (accountId: string) => {
-    if (!debtForAccountSelection) return;
+  const handleSelectAccountAndMarkAsReceived = async (accountId: string) => {
+    if (!receivableForAccountSelection) return;
     
     try {
-      // Primeiro atualizar a dívida com a conta selecionada
-      const updateResult = await update(debtForAccountSelection.id, {
+      // Primeiro atualizar o pagamento com a conta selecionada
+      const updateResult = await update(receivableForAccountSelection.id, {
         account_id: accountId
       });
 
@@ -208,11 +208,11 @@ const DebtList: React.FC = () => {
 
       // Fechar seletor de conta
       setShowAccountSelector(false);
-      setDebtForAccountSelection(null);
+      setReceivableForAccountSelection(null);
 
-      // Agora marcar como paga com a conta selecionada
-      const debtWithAccount = { ...debtForAccountSelection, account_id: accountId };
-      await handleMarkAsPaid(debtWithAccount);
+      // Agora marcar como recebido com a conta selecionada
+      const receivableWithAccount = { ...receivableForAccountSelection, account_id: accountId };
+      await handleMarkAsReceived(receivableWithAccount);
 
     } catch (error) {
       console.error('Error selecting account:', error);
@@ -224,22 +224,22 @@ const DebtList: React.FC = () => {
     }
   };
 
-  const handleUnmarkAsPaid = async (debt: any) => {
-    const operationId = `unmark-paid-${debt.id}`;
+  const handleUnmarkAsReceived = async (receivable: any) => {
+    const operationId = `unmark-received-${receivable.id}`;
     
     try {
       // Iniciar loading
       setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
       
-      console.log('Starting to unmark debt as paid:', debt.id);
+      console.log('Starting to unmark receivable as received:', receivable.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_debt_as_paid_with_rollback', {
-        p_debt_id: debt.id,
+      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
+        p_payment_id: receivable.id,
         p_user_id: user?.id,
-        p_amount: debt.amount,
-        p_description: debt.description,
-        p_account_id: debt.account_id
+        p_amount: receivable.amount,
+        p_description: receivable.description,
+        p_account_id: receivable.account_id
       });
 
       if (transactionError) {
@@ -251,15 +251,15 @@ const DebtList: React.FC = () => {
 
       toast({
         title: "Sucesso",
-        description: "Dívida desmarcada como paga e transação removida!",
+        description: "Pagamento desmarcado como recebido e transação removida!",
       });
 
       refetch();
     } catch (error) {
-      console.error('Error in handleUnmarkAsPaid:', error);
+      console.error('Error in handleUnmarkAsReceived:', error);
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao desmarcar dívida. Tente novamente.",
+        description: error instanceof Error ? error.message : "Erro ao desmarcar pagamento. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -268,14 +268,14 @@ const DebtList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (debtId: string) => {
-    const operationId = `delete-${debtId}`;
+  const handleDelete = async (receivableId: string) => {
+    const operationId = `delete-${receivableId}`;
     
     try {
       // Iniciar loading
       setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
       
-      const result = await remove(debtId);
+      const result = await remove(receivableId);
 
       if (result.error) {
         throw new Error(result.error);
@@ -283,15 +283,15 @@ const DebtList: React.FC = () => {
 
       toast({
         title: "Sucesso",
-        description: "Dívida excluída com sucesso!",
+        description: "Pagamento excluído com sucesso!",
       });
 
       refetch();
     } catch (error) {
-      console.error('Error deleting debt:', error);
+      console.error('Error deleting receivable:', error);
       toast({
         title: "Erro",
-        description: "Erro ao excluir dívida. Tente novamente.",
+        description: "Erro ao excluir pagamento. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -301,13 +301,13 @@ const DebtList: React.FC = () => {
   };
 
   const handleFormSubmit = () => {
-    setSelectedDebt(null);
+    setSelectedReceivable(null);
     setShowForm(false);
     refetch();
   };
 
   const handleFormCancel = () => {
-    setSelectedDebt(null);
+    setSelectedReceivable(null);
     setShowForm(false);
   };
 
@@ -321,7 +321,7 @@ const DebtList: React.FC = () => {
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando dívidas...</p>
+          <p className="text-muted-foreground">Carregando pagamentos...</p>
         </div>
       </div>
     );
@@ -331,7 +331,7 @@ const DebtList: React.FC = () => {
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-destructive">Erro ao carregar dívidas: {error}</p>
+          <p className="text-destructive">Erro ao carregar pagamentos: {error}</p>
         </CardContent>
       </Card>
     );
@@ -352,10 +352,10 @@ const DebtList: React.FC = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pago</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(totals.paid)}</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(totals.received)}</div>
           </CardContent>
         </Card>
         
@@ -383,23 +383,23 @@ const DebtList: React.FC = () => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle>Dívidas a Pagar</CardTitle>
-              <CardDescription>Gerencie suas dívidas - transações são geradas automaticamente ao marcar como paga</CardDescription>
+              <CardTitle>Pagamentos a Receber</CardTitle>
+              <CardDescription>Gerencie seus pagamentos a receber - transações são geradas automaticamente ao marcar como recebido</CardDescription>
             </div>
             
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
-                <Button onClick={() => setSelectedDebt(null)}>
+                <Button onClick={() => setSelectedReceivable(null)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Nova Dívida
+                  Novo Pagamento
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>{selectedDebt ? 'Editar Dívida' : 'Nova Dívida'}</DialogTitle>
+                  <DialogTitle>{selectedReceivable ? 'Editar Pagamento' : 'Novo Pagamento'}</DialogTitle>
                 </DialogHeader>
-                <DebtForm
-                  debt={selectedDebt}
+                <ReceivableForm
+                  receivable={selectedReceivable}
                   onClose={handleFormCancel}
                   onSave={handleFormSubmit}
                 />
@@ -412,7 +412,7 @@ const DebtList: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar dívidas..."
+                placeholder="Buscar pagamentos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -426,7 +426,7 @@ const DebtList: React.FC = () => {
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
                 <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="paid">Pagas</SelectItem>
+                <SelectItem value="received">Recebidos</SelectItem>
                 <SelectItem value="overdue">Em Atraso</SelectItem>
               </SelectContent>
             </Select>
@@ -434,7 +434,7 @@ const DebtList: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          {filteredDebts.length > 0 ? (
+          {filteredReceivables.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -449,16 +449,16 @@ const DebtList: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDebts.map((debt) => (
-                    <TableRow key={debt.id}>
-                      <TableCell className="font-medium">{debt.description}</TableCell>
-                      <TableCell>{formatCurrency(Number(debt.amount))}</TableCell>
-                      <TableCell>{format(new Date(debt.due_date), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
+                  {filteredReceivables.map((receivable) => (
+                    <TableRow key={receivable.id}>
+                      <TableCell className="font-medium">{receivable.description}</TableCell>
+                      <TableCell>{formatCurrency(Number(receivable.amount))}</TableCell>
+                      <TableCell>{format(new Date(receivable.due_date), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
                       <TableCell>
-                        {debt.account_id ? (
+                        {receivable.account_id ? (
                           <div className="flex items-center gap-1">
                             <Receipt className="h-3 w-3 text-green-600" />
-                            {getAccountName(debt.account_id)}
+                            {getAccountName(receivable.account_id)}
                           </div>
                         ) : (
                           <Badge variant="outline" className="text-orange-600 border-orange-200">
@@ -466,34 +466,34 @@ const DebtList: React.FC = () => {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(debt.status, debt.due_date)}</TableCell>
-                      <TableCell>{getRecurrenceBadge(debt.is_recurring, debt.recurrence_type)}</TableCell>
+                      <TableCell>{getStatusBadge(receivable.status, receivable.due_date)}</TableCell>
+                      <TableCell>{getRecurrenceBadge(receivable.is_recurring, receivable.recurrence_type)}</TableCell>
                       
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {debt.status === 'pending' ? (
+                          {receivable.status === 'pending' ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleMarkAsPaid(debt)}
-                              disabled={loadingOperations[`mark-paid-${debt.id}`]}
+                              onClick={() => handleMarkAsReceived(receivable)}
+                              disabled={loadingOperations[`mark-received-${receivable.id}`]}
                               className="text-green-600 hover:text-green-700"
                             >
-                              {loadingOperations[`mark-paid-${debt.id}`] ? (
+                              {loadingOperations[`mark-received-${receivable.id}`] ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Check className="h-4 w-4" />
                               )}
                             </Button>
-                          ) : debt.status === 'paid' ? (
+                          ) : receivable.status === 'received' ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleUnmarkAsPaid(debt)}
-                              disabled={loadingOperations[`unmark-paid-${debt.id}`]}
+                              onClick={() => handleUnmarkAsReceived(receivable)}
+                              disabled={loadingOperations[`unmark-received-${receivable.id}`]}
                               className="text-orange-600 hover:text-orange-700"
                             >
-                              {loadingOperations[`unmark-paid-${debt.id}`] ? (
+                              {loadingOperations[`unmark-received-${receivable.id}`] ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <X className="h-4 w-4" />
@@ -504,7 +504,7 @@ const DebtList: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSelectedDebt(debt)}
+                            onClick={() => setSelectedReceivable(receivable)}
                             disabled={Object.values(loadingOperations).some(Boolean)}
                           >
                             <Edit className="h-4 w-4" />
@@ -525,14 +525,14 @@ const DebtList: React.FC = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza que deseja excluir a dívida "{debt.description}"? 
+                                  Tem certeza que deseja excluir o pagamento "{receivable.description}"? 
                                   Esta ação não pode ser desfeita.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDelete(debt.id)}
+                                  onClick={() => handleDelete(receivable.id)}
                                   className="bg-red-600 hover:bg-red-700"
                                 >
                                   Excluir
@@ -550,15 +550,15 @@ const DebtList: React.FC = () => {
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                {debts.length === 0 
-                  ? "Nenhuma dívida cadastrada. Comece adicionando sua primeira dívida!"
-                  : "Nenhuma dívida encontrada com os filtros aplicados."
+                {receivables.length === 0 
+                  ? "Nenhum pagamento cadastrado. Comece adicionando seu primeiro pagamento!"
+                  : "Nenhum pagamento encontrado com os filtros aplicados."
                 }
               </p>
-              {debts.length === 0 && (
+              {receivables.length === 0 && (
                 <Button onClick={() => setShowForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Primeira Dívida
+                  Adicionar Primeiro Pagamento
                 </Button>
               )}
             </div>
@@ -576,13 +576,13 @@ const DebtList: React.FC = () => {
             <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <AlertCircle className="h-5 w-5 text-yellow-600" />
               <p className="text-sm text-yellow-800">
-                Esta dívida não possui uma conta associada. Selecione uma conta para permitir a geração automática de transações.
+                Este pagamento não possui uma conta associada. Selecione uma conta para permitir a geração automática de transações.
               </p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Conta para débito:</label>
-              <Select onValueChange={handleSelectAccountAndMarkAsPaid}>
+              <label className="text-sm font-medium">Conta para crédito:</label>
+              <Select onValueChange={handleSelectAccountAndMarkAsReceived}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma conta" />
                 </SelectTrigger>
@@ -608,4 +608,4 @@ const DebtList: React.FC = () => {
   );
 };
 
-export default DebtList;
+export default ReceivableList; 
