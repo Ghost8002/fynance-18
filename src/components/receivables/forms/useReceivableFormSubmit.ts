@@ -37,6 +37,24 @@ export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
         status: 'pending'
       };
 
+      // Validate required fields
+      if (!submitData.description || !submitData.amount || !submitData.due_date) {
+        toast.error('Preencha todos os campos obrigatórios');
+        return false;
+      }
+
+      // Validate recurrence fields
+      if (submitData.is_recurring && !submitData.recurrence_type) {
+        toast.error('Selecione o tipo de recorrência');
+        return false;
+      }
+
+      // Validate amount
+      if (submitData.amount <= 0) {
+        toast.error('O valor deve ser maior que zero');
+        return false;
+      }
+
       let result;
       if (payment) {
         // Updating existing payment - only send the fields that can be updated

@@ -12,6 +12,7 @@ interface ReceivablePayment {
   due_date: string;
   status: string;
   description: string;
+  received_date?: string;
 }
 
 interface ReceivableStatsProps {
@@ -24,9 +25,11 @@ const ReceivableStats = ({ payments }: ReceivableStatsProps) => {
     
     const pending = payments.filter(p => p.status === 'pending');
     const received = payments.filter(p => p.status === 'received');
-    const overdue = payments.filter(p => {
+    
+    // Calculate overdue payments
+    const overdue = pending.filter(p => {
       const due = startOfDay(new Date(p.due_date));
-      return p.status === 'pending' && isBefore(due, today);
+      return isBefore(due, today);
     });
 
     const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);

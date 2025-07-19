@@ -13,8 +13,10 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 const AccountsAndDebts = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const { data: payments } = useSupabaseData('receivable_payments', user?.id);
-  const { data: debts } = useSupabaseData('debts', user?.id);
+  const [activeTab, setActiveTab] = useState("receivables");
+  
+  const { data: payments, refetch: refetchPayments } = useSupabaseData('receivable_payments', user?.id);
+  const { data: debts, refetch: refetchDebts } = useSupabaseData('debts', user?.id);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -22,6 +24,19 @@ const AccountsAndDebts = () => {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
+
+  // Auto-refresh data every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeTab === "receivables") {
+        refetchPayments();
+      } else {
+        refetchDebts();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [activeTab, refetchPayments, refetchDebts]);
 
   if (!isAuthenticated) {
     return null;
@@ -35,7 +50,7 @@ const AccountsAndDebts = () => {
           <p className="text-muted-foreground">Gerencie seus pagamentos a receber e dívidas a pagar</p>
         </div>
         
-        <Tabs defaultValue="receivables" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="receivables">Pagamentos a Receber</TabsTrigger>
             <TabsTrigger value="debts">Dívidas a Pagar</TabsTrigger>

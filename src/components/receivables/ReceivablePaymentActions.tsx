@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Calendar, Edit, Trash2, Repeat, Loader2, AlertCircle } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
+import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,7 +55,7 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
       if (payment.is_recurring) {
         toast.success('Pagamento marcado como recebido e próximo pagamento criado!');
       } else {
-        toast.success('Pagamento marcado como recebido!');
+        toast.success('Pagamento marcado como recebido e transação criada!');
       }
 
       onRefresh();
