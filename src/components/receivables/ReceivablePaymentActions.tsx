@@ -18,6 +18,7 @@ interface ReceivablePaymentActionsProps {
 const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaymentActionsProps) => {
   const { user } = useAuth();
   const { update, remove } = useSupabaseData('receivable_payments', user?.id);
+  const { insert: insertTransaction } = useSupabaseData('transactions', user?.id);
   const [loading, setLoading] = useState(false);
 
   const handleMarkAsReceived = async () => {
@@ -37,6 +38,33 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
         throw new Error(result.error);
       }
 
+      // Create transaction when payment is received
+      if (payment.account_id) {
+        const transactionData = {
+          user_id: user.id,
+          type: 'income',
+          amount: payment.amount,
+          description: `Recebimento: ${payment.description}`,
+          date: new Date().toISOString().split('T')[0],
+          account_id: payment.account_id,
+          category_id: payment.category_id,
+          notes: payment.notes
+        };
+
+        await insertTransaction(transactionData);
+
+        // Update account balance
+        const { error: balanceError } = await supabase.rpc('update_account_balance', {
+          account_id: payment.account_id,
+          amount: payment.amount,
+          operation: 'add'
+        });
+
+        if (balanceError) {
+          console.error('Error updating account balance:', balanceError);
+        }
+      }
+
       // Create next payment if it's recurring
       if (payment.is_recurring) {
         try {
@@ -47,16 +75,16 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
           if (error) {
             console.error('Error creating next recurring payment:', error);
           } else if (data) {
-            toast.success('Pagamento marcado como recebido e próximo pagamento criado!');
+            toast.success('Pagamento marcado como recebido, transação criada e próximo pagamento agendado!');
           } else {
-            toast.success('Pagamento marcado como recebido!');
+            toast.success('Pagamento marcado como recebido e transação criada!');
           }
         } catch (error) {
           console.error('Error with recurring payment:', error);
-          toast.success('Pagamento marcado como recebido!');
+          toast.success('Pagamento marcado como recebido e transação criada!');
         }
       } else {
-        toast.success('Pagamento marcado como recebido!');
+        toast.success('Pagamento marcado como recebido e transação criada!');
       }
 
       onRefresh();
