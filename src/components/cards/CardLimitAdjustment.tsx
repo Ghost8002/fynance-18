@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useCardPermissions } from "@/hooks/useCardPermissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings } from "lucide-react";
 
@@ -19,6 +20,7 @@ interface CardLimitAdjustmentProps {
 export const CardLimitAdjustment = ({ cardId, currentLimit, onUpdate }: CardLimitAdjustmentProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { canAdjustLimit } = useCardPermissions();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -46,10 +48,10 @@ export const CardLimitAdjustment = ({ cardId, currentLimit, onUpdate }: CardLimi
     }
 
     const newLimit = parseFloat(formData.newLimit);
-    if (newLimit <= 0) {
+    if (isNaN(newLimit) || !isFinite(newLimit) || newLimit <= 0) {
       toast({
         title: "Erro",
-        description: "O limite deve ser maior que zero",
+        description: "O limite deve ser um número positivo válido",
         variant: "destructive",
       });
       return;

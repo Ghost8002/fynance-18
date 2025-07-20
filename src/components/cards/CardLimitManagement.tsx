@@ -23,12 +23,17 @@ interface CardLimitManagementProps {
 }
 
 export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps) => {
-  const creditLimit = parseFloat(card.credit_limit.toString());
-  const usedAmount = parseFloat(card.used_amount?.toString() || '0');
-  const availableAmount = creditLimit - usedAmount;
-  const usagePercentage = (usedAmount / creditLimit) * 100;
+  // Validação robusta de tipos numéricos
+  const creditLimit = typeof card.credit_limit === 'number' ? card.credit_limit : 0;
+  const usedAmount = typeof card.used_amount === 'number' ? card.used_amount : 0;
+  const availableAmount = Math.max(0, creditLimit - usedAmount);
+  const usagePercentage = creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0;
 
   const formatCurrency = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) {
+      return 'R$ 0,00';
+    }
+    
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',

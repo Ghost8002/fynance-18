@@ -24,7 +24,7 @@ interface CardListProps {
 
 const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
   const { user } = useAuth();
-  const { data: cards, loading, error, remove } = useSupabaseData('cards', user?.id);
+  const { data: cards, loading, error, remove, refetch } = useSupabaseData('cards', user?.id);
   const { toast } = useToast();
 
   const handleDelete = async (id: string) => {
@@ -40,6 +40,8 @@ const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
         title: "Cartão removido",
         description: "Cartão removido com sucesso.",
       });
+      // Força atualização do cache
+      await refetch();
     }
   };
 
@@ -62,10 +64,11 @@ const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {cards.map((card) => {
-        const creditLimit = parseFloat(card.credit_limit);
-        const usedAmount = parseFloat(card.used_amount || '0');
-        const availableAmount = creditLimit - usedAmount;
-        const usagePercentage = (usedAmount / creditLimit) * 100;
+        // Validação robusta de números para evitar NaN
+        const creditLimit = isNaN(parseFloat(card.credit_limit)) ? 0 : parseFloat(card.credit_limit);
+        const usedAmount = isNaN(parseFloat(card.used_amount || '0')) ? 0 : parseFloat(card.used_amount || '0');
+        const availableAmount = Math.max(0, creditLimit - usedAmount);
+        const usagePercentage = creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0;
 
         return (
           <Card

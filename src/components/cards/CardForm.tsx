@@ -54,6 +54,39 @@ const CardForm = () => {
       return;
     }
 
+    // Validação robusta do limite
+    const limit = parseFloat(formData.limit);
+    if (isNaN(limit) || !isFinite(limit) || limit <= 0) {
+      toast({
+        title: "Erro",
+        description: "O limite deve ser um número positivo válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação dos dias
+    const closingDay = parseInt(formData.closingDay);
+    const dueDay = parseInt(formData.dueDay);
+    
+    if (formData.closingDay && (isNaN(closingDay) || closingDay < 1 || closingDay > 31)) {
+      toast({
+        title: "Erro",
+        description: "O dia de fechamento deve ser entre 1 e 31",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.dueDay && (isNaN(dueDay) || dueDay < 1 || dueDay > 31)) {
+      toast({
+        title: "Erro",
+        description: "O dia de vencimento deve ser entre 1 e 31",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -66,10 +99,10 @@ const CardForm = () => {
         last_four_digits: formData.number,
         type: formData.type || "Visa",
         expiry_date: formData.expiryDate || null,
-        credit_limit: parseFloat(formData.limit),
+        credit_limit: limit, // Usar valor já validado
         color: randomColor,
-        closing_day: parseInt(formData.closingDay) || 15,
-        due_day: parseInt(formData.dueDay) || 22,
+        closing_day: closingDay || 15,
+        due_day: dueDay || 22,
         used_amount: 0,
       };
 

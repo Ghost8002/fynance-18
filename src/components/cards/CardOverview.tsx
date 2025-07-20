@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, AlertTriangle, CheckCircle } from "lucide-react";
+import { CreditCard, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { calculateDaysUntilDue, formatCurrency } from "@/utils/dateValidation";
 
 interface CardData {
   id: string;
@@ -19,18 +21,15 @@ interface CardOverviewProps {
 }
 
 export const CardOverview = ({ card }: CardOverviewProps) => {
-  const creditLimit = parseFloat(card.credit_limit.toString());
-  const usedAmount = parseFloat(card.used_amount?.toString() || '0');
-  const availableAmount = creditLimit - usedAmount;
-  const usagePercentage = (usedAmount / creditLimit) * 100;
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Validação robusta de tipos numéricos
+  const creditLimit = typeof card.credit_limit === 'number' ? card.credit_limit : 0;
+  const usedAmount = typeof card.used_amount === 'number' ? card.used_amount : 0;
+  const availableAmount = Math.max(0, creditLimit - usedAmount);
+  const usagePercentage = creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0;
 
-  // Helper function to format currency
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+
 
   // Helper function to get usage status
   const getUsageStatus = () => {
@@ -42,12 +41,8 @@ export const CardOverview = ({ card }: CardOverviewProps) => {
   const status = getUsageStatus();
   const StatusIcon = status.icon;
 
-  // Calculate days until due date
-  const today = new Date();
-  const currentDay = today.getDate();
-  const daysUntilDue = card.due_day > currentDay 
-    ? card.due_day - currentDay 
-    : (new Date(today.getFullYear(), today.getMonth() + 1, card.due_day).getDate() - currentDay);
+  // Calculate days until due date using utility function
+  const daysUntilDue = calculateDaysUntilDue(card.due_day);
 
   return (
     <Card className="w-full">

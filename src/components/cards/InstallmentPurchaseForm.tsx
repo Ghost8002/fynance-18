@@ -24,6 +24,18 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
   const { data: categories } = useSupabaseData('categories', user?.id);
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { tags } = useTags();
+
+  // Helper function to format currency
+  const formatCurrency = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) {
+      return 'R$ 0,00';
+    }
+    
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -91,7 +103,7 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
             }))
         : [];
 
-      // Create all installment transactions
+      // Preparar transações para função atômica
       const transactions = [];
       
       for (let i = 0; i < installmentCount; i++) {
@@ -99,58 +111,31 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
         installmentDate.setMonth(installmentDate.getMonth() + i);
         
         const transaction = {
-          user_id: user.id,
-          type: 'expense' as const,
+          type: 'expense',
           description: installmentCount > 1 
             ? `${formData.description} (${i + 1}/${installmentCount})`
             : formData.description,
           amount: installmentAmount,
           category_id: formData.categoryId,
-          card_id: formData.cardId,
           date: installmentDate.toISOString().split('T')[0],
           notes: formData.notes || null,
           installments_count: installmentCount,
           installment_number: i + 1,
-          parent_transaction_id: i === 0 ? null : undefined, // Will be set for subsequent installments
-          tags: transactionTags // Store tags directly in the JSONB column
+          tags: transactionTags
         };
 
         transactions.push(transaction);
       }
 
-      // Insert the first transaction (parent)
-      const { data: parentTransaction, error: parentError } = await supabase
-        .from('transactions')
-        .insert(transactions[0])
-        .select()
-        .single();
+      // Usar função atômica para criar compra parcelada
+      const { data: parentId, error } = await supabase.rpc('create_installment_purchase', {
+        p_user_id: user.id,
+        p_transactions: transactions,
+        p_card_id: formData.cardId,
+        p_total_amount: totalAmount
+      });
 
-      if (parentError) throw parentError;
-
-      // Insert remaining transactions with parent reference
-      if (transactions.length > 1) {
-        const childTransactions = transactions.slice(1).map(transaction => ({
-          ...transaction,
-          parent_transaction_id: parentTransaction.id
-        }));
-
-        const { error: childError } = await supabase
-          .from('transactions')
-          .insert(childTransactions);
-
-        if (childError) throw childError;
-      }
-
-      // Update card used amount
-      const selectedCard = cards?.find(c => c.id === formData.cardId);
-      if (selectedCard) {
-        const newUsedAmount = parseFloat(selectedCard.used_amount || '0') + totalAmount;
-        
-        await supabase
-          .from('cards')
-          .update({ used_amount: newUsedAmount })
-          .eq('id', formData.cardId);
-      }
+      if (error) throw error;
 
       toast({
         title: "Sucesso",

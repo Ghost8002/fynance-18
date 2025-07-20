@@ -66,8 +66,8 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
     setLoading(true);
 
     try {
-      // Usar a função RPC do Supabase para processar o pagamento
-      const { data, error } = await supabase.rpc('process_card_payment', {
+      // Usar a função RPC segura do Supabase para processar o pagamento
+      const { data, error } = await supabase.rpc('process_card_payment_secure', {
         p_card_id: formData.cardId,
         p_amount: amount,
         p_account_id: formData.accountId || null,
@@ -107,11 +107,26 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
       setOpen(false);
       onPaymentAdded?.();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing payment:', error);
+      
+      let errorMessage = "Não foi possível processar o pagamento";
+      
+      if (error.message?.includes('insufficient')) {
+        errorMessage = "Saldo insuficiente na conta selecionada";
+      } else if (error.message?.includes('card not found')) {
+        errorMessage = "Cartão não encontrado";
+      } else if (error.message?.includes('invalid amount')) {
+        errorMessage = "Valor inválido para pagamento";
+      } else if (error.message?.includes('access denied')) {
+        errorMessage = "Você não tem permissão para realizar esta operação";
+      } else if (error.message?.includes('not authenticated')) {
+        errorMessage = "Usuário não autenticado";
+      }
+      
       toast({
         title: "Erro",
-        description: "Não foi possível processar o pagamento",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
