@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Calendar, Edit, Trash2, Repeat } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
+import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
   const { user } = useAuth();
   const { update, remove } = useSupabaseData('receivable_payments', user?.id);
   const { insert: insertTransaction } = useSupabaseData('transactions', user?.id);
+  const { updateAccountBalance } = useBalanceUpdates();
   const [loading, setLoading] = useState(false);
 
   const handleMarkAsReceived = async () => {
@@ -53,16 +54,8 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
 
         await insertTransaction(transactionData);
 
-        // Update account balance
-        const { error: balanceError } = await supabase.rpc('update_account_balance', {
-          account_id: payment.account_id,
-          amount: payment.amount,
-          operation: 'add'
-        });
-
-        if (balanceError) {
-          console.error('Error updating account balance:', balanceError);
-        }
+        // Update account balance using the hook
+        await updateAccountBalance(payment.account_id, payment.amount, 'income');
       }
 
       // Create next payment if it's recurring
