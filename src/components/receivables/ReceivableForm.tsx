@@ -7,8 +7,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CalendarIcon, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -17,18 +18,19 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { isBefore } from "date-fns";
+import TagSelector from "@/components/shared/TagSelector";
 
 interface Receivable {
   id: string;
   description: string;
   amount: number;
   due_date: string;
-  status: string;
+  status: 'pending' | 'received' | 'overdue';
   notes?: string;
   account_id?: string;
   category_id?: string;
-  is_recurring: boolean;
-  recurrence_type?: string;
+  is_recurring?: boolean;
+  recurrence_type?: 'weekly' | 'monthly' | 'yearly';
 }
 
 interface ReceivableFormProps {
@@ -47,22 +49,19 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
-    due_date: new Date(),
-    status: 'pending',
+    due_date: undefined as Date | undefined,
+    status: 'pending' as 'pending' | 'received' | 'overdue',
     notes: '',
     account_id: '',
     category_id: '',
     is_recurring: false,
-    recurrence_type: ''
+    recurrence_type: 'monthly' as 'weekly' | 'monthly' | 'yearly',
+    selectedTags: [] as string[]
   });
-
-  // Find default income category
-  const defaultIncomeCategory = categories.find(cat => 
-    cat.type === 'income' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('receita'))
-  ) || categories.find(cat => cat.type === 'income');
 
   useEffect(() => {
     if (receivable) {
+      console.log('Loading receivable data:', receivable);
       setFormData({
         description: receivable.description,
         amount: receivable.amount.toString(),
@@ -71,11 +70,16 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
         notes: receivable.notes || '',
         account_id: receivable.account_id || '',
         category_id: receivable.category_id || '',
-        is_recurring: receivable.is_recurring,
-        recurrence_type: receivable.recurrence_type || ''
+        is_recurring: receivable.is_recurring || false,
+        recurrence_type: receivable.recurrence_type || 'monthly',
+        selectedTags: []
       });
     }
   }, [receivable]);
+
+  const handleTagsChange = (tags: string[]) => {
+    setFormData({ ...formData, selectedTags: tags });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +147,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
         status: formData.status,
         notes: formData.notes || null,
         account_id: formData.account_id || null,
+        category_id: formData.category_id || null,
         is_recurring: formData.is_recurring,
         recurrence_type: formData.is_recurring ? formData.recurrence_type : null
       };
@@ -183,7 +188,8 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
             amount: Math.abs(amount), // Usar o valor validado
             type: 'income',
             date: format(formData.due_date, 'yyyy-MM-dd'),
-            account_id: formData.account_id
+            account_id: formData.account_id,
+            category_id: formData.category_id || null
           };
 
           console.log('Creating transaction:', transactionData);
@@ -217,174 +223,195 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Description */}
-        <div className="md:col-span-2">
-          <Label htmlFor="description">Descrição *</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Ex: Salário, Freelance, Aluguel"
-            required
-          />
-        </div>
-
-        {/* Amount */}
-        <div>
-          <Label htmlFor="amount">Valor *</Label>
-          <Input
-            id="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.amount}
-            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-            placeholder="0,00"
-            required
-          />
-        </div>
-
-        {/* Due Date */}
-        <div>
-          <Label>Data de Vencimento *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !formData.due_date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.due_date ? format(formData.due_date, "dd/MM/yyyy", { locale: ptBR }) : "Selecione uma data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={formData.due_date}
-                onSelect={(date) => date && setFormData({ ...formData, due_date: date })}
-                initialFocus
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Account */}
-        <div>
-          <Label htmlFor="account">Conta</Label>
-          <Select
-            value={formData.account_id}
-            onValueChange={(value) => setFormData({ ...formData, account_id: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma conta" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts?.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.name} - {account.bank || 'Sem banco'}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Category */}
-        <div>
-          <Label htmlFor="category">Categoria</Label>
-          <Select
-            value={formData.category_id}
-            onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories?.filter(cat => cat.type === 'income').map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Status */}
-        <div>
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={formData.status}
-            onValueChange={(value) => setFormData({ ...formData, status: value })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="received">Recebido</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Recurring */}
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="recurring"
-            checked={formData.is_recurring}
-            onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
-          />
-          <Label htmlFor="recurring">Pagamento Recorrente</Label>
-        </div>
-
-        {/* Recurrence Type */}
-        {formData.is_recurring && (
-          <div>
-            <Label htmlFor="recurrence_type">Tipo de Recorrência</Label>
-            <Select
-              value={formData.recurrence_type}
-              onValueChange={(value) => setFormData({ ...formData, recurrence_type: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="weekly">Semanal</SelectItem>
-                <SelectItem value="monthly">Mensal</SelectItem>
-                <SelectItem value="yearly">Anual</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="w-full max-w-2xl mx-auto">
+      <ScrollArea className="h-[80vh] pr-4">
+        <div className="space-y-6 p-1">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold">
+              {receivable ? 'Editar Pagamento' : 'Novo Pagamento a Receber'}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {receivable ? 'Atualize os dados do pagamento' : 'Adicione um novo pagamento a receber'}
+            </p>
           </div>
-        )}
-      </div>
 
-      {/* Notes */}
-      <div>
-        <Label htmlFor="notes">Observações</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="Informações adicionais sobre o pagamento..."
-          rows={3}
-        />
-      </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição *</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Ex: Salário, Freelance, Aluguel"
+                required
+              />
+            </div>
 
-      {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {receivable ? 'Atualizar' : 'Cadastrar'}
-        </Button>
-      </div>
-    </form>
+            <div className="space-y-2">
+              <Label htmlFor="amount">Valor (R$) *</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                placeholder="0,00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Data de Vencimento *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.due_date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.due_date ? format(formData.due_date, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.due_date}
+                    onSelect={(date) => setFormData({...formData, due_date: date})}
+                    initialFocus
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="account">Conta de Recebimento</Label>
+              <Select 
+                value={formData.account_id || "none"} 
+                onValueChange={(value) => setFormData({...formData, account_id: value === "none" ? "" : value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a conta onde será recebido" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma conta</SelectItem>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name} - {account.bank || 'Sem banco'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {!formData.account_id && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Selecione uma conta para permitir a criação automática de transações ao marcar como recebido.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select 
+                value={formData.category_id || "none"} 
+                onValueChange={(value) => setFormData({...formData, category_id: value === "none" ? "" : value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma categoria</SelectItem>
+                  {categories?.filter(cat => cat.type === 'income').map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <TagSelector
+              selectedTags={formData.selectedTags}
+              onTagsChange={handleTagsChange}
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: 'pending' | 'received' | 'overdue') => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="received">Recebido</SelectItem>
+                  <SelectItem value="overdue">Em Atraso</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_recurring"
+                  checked={formData.is_recurring}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
+                />
+                <Label htmlFor="is_recurring">Pagamento Recorrente</Label>
+              </div>
+
+              {formData.is_recurring && (
+                <div className="space-y-2">
+                  <Label htmlFor="recurrence_type">Tipo de Recorrência *</Label>
+                  <Select 
+                    value={formData.recurrence_type} 
+                    onValueChange={(value: 'weekly' | 'monthly' | 'yearly') => setFormData({...formData, recurrence_type: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a recorrência" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Semanal</SelectItem>
+                      <SelectItem value="monthly">Mensal</SelectItem>
+                      <SelectItem value="yearly">Anual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Observações adicionais (opcional)"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading ? 'Salvando...' : receivable ? 'Atualizar' : 'Criar Pagamento'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 

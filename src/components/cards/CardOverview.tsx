@@ -3,7 +3,13 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { calculateDaysUntilDue, formatCurrency } from "@/utils/dateValidation";
+import { 
+  formatCurrency, 
+  parseCardData, 
+  calculateDaysUntilDue, 
+  getUsageStatus, 
+  getDueDateStatus 
+} from "@/utils/cardUtils";
 
 interface CardData {
   id: string;
@@ -23,26 +29,16 @@ interface CardOverviewProps {
 export const CardOverview = ({ card }: CardOverviewProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
   
-  // Validação robusta de tipos numéricos
-  const creditLimit = typeof card.credit_limit === 'number' ? card.credit_limit : 0;
-  const usedAmount = typeof card.used_amount === 'number' ? card.used_amount : 0;
-  const availableAmount = Math.max(0, creditLimit - usedAmount);
-  const usagePercentage = creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0;
+  // Usar função centralizada para parse dos dados
+  const { creditLimit, usedAmount, availableAmount, usagePercentage } = parseCardData(card);
 
-
-
-  // Helper function to get usage status
-  const getUsageStatus = () => {
-    if (usagePercentage >= 90) return { label: "Limite Crítico", variant: "destructive" as const, icon: AlertTriangle };
-    if (usagePercentage >= 70) return { label: "Atenção", variant: "secondary" as const, icon: AlertTriangle };
-    return { label: "Normal", variant: "default" as const, icon: CheckCircle };
-  };
-
-  const status = getUsageStatus();
-  const StatusIcon = status.icon;
+  // Usar funções centralizadas para status
+  const status = getUsageStatus(usagePercentage);
+  const StatusIcon = status.icon === "AlertTriangle" ? AlertTriangle : CheckCircle;
 
   // Calculate days until due date using utility function
   const daysUntilDue = calculateDaysUntilDue(card.due_day);
+  const dueDateStatus = getDueDateStatus(daysUntilDue);
 
   return (
     <Card className="w-full">
@@ -93,19 +89,16 @@ export const CardOverview = ({ card }: CardOverviewProps) => {
         </div>
 
         {/* Due Date Info */}
-        <div className="bg-muted/30 p-3 rounded-lg">
-          <div className="flex justify-between items-center">
+        <div className="bg-muted/50 p-3 rounded-lg">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Próximo Vencimento</p>
-              <p className="font-medium text-sm">Dia {card.due_day}</p>
+              <p className="text-xs text-muted-foreground mb-1">Próximo Vencimento</p>
+              <p className="font-semibold text-sm">Dia {card.due_day}</p>
             </div>
-            <Badge variant={daysUntilDue <= 5 ? "destructive" : "outline"}>
-              {daysUntilDue} dias
+            <Badge variant={dueDateStatus.variant}>
+              {dueDateStatus.label}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Fechamento: Dia {card.closing_day}
-          </p>
         </div>
 
         {/* Alerts */}
@@ -115,7 +108,7 @@ export const CardOverview = ({ card }: CardOverviewProps) => {
               <AlertTriangle size={14} />
               <p className="text-xs font-medium">
                 {usagePercentage >= 90 
-                  ? "Limite quase esgotado! Cuidado com novas compras."
+                  ? "Limite quase esgotado! Considere fazer um pagamento."
                   : "Você está se aproximando do limite do cartão."
                 }
               </p>
@@ -123,12 +116,15 @@ export const CardOverview = ({ card }: CardOverviewProps) => {
           </div>
         )}
 
-        {daysUntilDue <= 5 && (
-          <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-destructive">
+        {daysUntilDue <= 3 && (
+          <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-orange-700">
               <AlertTriangle size={14} />
               <p className="text-xs font-medium">
-                Fatura vence em {daysUntilDue} dias!
+                {daysUntilDue === 0 
+                  ? "Fatura vence hoje!"
+                  : `Fatura vence em ${daysUntilDue} dia${daysUntilDue > 1 ? 's' : ''}!`
+                }
               </p>
             </div>
           </div>

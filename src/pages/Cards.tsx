@@ -12,7 +12,7 @@ import { CardTransactions } from "@/components/cards/CardTransactions";
 import { CardLimitManagement } from "@/components/cards/CardLimitManagement";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CreditCard } from "lucide-react";
 
 const Cards = () => {

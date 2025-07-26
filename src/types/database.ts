@@ -1,26 +1,27 @@
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       user_profiles: {
         Row: {
           id: string;
-          user_id: string;
           full_name: string | null;
           avatar_url: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
-          id?: string;
-          user_id: string;
+          id: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
-          user_id?: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       accounts: {
@@ -28,7 +29,7 @@ export interface Database {
           id: string;
           user_id: string;
           name: string;
-          type: 'checking' | 'savings' | 'investment' | 'wallet' | 'other';
+          type: string;
           bank: string | null;
           balance: number;
           account_number: string | null;
@@ -39,43 +40,23 @@ export interface Database {
           id?: string;
           user_id: string;
           name: string;
-          type: 'checking' | 'savings' | 'investment' | 'wallet' | 'other';
+          type: string;
           bank?: string | null;
           balance?: number;
           account_number?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
           name?: string;
-          type?: 'checking' | 'savings' | 'investment' | 'wallet' | 'other';
+          type?: string;
           bank?: string | null;
           balance?: number;
           account_number?: string | null;
-        };
-      };
-      ai_chat_history: {
-        Row: {
-          id: string;
-          user_id: string;
-          message: string;
-          ai_response: string;
-          tokens_used: number;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          message: string;
-          ai_response: string;
-          tokens_used?: number;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          message?: string;
-          ai_response?: string;
-          tokens_used?: number;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       cards: {
@@ -121,6 +102,86 @@ export interface Database {
           due_day?: number;
         };
       };
+      card_installments: {
+        Row: {
+          id: string;
+          user_id: string;
+          card_id: string;
+          category_id: string | null;
+          description: string;
+          total_amount: number;
+          installments_count: number;
+          first_installment_date: string;
+          notes: string | null;
+          tags: Array<{id: string; name: string; color: string}> | null;
+          status: 'active' | 'completed' | 'cancelled';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          card_id: string;
+          category_id?: string | null;
+          description: string;
+          total_amount: number;
+          installments_count: number;
+          first_installment_date: string;
+          notes?: string | null;
+          tags?: Array<{id: string; name: string; color: string}> | null;
+          status?: 'active' | 'completed' | 'cancelled';
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          card_id?: string;
+          category_id?: string | null;
+          description?: string;
+          total_amount?: number;
+          installments_count?: number;
+          first_installment_date?: string;
+          notes?: string | null;
+          tags?: Array<{id: string; name: string; color: string}> | null;
+          status?: 'active' | 'completed' | 'cancelled';
+        };
+      };
+      card_installment_items: {
+        Row: {
+          id: string;
+          installment_id: string;
+          installment_number: number;
+          amount: number;
+          due_date: string;
+          status: 'pending' | 'paid' | 'overdue';
+          paid_date: string | null;
+          account_id: string | null;
+          transaction_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          installment_id: string;
+          installment_number: number;
+          amount: number;
+          due_date: string;
+          status?: 'pending' | 'paid' | 'overdue';
+          paid_date?: string | null;
+          account_id?: string | null;
+          transaction_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          installment_id?: string;
+          installment_number?: number;
+          amount?: number;
+          due_date?: string;
+          status?: 'pending' | 'paid' | 'overdue';
+          paid_date?: string | null;
+          account_id?: string | null;
+          transaction_id?: string | null;
+        };
+      };
       card_bills: {
         Row: {
           id: string;
@@ -164,67 +225,30 @@ export interface Database {
           status?: string;
         };
       };
-      card_limit_history: {
-        Row: {
-          id: string;
-          user_id: string;
-          card_id: string;
-          movement_type: string;
-          amount: number;
-          previous_used_amount: number;
-          new_used_amount: number;
-          description: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          card_id: string;
-          movement_type: string;
-          amount: number;
-          previous_used_amount: number;
-          new_used_amount: number;
-          description: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          card_id?: string;
-          movement_type?: string;
-          amount?: number;
-          previous_used_amount?: number;
-          new_used_amount?: number;
-          description?: string;
-        };
-      };
       categories: {
         Row: {
           id: string;
           user_id: string;
           name: string;
-          type: 'income' | 'expense';
+          type: string;
           color: string;
-          is_default: boolean;
-          sort_order: number;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           name: string;
-          type: 'income' | 'expense';
+          type: string;
           color?: string;
-          is_default?: boolean;
-          sort_order?: number;
+          created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
           name?: string;
-          type?: 'income' | 'expense';
+          type?: string;
           color?: string;
-          is_default?: boolean;
-          sort_order?: number;
+          created_at?: string;
         };
       };
       transactions: {
@@ -279,52 +303,6 @@ export interface Database {
           parent_transaction_id?: string | null;
         };
       };
-      debts: {
-        Row: {
-          id: string;
-          user_id: string;
-          description: string;
-          amount: number;
-          due_date: string;
-          status: 'pending' | 'paid' | 'overdue';
-          paid_date: string | null;
-          notes: string | null;
-          account_id: string | null;
-          category_id: string | null;
-          is_recurring: boolean;
-          recurrence_type: 'weekly' | 'monthly' | 'yearly' | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          description: string;
-          amount: number;
-          due_date: string;
-          status?: 'pending' | 'paid' | 'overdue';
-          paid_date?: string | null;
-          notes?: string | null;
-          account_id?: string | null;
-          category_id?: string | null;
-          is_recurring?: boolean;
-          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          description?: string;
-          amount?: number;
-          due_date?: string;
-          status?: 'pending' | 'paid' | 'overdue';
-          paid_date?: string | null;
-          notes?: string | null;
-          account_id?: string | null;
-          category_id?: string | null;
-          is_recurring?: boolean;
-          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
-        };
-      };
       budgets: {
         Row: {
           id: string;
@@ -332,7 +310,7 @@ export interface Database {
           category_id: string;
           limit_amount: number;
           spent_amount: number;
-          period: 'weekly' | 'monthly' | 'yearly';
+          period: string;
           start_date: string;
           end_date: string;
           created_at: string;
@@ -344,9 +322,11 @@ export interface Database {
           category_id: string;
           limit_amount: number;
           spent_amount?: number;
-          period?: 'weekly' | 'monthly' | 'yearly';
+          period?: string;
           start_date: string;
           end_date: string;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -354,9 +334,11 @@ export interface Database {
           category_id?: string;
           limit_amount?: number;
           spent_amount?: number;
-          period?: 'weekly' | 'monthly' | 'yearly';
+          period?: string;
           start_date?: string;
           end_date?: string;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       goals: {
@@ -369,7 +351,7 @@ export interface Database {
           current_amount: number;
           deadline: string | null;
           category: string | null;
-          status: 'active' | 'completed' | 'paused';
+          status: string;
           created_at: string;
           updated_at: string;
         };
@@ -382,7 +364,9 @@ export interface Database {
           current_amount?: number;
           deadline?: string | null;
           category?: string | null;
-          status?: 'active' | 'completed' | 'paused';
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -393,23 +377,25 @@ export interface Database {
           current_amount?: number;
           deadline?: string | null;
           category?: string | null;
-          status?: 'active' | 'completed' | 'paused';
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
         };
       };
-      receivable_payments: {
+      debts: {
         Row: {
           id: string;
           user_id: string;
           description: string;
           amount: number;
           due_date: string;
-          status: 'pending' | 'received' | 'overdue';
-          received_date: string | null;
+          status: string;
           notes: string | null;
           account_id: string | null;
           category_id: string | null;
           is_recurring: boolean;
-          recurrence_type: 'weekly' | 'monthly' | 'yearly' | null;
+          recurrence_type: string | null;
+          paid_date: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -419,13 +405,15 @@ export interface Database {
           description: string;
           amount: number;
           due_date: string;
-          status?: 'pending' | 'received' | 'overdue';
-          received_date?: string | null;
+          status?: string;
           notes?: string | null;
           account_id?: string | null;
           category_id?: string | null;
           is_recurring?: boolean;
-          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
+          recurrence_type?: string | null;
+          paid_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -433,13 +421,15 @@ export interface Database {
           description?: string;
           amount?: number;
           due_date?: string;
-          status?: 'pending' | 'received' | 'overdue';
-          received_date?: string | null;
+          status?: string;
           notes?: string | null;
           account_id?: string | null;
           category_id?: string | null;
           is_recurring?: boolean;
-          recurrence_type?: 'weekly' | 'monthly' | 'yearly' | null;
+          recurrence_type?: string | null;
+          paid_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       tags: {
@@ -450,14 +440,14 @@ export interface Database {
           color: string;
           is_active: boolean;
           created_at: string;
-          updated_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           name: string;
-          color?: string;
+          color: string;
           is_active?: boolean;
+          created_at?: string;
         };
         Update: {
           id?: string;
@@ -465,6 +455,31 @@ export interface Database {
           name?: string;
           color?: string;
           is_active?: boolean;
+          created_at?: string;
+        };
+      };
+      ai_chat_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          message: string;
+          ai_response: string;
+          tokens_used: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          message: string;
+          ai_response: string;
+          tokens_used?: number;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          message?: string;
+          ai_response?: string;
+          tokens_used?: number;
         };
       };
     };
@@ -478,4 +493,4 @@ export interface Database {
       [_ in never]: never;
     };
   };
-}
+};

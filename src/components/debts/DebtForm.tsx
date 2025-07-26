@@ -29,6 +29,7 @@ interface Debt {
   status: 'pending' | 'paid' | 'overdue';
   notes?: string;
   account_id?: string;
+  category_id?: string;
   is_recurring?: boolean;
   recurrence_type?: 'weekly' | 'monthly' | 'yearly';
 }
@@ -43,6 +44,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: accounts } = useSupabaseData('accounts', user?.id);
+  const { data: categories } = useSupabaseData('categories', user?.id);
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -50,6 +52,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
     status: 'pending' as 'pending' | 'paid' | 'overdue',
     notes: '',
     account_id: '',
+    category_id: '',
     is_recurring: false,
     recurrence_type: 'monthly' as 'weekly' | 'monthly' | 'yearly',
     selectedTags: [] as string[]
@@ -66,6 +69,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         status: debt.status,
         notes: debt.notes || '',
         account_id: debt.account_id || '',
+        category_id: debt.category_id || '',
         is_recurring: debt.is_recurring || false,
         recurrence_type: debt.recurrence_type || 'monthly',
         selectedTags: []
@@ -143,6 +147,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         status: formData.status,
         notes: formData.notes || null,
         account_id: formData.account_id || null,
+        category_id: formData.category_id || null,
         is_recurring: formData.is_recurring,
         recurrence_type: formData.is_recurring ? formData.recurrence_type : null
       };
@@ -183,7 +188,8 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
             amount: -Math.abs(amount), // Usar o valor validado
             type: 'expense',
             date: format(formData.due_date, 'yyyy-MM-dd'),
-            account_id: formData.account_id
+            account_id: formData.account_id,
+            category_id: formData.category_id || null
           };
 
           console.log('Creating transaction:', transactionData);
@@ -309,6 +315,26 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
                   </AlertDescription>
                 </Alert>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select 
+                value={formData.category_id || "none"} 
+                onValueChange={(value) => setFormData({...formData, category_id: value === "none" ? "" : value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma categoria</SelectItem>
+                  {categories?.filter(cat => cat.type === 'expense').map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <TagSelector

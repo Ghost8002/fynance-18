@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Loader2 } from "lucide-react";
 
 interface CardPaymentFormProps {
   cardId?: string;
@@ -32,40 +32,59 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
     description: "Pagamento de cartão"
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const validateForm = () => {
     if (!user?.id) {
       toast({
         title: "Erro",
         description: "Usuário não autenticado",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
-    if (!formData.cardId || !formData.amount) {
+    if (!formData.cardId) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
+        description: "Selecione um cartão",
         variant: "destructive",
       });
-      return;
+      return false;
+    }
+
+    if (!formData.amount) {
+      toast({
+        title: "Erro",
+        description: "Informe o valor do pagamento",
+        variant: "destructive",
+      });
+      return false;
     }
 
     const amount = parseFloat(formData.amount);
-    if (amount <= 0) {
+    if (isNaN(amount) || amount <= 0) {
       toast({
         title: "Erro",
         description: "O valor do pagamento deve ser maior que zero",
         variant: "destructive",
       });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
 
     try {
+      const amount = parseFloat(formData.amount);
+      
       // Usar a função RPC segura do Supabase para processar o pagamento
       const { data, error } = await supabase.rpc('process_card_payment_secure', {
         p_card_id: formData.cardId,
@@ -74,12 +93,14 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
         p_description: formData.description
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       // Criar transação de pagamento na tabela transactions
       const selectedCard = cards?.find(card => card.id === formData.cardId);
       if (selectedCard) {
-        await supabase.from('transactions').insert({
+        const { error: transactionError } = await supabase.from('transactions').insert({
           user_id: user.id,
           type: 'expense',
           description: `${formData.description} - ${selectedCard.name}`,
@@ -89,6 +110,11 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
           account_id: formData.accountId || null,
           notes: `Pagamento do cartão ${selectedCard.name}`
         });
+
+        if (transactionError) {
+          console.error('Erro ao criar transação:', transactionError);
+          // Não falha o pagamento se a transação não for criada
+        }
       }
 
       toast({
@@ -112,16 +138,38 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
       
       let errorMessage = "Não foi possível processar o pagamento";
       
-      if (error.message?.includes('insufficient')) {
-        errorMessage = "Saldo insuficiente na conta selecionada";
-      } else if (error.message?.includes('card not found')) {
-        errorMessage = "Cartão não encontrado";
-      } else if (error.message?.includes('invalid amount')) {
-        errorMessage = "Valor inválido para pagamento";
-      } else if (error.message?.includes('access denied')) {
-        errorMessage = "Você não tem permissão para realizar esta operação";
-      } else if (error.message?.includes('not authenticated')) {
-        errorMessage = "Usuário não autenticado";
+      if (error?.message) {
+        if (error.message.includes('insufficient')) {
+          errorMessage = "Saldo insuficiente na conta selecionada";
+        } else if (error.message.includes('card not found')) {
+          errorMessage = "Cartão não encontrado";
+        } else if (error.message.includes('invalid amount')) {
+          errorMessage = "Valor inválido para pagamento";
+        } else if (error.message.includes('access denied')) {
+          errorMessage = "Você não tem permissão para realizar esta operação";
+        } else if (error.message.includes('not authenticated')) {
+          errorMessage = "Usuário não autenticado";
+        } else if (error.message.includes('duplicate')) {
+          errorMessage = "Pagamento duplicado detectado";
+        } else if (error.message.includes('network')) {
+          errorMessage = "Erro de conexão. Verifique sua internet.";
+        } else {
+          errorMessage = error.message;
+        }
+      } else if (error?.code) {
+        switch (error.code) {
+          case 'PGRST301':
+            errorMessage = "Dados inválidos fornecidos";
+            break;
+          case 'PGRST302':
+            errorMessage = "Recurso não encontrado";
+            break;
+          case 'PGRST303':
+            errorMessage = "Erro de validação";
+            break;
+          default:
+            errorMessage = `Erro ${error.code}: ${error.message || 'Erro desconhecido'}`;
+        }
       }
       
       toast({
@@ -173,6 +221,7 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
               id="amount"
               type="number"
               step="0.01"
+              min="0"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               placeholder="0,00"
@@ -180,19 +229,18 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
           </div>
 
           <div>
-            <Label htmlFor="accountId">Conta para Débito (Opcional)</Label>
+            <Label htmlFor="accountId">Conta de Pagamento</Label>
             <Select 
               value={formData.accountId} 
               onValueChange={(value) => setFormData({ ...formData, accountId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma conta" />
+                <SelectValue placeholder="Selecione uma conta (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Não debitar de nenhuma conta</SelectItem>
                 {accounts?.map(account => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.name} - R$ {parseFloat(account.balance || '0').toFixed(2)}
+                    {account.name} - {account.bank || 'Sem banco'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -205,25 +253,26 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Descrição do pagamento"
+              placeholder="Descrição do pagamento..."
+              rows={2}
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
+          <div className="flex justify-end gap-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
               onClick={() => setOpen(false)}
-              className="flex-1"
+              disabled={loading}
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
+            <Button 
+              type="submit" 
               disabled={loading}
-              className="flex-1"
             >
-              {loading ? "Processando..." : "Pagar"}
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Processar Pagamento
             </Button>
           </div>
         </form>
