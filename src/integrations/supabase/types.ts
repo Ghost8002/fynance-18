@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -705,6 +705,14 @@ export type Database = {
         Args: { p_card_id: string; p_month: number; p_year: number }
         Returns: Json
       }
+      mark_debt_as_paid_with_rollback: {
+        Args: { p_debt_id: string; p_account_id?: string }
+        Returns: Json
+      }
+      mark_receivable_as_received_with_rollback: {
+        Args: { p_receivable_id: string; p_account_id?: string }
+        Returns: Json
+      }
       process_bill_payment: {
         Args: {
           p_bill_id: string
@@ -721,6 +729,31 @@ export type Database = {
           p_account_id?: string
           p_description?: string
         }
+        Returns: Json
+      }
+      process_card_payment_secure: {
+        Args: {
+          p_card_id: string
+          p_amount: number
+          p_account_id?: string
+          p_description?: string
+        }
+        Returns: Json
+      }
+      process_installment_payment: {
+        Args: {
+          p_installment_item_id: string
+          p_amount: number
+          p_account_id?: string
+        }
+        Returns: Json
+      }
+      unmark_debt_as_paid_with_rollback: {
+        Args: { p_debt_id: string; p_account_id?: string }
+        Returns: Json
+      }
+      unmark_receivable_as_received_with_rollback: {
+        Args: { p_receivable_id: string; p_account_id?: string }
         Returns: Json
       }
     }

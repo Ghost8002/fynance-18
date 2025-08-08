@@ -32,23 +32,16 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
     try {
       // Usar a nova função de rollback
       const { data, error } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
-        p_payment_id: payment.id,
-        p_user_id: user.id,
-        p_amount: payment.amount,
-        p_description: payment.description,
-        p_account_id: payment.account_id,
-        p_category_id: payment.category_id,
-        p_is_recurring: payment.is_recurring,
-        p_recurrence_type: payment.recurrence_type,
-        p_due_date: payment.due_date
+        p_receivable_id: payment.id,
+        p_account_id: payment.account_id
       });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      if (data && !data.success) {
-        throw new Error(data.message || 'Erro ao processar pagamento');
+      if (data && typeof data === 'object' && 'success' in data && !data.success) {
+        throw new Error((data as any).message || 'Erro ao processar pagamento');
       }
 
       // Feedback de sucesso
@@ -79,10 +72,7 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
     try {
       // Usar a nova função de rollback
       const { data, error } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
-        p_payment_id: payment.id,
-        p_user_id: user.id,
-        p_amount: payment.amount,
-        p_description: payment.description,
+        p_receivable_id: payment.id,
         p_account_id: payment.account_id
       });
 
@@ -90,8 +80,8 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
         throw new Error(error.message);
       }
 
-      if (data && !data.success) {
-        throw new Error(data.message || 'Erro ao processar pagamento');
+      if (data && typeof data === 'object' && 'success' in data && !data.success) {
+        throw new Error((data as any).message || 'Erro ao processar pagamento');
       }
 
       toast.success('Pagamento desmarcado como recebido!');

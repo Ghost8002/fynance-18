@@ -86,32 +86,10 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
       }, {} as Record<string, string>) || {};
       setAccounts(accountMap);
 
-      // Fetch installments for this card
-      const { data: installmentsData, error: installmentsError } = await supabase
-        .from('card_installments' as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('card_id', cardId)
-        .order('created_at', { ascending: false });
-
-      if (installmentsError) throw installmentsError;
-
-      setInstallments(installmentsData || []);
-
-      // Fetch installment items for all installments
-      if (installmentsData && installmentsData.length > 0) {
-        const installmentIds = installmentsData.map(inst => inst.id);
-        
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('card_installment_items' as any)
-          .select('*')
-          .in('installment_id', installmentIds)
-          .order('due_date', { ascending: true });
-
-        if (itemsError) throw itemsError;
-
-        setInstallmentItems(itemsData || []);
-      }
+      // For now, installments system is not implemented yet
+      // Setting empty arrays until proper tables are created
+      setInstallments([]);
+      setInstallmentItems([]);
 
     } catch (error) {
       console.error('Error fetching installments:', error);

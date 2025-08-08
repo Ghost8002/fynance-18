@@ -148,15 +148,8 @@ const ReceivableList: React.FC = () => {
 
       // Iniciar transação de banco de dados para rollback automático
       const { data: transactionData, error: transactionError } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
-        p_payment_id: receivable.id,
-        p_user_id: user?.id,
-        p_amount: receivable.amount,
-        p_description: receivable.description,
-        p_account_id: receivable.account_id,
-        p_category_id: defaultIncomeCategory?.id,
-        p_is_recurring: receivable.is_recurring,
-        p_recurrence_type: receivable.recurrence_type,
-        p_due_date: receivable.due_date
+        p_receivable_id: receivable.id,
+        p_account_id: receivable.account_id
       });
 
       if (transactionError) {
@@ -235,10 +228,7 @@ const ReceivableList: React.FC = () => {
 
       // Iniciar transação de banco de dados para rollback automático
       const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
-        p_payment_id: receivable.id,
-        p_user_id: user?.id,
-        p_amount: receivable.amount,
-        p_description: receivable.description,
+        p_receivable_id: receivable.id,
         p_account_id: receivable.account_id
       });
 

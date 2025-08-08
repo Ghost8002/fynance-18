@@ -149,14 +149,7 @@ const DebtList: React.FC = () => {
       // Iniciar transação de banco de dados para rollback automático
       const { data: transactionData, error: transactionError } = await supabase.rpc('mark_debt_as_paid_with_rollback', {
         p_debt_id: debt.id,
-        p_user_id: user?.id,
-        p_amount: debt.amount,
-        p_description: debt.description,
-        p_account_id: debt.account_id,
-        p_category_id: defaultExpenseCategory?.id,
-        p_is_recurring: debt.is_recurring,
-        p_recurrence_type: debt.recurrence_type,
-        p_due_date: debt.due_date
+        p_account_id: debt.account_id
       });
 
       if (transactionError) {
@@ -236,9 +229,6 @@ const DebtList: React.FC = () => {
       // Iniciar transação de banco de dados para rollback automático
       const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_debt_as_paid_with_rollback', {
         p_debt_id: debt.id,
-        p_user_id: user?.id,
-        p_amount: debt.amount,
-        p_description: debt.description,
         p_account_id: debt.account_id
       });
 

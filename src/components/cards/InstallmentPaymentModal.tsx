@@ -57,8 +57,8 @@ export const InstallmentPaymentModal = ({
     try {
       const { data, error } = await supabase.rpc('process_installment_payment', {
         p_installment_item_id: installmentItem.id,
-        p_account_id: selectedAccountId,
-        p_payment_date: new Date().toISOString().split('T')[0]
+        p_amount: installmentItem.amount,
+        p_account_id: selectedAccountId
       });
 
       if (error) throw error;
