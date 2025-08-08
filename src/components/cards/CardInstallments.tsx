@@ -96,11 +96,11 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
 
       if (installmentsError) throw installmentsError;
 
-      setInstallments(installmentsData || []);
+      setInstallments((installmentsData as any as Installment[]) || []);
 
       // Fetch installment items for all installments
       if (installmentsData && installmentsData.length > 0) {
-        const installmentIds = installmentsData.map(inst => inst.id);
+        const installmentIds = (installmentsData as any).map((inst: any) => inst.id);
         
         const { data: itemsData, error: itemsError } = await supabase
           .from('card_installment_items' as any)
@@ -110,7 +110,7 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
 
         if (itemsError) throw itemsError;
 
-        setInstallmentItems(itemsData || []);
+        setInstallmentItems((itemsData as any as InstallmentItem[]) || []);
       }
 
     } catch (error) {
