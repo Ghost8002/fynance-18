@@ -86,7 +86,7 @@ export const CardPaymentForm = ({ cardId, onPaymentAdded }: CardPaymentFormProps
       const amount = parseFloat(formData.amount);
       
       // Usar a função RPC segura do Supabase para processar o pagamento
-      const { data, error } = await supabase.rpc('process_card_payment_secure' as any, {
+      const { data, error } = await supabase.rpc('process_card_payment_secure', {
         p_card_id: formData.cardId,
         p_amount: amount,
         p_account_id: formData.accountId || null,

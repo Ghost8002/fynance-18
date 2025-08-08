@@ -31,7 +31,7 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
 
     try {
       // Usar a nova função de rollback
-      const { data, error } = await supabase.rpc('mark_receivable_as_received_with_rollback' as any, {
+      const { data, error } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
         p_payment_id: payment.id,
         p_user_id: user.id,
         p_amount: payment.amount,
@@ -47,8 +47,8 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
         throw new Error(error.message);
       }
 
-      if (data && !(data as any).success) {
-        throw new Error((data as any).message || 'Erro ao processar pagamento');
+      if (data && !data.success) {
+        throw new Error(data.message || 'Erro ao processar pagamento');
       }
 
       // Feedback de sucesso
@@ -78,7 +78,7 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
 
     try {
       // Usar a nova função de rollback
-      const { data, error } = await supabase.rpc('unmark_receivable_as_received_with_rollback' as any, {
+      const { data, error } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
         p_payment_id: payment.id,
         p_user_id: user.id,
         p_amount: payment.amount,
@@ -90,8 +90,8 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
         throw new Error(error.message);
       }
 
-      if (data && !(data as any).success) {
-        throw new Error((data as any).message || 'Erro ao processar pagamento');
+      if (data && !data.success) {
+        throw new Error(data.message || 'Erro ao processar pagamento');
       }
 
       toast.success('Pagamento desmarcado como recebido!');

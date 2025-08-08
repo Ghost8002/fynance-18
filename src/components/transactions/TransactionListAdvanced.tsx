@@ -188,7 +188,7 @@ const TransactionListAdvanced = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <TransactionForm inline onTransactionAdded={() => setShowNewTransactionForm(false)} onCancel={() => setShowNewTransactionForm(false)} />
+                <TransactionForm onTransactionAdded={() => setShowNewTransactionForm(false)} />
               </CardContent>
             </Card>
           )}

@@ -27,7 +27,6 @@ interface TransactionFormProps {
   defaultGoalId?: string;
   onTransactionAdded?: () => void;
   onCancel?: () => void;
-  inline?: boolean; // when true, render inline form without Dialog
 }
 
 const TransactionForm = ({ 
@@ -35,8 +34,7 @@ const TransactionForm = ({
   defaultCardId, 
   defaultGoalId,
   onTransactionAdded,
-  onCancel,
-  inline = false
+  onCancel
 }: TransactionFormProps) => {
   const { user } = useAuth();
   const { data: categories } = useSupabaseData('categories', user?.id);
@@ -187,62 +185,7 @@ const TransactionForm = ({
 
   const isSubmitDisabled = loading || !!balanceError;
 
-return (
-  inline ? (
-    <div>
-      <ScrollArea className="max-h-[60vh] pr-4">
-        <form onSubmit={onSubmit} className="space-y-4">
-          <TransactionTypeSelector
-            formData={formData}
-            onSelectChange={handleSelectChange}
-            isGoalTransaction={!!defaultGoalId}
-          />
-
-          <TransactionFormFields
-            formData={formData}
-            categories={categories || []}
-            onInputChange={handleInputChange}
-            onSelectChange={handleSelectChange}
-          />
-
-          <PaymentMethodSelector
-            formData={formData}
-            accounts={accounts || []}
-            cards={cards || []}
-            onSelectChange={handleSelectChange}
-            defaultAccountId={defaultAccountId}
-            defaultCardId={defaultCardId}
-          />
-
-          {balanceError && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{balanceError}</AlertDescription>
-            </Alert>
-          )}
-
-          <TagSelector
-            selectedTags={selectedTags}
-            onTagsChange={handleTagsChange}
-          />
-        </form>
-      </ScrollArea>
-      <div className="mt-4 flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button 
-          type="submit" 
-          disabled={isSubmitDisabled} 
-          onClick={onSubmit}
-          className={balanceError ? "opacity-50 cursor-not-allowed" : ""}
-        >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar
-        </Button>
-      </div>
-    </div>
-  ) : (
+  return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-finance-blue hover:bg-finance-blue/90 flex items-center gap-2">
@@ -317,8 +260,7 @@ return (
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-);
+  );
 };
 
 export default TransactionForm;

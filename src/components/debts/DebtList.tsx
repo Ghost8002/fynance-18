@@ -147,7 +147,7 @@ const DebtList: React.FC = () => {
       console.log('Starting to mark debt as paid:', debt.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_debt_as_paid_with_rollback' as any, {
+      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_debt_as_paid_with_rollback', {
         p_debt_id: debt.id,
         p_user_id: user?.id,
         p_amount: debt.amount,
@@ -234,7 +234,7 @@ const DebtList: React.FC = () => {
       console.log('Starting to unmark debt as paid:', debt.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_debt_as_paid_with_rollback' as any, {
+      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_debt_as_paid_with_rollback', {
         p_debt_id: debt.id,
         p_user_id: user?.id,
         p_amount: debt.amount,

@@ -147,7 +147,7 @@ const ReceivableList: React.FC = () => {
       console.log('Starting to mark receivable as received:', receivable.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_receivable_as_received_with_rollback' as any, {
+      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
         p_payment_id: receivable.id,
         p_user_id: user?.id,
         p_amount: receivable.amount,
@@ -234,7 +234,7 @@ const ReceivableList: React.FC = () => {
       console.log('Starting to unmark receivable as received:', receivable.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_receivable_as_received_with_rollback' as any, {
+      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
         p_payment_id: receivable.id,
         p_user_id: user?.id,
         p_amount: receivable.amount,
