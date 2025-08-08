@@ -1,11 +1,12 @@
 
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 import { CalendarEvent } from './useCalendarEvents';
 
 export const useCalendarActions = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { update: updateReceivable } = useSupabaseData('receivable_payments', user?.id);
   const { update: updateDebt } = useSupabaseData('debts', user?.id);
 
@@ -20,9 +21,16 @@ export const useCalendarActions = () => {
 
       if (error) throw error;
 
-      toast.success('Pagamento marcado como recebido!');
+      toast({
+        title: "Sucesso",
+        description: "Pagamento marcado como recebido!",
+      });
     } catch (error: any) {
-      toast.error('Erro ao atualizar pagamento: ' + error.message);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar pagamento: " + error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -37,9 +45,16 @@ export const useCalendarActions = () => {
 
       if (error) throw error;
 
-      toast.success('Dívida marcada como paga!');
+      toast({
+        title: "Sucesso", 
+        description: "Dívida marcada como paga!",
+      });
     } catch (error: any) {
-      toast.error('Erro ao atualizar dívida: ' + error.message);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar dívida: " + error.message,
+        variant: "destructive",
+      });
     }
   };
 
