@@ -28,7 +28,7 @@ const TransactionListAdvanced = () => {
     maxAmount: "",
   });
 
-  const [showNewTransactionForm, setShowNewTransactionForm] = useState(false);
+  const [newTransactionKey, setNewTransactionKey] = useState(0);
 
   const {
     transactions,
@@ -157,14 +157,10 @@ const TransactionListAdvanced = () => {
               Histórico de Transações ({pagination.totalItems})
             </CardTitle>
             <div className="flex items-center gap-4">
-              <Button
-                onClick={() => setShowNewTransactionForm(!showNewTransactionForm)}
-                className="flex items-center gap-2"
-                size="sm"
-              >
-                <Plus className="h-4 w-4" />
-                Nova Transação
-              </Button>
+              <TransactionForm 
+                key={newTransactionKey}
+                onTransactionAdded={() => setNewTransactionKey(prev => prev + 1)}
+              />
               <div className="text-sm text-muted-foreground">
                 Página {pagination.currentPage} de {pagination.totalPages}
               </div>
@@ -173,26 +169,6 @@ const TransactionListAdvanced = () => {
         </CardHeader>
         
         <CardContent>
-          {showNewTransactionForm && (
-            <Card className="mb-6">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Nova Transação</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowNewTransactionForm(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <TransactionForm onTransactionAdded={() => setShowNewTransactionForm(false)} />
-              </CardContent>
-            </Card>
-          )}
-
           {transactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {pagination.totalItems === 0 
