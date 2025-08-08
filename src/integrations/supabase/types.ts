@@ -504,37 +504,49 @@ export type Database = {
       }
       receivable_payments: {
         Row: {
+          account_id: string | null
           amount: number
+          category_id: string | null
           created_at: string
           description: string
           due_date: string
           id: string
+          is_recurring: boolean | null
           notes: string | null
           received_date: string | null
+          recurrence_type: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           amount: number
+          category_id?: string | null
           created_at?: string
           description: string
           due_date: string
           id?: string
+          is_recurring?: boolean | null
           notes?: string | null
           received_date?: string | null
+          recurrence_type?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_id?: string | null
           amount?: number
+          category_id?: string | null
           created_at?: string
           description?: string
           due_date?: string
           id?: string
+          is_recurring?: boolean | null
           notes?: string | null
           received_date?: string | null
+          recurrence_type?: string | null
           status?: string
           updated_at?: string
           user_id?: string
