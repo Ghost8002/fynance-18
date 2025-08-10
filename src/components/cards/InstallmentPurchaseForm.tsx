@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useTags } from "@/hooks/useTags";
 import TagSelector from "@/components/shared/TagSelector";
 import { CreditCard, Loader2 } from "lucide-react";
 
@@ -24,7 +26,7 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
 
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
-  const { data: tags } = useSupabaseData('tags', user?.id);
+  const { tags, loading: tagsLoading } = useTags();
 
   const [formData, setFormData] = useState({
     description: "",
@@ -115,7 +117,7 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
       // Prepare tags data
       const transactionTags = selectedTags.length > 0 
         ? selectedTags
-            .map(tagId => tags?.find(tag => tag.id === tagId))
+            .map(tagId => tags.find(tag => tag.id === tagId))
             .filter(tag => tag)
             .map(tag => ({
               id: tag!.id,
@@ -291,12 +293,13 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
           Compra Parcelada
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Nova Compra Parcelada</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <ScrollArea className="max-h-[70vh] pr-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="description">Descrição *</Label>
             <Input
@@ -403,10 +406,14 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
 
           <div>
             <Label>Tags</Label>
-            <TagSelector
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-            />
+            {tagsLoading ? (
+              <div className="text-sm text-muted-foreground">Carregando tags...</div>
+            ) : (
+              <TagSelector
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+              />
+            )}
           </div>
 
           {selectedCard && (
@@ -418,23 +425,24 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
               </p>
             </div>
           )}
+          </form>
+        </ScrollArea>
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                "Criar Compra Parcelada"
-              )}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-          </div>
-        </form>
+        <DialogFooter>
+          <Button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1">
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              "Criar Compra Parcelada"
+            )}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            Cancelar
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
