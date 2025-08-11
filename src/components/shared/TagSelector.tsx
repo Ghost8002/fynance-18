@@ -8,6 +8,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, Plus, Tag, X } from "lucide-react";
 import { useTags } from "@/hooks/useTags";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagSelectorProps {
   selectedTags: string[];
@@ -15,8 +18,11 @@ interface TagSelectorProps {
 }
 
 const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
-  const { tags, loading } = useTags();
+  const { tags, loading, fetchTags } = useTags();
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [tagQuery, setTagQuery] = useState("");
 
   // Adicionar verificação de segurança para evitar erros
   const safeTags = tags || [];
@@ -39,6 +45,42 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
     console.log('Removing tag directly:', tagId);
     const newTags = selectedTags.filter(id => id !== tagId);
     onTagsChange(newTags);
+  };
+
+  const handleCreateTag = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const defaultColor = "#8884d8";
+      const { data, error } = await supabase
+        .from("tags")
+        .insert([{ user_id: user.id, name: trimmed, color: defaultColor, is_active: true }])
+        .select()
+        .limit(1);
+
+      if (error) throw error;
+      const newTag = data?.[0];
+      if (newTag) {
+        await fetchTags();
+        onTagsChange([...selectedTags, newTag.id]);
+        toast({ title: "Tag criada", description: `“${trimmed}” adicionada com sucesso.` });
+        setOpen(false);
+        setTagQuery("");
+      }
+    } catch (err) {
+      console.error("Erro ao criar tag:", err);
+      toast({ title: "Erro", description: "Não foi possível criar a tag.", variant: "destructive" });
+    }
   };
 
   const getSelectedTagsInfo = () => {
@@ -118,10 +160,42 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-0" align="start" side="bottom">
-          <Command>
-            <CommandInput placeholder="Buscar tags..." />
+          <Command
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const exists = activeTags.some(
+                  (t) => t.name.toLowerCase() === tagQuery.trim().toLowerCase()
+                );
+                if (tagQuery.trim() && !exists) {
+                  handleCreateTag(tagQuery);
+                }
+              }
+            }}
+          >
+            <CommandInput
+              placeholder="Buscar ou criar tag..."
+              value={tagQuery}
+              onValueChange={setTagQuery}
+            />
             <CommandList>
               <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+
+              {tagQuery.trim() &&
+                !activeTags.some(
+                  (t) => t.name.toLowerCase() === tagQuery.trim().toLowerCase()
+                ) && (
+                <CommandGroup>
+                  <CommandItem
+                    value={`__create_${tagQuery}`}
+                    onSelect={() => handleCreateTag(tagQuery)}
+                    className="cursor-pointer"
+                  >
+                    Criar “{tagQuery.trim()}”
+                  </CommandItem>
+                </CommandGroup>
+              )}
+
               {activeTags.length > 0 && (
                 <CommandGroup>
                   {activeTags.map((tag) => (
