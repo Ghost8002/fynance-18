@@ -5,6 +5,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { formatFinancialPeriod } from "@/utils/financialPeriod";
+import { PeriodType } from "@/components/dashboard/PeriodFilter";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -22,16 +23,17 @@ const toNumber = (value: any): number => {
 
 interface FinancialSummaryProps {
   hiddenWidgets?: string[];
+  selectedPeriod?: PeriodType;
 }
 
-const FinancialSummary = ({ hiddenWidgets = [] }: FinancialSummaryProps) => {
+const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month' }: FinancialSummaryProps) => {
   const { user } = useSupabaseAuth();
   const { data: transactions, loading, error } = useSupabaseData('transactions', user?.id);
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { data: budgets } = useSupabaseData('budgets', user?.id);
   const { data: goals } = useSupabaseData('goals', user?.id);
-  const { getCurrentFinancialPeriod, filterTransactionsByPeriod } = useFinancialPeriod();
+  const { getFinancialPeriod, filterTransactionsByPeriod } = useFinancialPeriod();
 
   // Calculate real account balances based on transactions
   const calculateTotalAccountBalance = () => {
@@ -85,9 +87,9 @@ const FinancialSummary = ({ hiddenWidgets = [] }: FinancialSummaryProps) => {
     );
   }
 
-  // Filtrar transações do período financeiro atual
-  const currentPeriodTransactions = filterTransactionsByPeriod(transactions, 'current-month');
-  const currentPeriod = getCurrentFinancialPeriod();
+  // Filtrar transações do período selecionado
+  const currentPeriodTransactions = filterTransactionsByPeriod(transactions, selectedPeriod);
+  const currentPeriod = getFinancialPeriod(selectedPeriod);
 
   const totalIncome = currentPeriodTransactions
     .filter(t => t.type === 'income')

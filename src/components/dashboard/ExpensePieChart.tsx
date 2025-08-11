@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
-import { usePeriodFilter } from "@/hooks/usePeriodFilter";
+import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
+import { PeriodType } from "@/components/dashboard/PeriodFilter";
 
 // Define category data type
 type CategoryData = {
@@ -11,9 +12,11 @@ type CategoryData = {
   color: string;
 };
 
-const ExpensePieChart = () => {
+type ExpensePieChartProps = { selectedPeriod?: PeriodType };
+
+const ExpensePieChart = ({ selectedPeriod = 'current-month' }: ExpensePieChartProps) => {
   const { user } = useAuth();
-  const { filterTransactionsByPeriod } = usePeriodFilter();
+  const { filterTransactionsByPeriod } = useFinancialPeriod();
   const { data: transactions } = useSupabaseData('transactions', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
 
@@ -22,7 +25,8 @@ const ExpensePieChart = () => {
 
   // Filter transactions by current period and expense type
   const filteredTransactions = filterTransactionsByPeriod(
-    transactions.filter(t => t.type === 'expense')
+    transactions.filter(t => t.type === 'expense'),
+    selectedPeriod
   );
 
   console.log('ExpensePieChart - Filtered Transactions:', filteredTransactions);
