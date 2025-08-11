@@ -14,9 +14,10 @@ type CategoryData = {
 
 type IncomePieChartProps = {
   selectedPeriod?: PeriodType;
+  customDateRange?: { from?: Date; to?: Date };
 };
 
-const IncomePieChart = ({ selectedPeriod = 'current-month' }: IncomePieChartProps) => {
+const IncomePieChart = ({ selectedPeriod = 'current-month', customDateRange }: IncomePieChartProps) => {
   const { user } = useAuth();
   const { filterTransactionsByPeriod } = useFinancialPeriod();
   const { data: transactions } = useSupabaseData('transactions', user?.id);
@@ -25,11 +26,14 @@ const IncomePieChart = ({ selectedPeriod = 'current-month' }: IncomePieChartProp
   console.log('IncomePieChart - Transactions:', transactions);
   console.log('IncomePieChart - Categories:', categories);
 
-  // Filter transactions by current period and income type
-  const filteredTransactions = filterTransactionsByPeriod(
-    transactions.filter(t => t.type === 'income'),
-    selectedPeriod
-  );
+// Filter transactions by current period and income type
+const incomeTx = transactions.filter(t => t.type === 'income');
+const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.from && customDateRange?.to && customDateRange.from <= customDateRange.to)
+  ? incomeTx.filter(t => {
+      const d = new Date(t.date);
+      return d >= (customDateRange.from as Date) && d <= (customDateRange.to as Date);
+    })
+  : filterTransactionsByPeriod(incomeTx, selectedPeriod);
 
   console.log('IncomePieChart - Filtered Transactions:', filteredTransactions);
 

@@ -26,6 +26,7 @@ export const DashboardFilters = ({
   onDateRangeChange 
 }: DashboardFiltersProps) => {
   const [open, setOpen] = useState(false);
+  const isCustomValid = !!dateRange.from && !!dateRange.to && (dateRange.from as Date) <= (dateRange.to as Date);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -35,7 +36,7 @@ export const DashboardFilters = ({
           Filtros
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Filtros do Dashboard</DialogTitle>
         </DialogHeader>
@@ -76,8 +77,14 @@ export const DashboardFilters = ({
               Cancelar
             </Button>
             <Button
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                if (isCustomValid) {
+                  onPeriodChange('custom');
+                }
+                setOpen(false);
+              }}
               className="flex-1"
+              disabled={selectedPeriod === 'custom' && !isCustomValid}
             >
               Aplicar Filtros
             </Button>

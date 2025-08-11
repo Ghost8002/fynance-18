@@ -68,14 +68,14 @@ const Dashboard = () => {
         </div>
 
         {/* Financial Summary - sempre visível, mas com widgets internos configuráveis */}
-        {isWidgetVisible('financial-summary') && (
-          <FinancialSummary hiddenWidgets={getHiddenFinancialSummaryWidgets()} selectedPeriod={selectedPeriod} />
-        )}
+          {isWidgetVisible('financial-summary') && (
+            <FinancialSummary hiddenWidgets={getHiddenFinancialSummaryWidgets()} selectedPeriod={selectedPeriod} customDateRange={dateRange} />
+          )}
 
         {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2">
-          {isWidgetVisible('expense-chart') && <ExpensePieChart selectedPeriod={selectedPeriod} />}
-          {isWidgetVisible('income-chart') && <IncomePieChart selectedPeriod={selectedPeriod} />}
+          {isWidgetVisible('expense-chart') && <ExpensePieChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />}
+          {isWidgetVisible('income-chart') && <IncomePieChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />}
         </div>
 
         {/* Progress and Goals Row */}

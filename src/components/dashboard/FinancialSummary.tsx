@@ -24,16 +24,17 @@ const toNumber = (value: any): number => {
 interface FinancialSummaryProps {
   hiddenWidgets?: string[];
   selectedPeriod?: PeriodType;
+  customDateRange?: { from?: Date; to?: Date };
 }
 
-const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month' }: FinancialSummaryProps) => {
+const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month', customDateRange }: FinancialSummaryProps) => {
   const { user } = useSupabaseAuth();
   const { data: transactions, loading, error } = useSupabaseData('transactions', user?.id);
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { data: budgets } = useSupabaseData('budgets', user?.id);
   const { data: goals } = useSupabaseData('goals', user?.id);
-  const { getFinancialPeriod, filterTransactionsByPeriod } = useFinancialPeriod();
+  const { getFinancialPeriod } = useFinancialPeriod();
 
   // Calculate real account balances based on transactions
   const calculateTotalAccountBalance = () => {
@@ -87,9 +88,16 @@ const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month'
     );
   }
 
-  // Filtrar transações do período selecionado
-  const currentPeriodTransactions = filterTransactionsByPeriod(transactions, selectedPeriod);
-  const currentPeriod = getFinancialPeriod(selectedPeriod);
+// Determinar período atual (predefinido ou personalizado)
+const currentPeriod = (selectedPeriod === 'custom' && customDateRange?.from && customDateRange?.to && customDateRange.from <= customDateRange.to)
+  ? { startDate: customDateRange.from as Date, endDate: customDateRange.to as Date }
+  : getFinancialPeriod(selectedPeriod);
+
+// Filtrar transações do período selecionado
+const currentPeriodTransactions = transactions.filter(t => {
+  const d = new Date(t.date);
+  return d >= currentPeriod.startDate && d <= currentPeriod.endDate;
+});
 
   const totalIncome = currentPeriodTransactions
     .filter(t => t.type === 'income')

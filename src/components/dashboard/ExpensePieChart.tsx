@@ -12,9 +12,9 @@ type CategoryData = {
   color: string;
 };
 
-type ExpensePieChartProps = { selectedPeriod?: PeriodType };
+type ExpensePieChartProps = { selectedPeriod?: PeriodType; customDateRange?: { from?: Date; to?: Date } };
 
-const ExpensePieChart = ({ selectedPeriod = 'current-month' }: ExpensePieChartProps) => {
+const ExpensePieChart = ({ selectedPeriod = 'current-month', customDateRange }: ExpensePieChartProps) => {
   const { user } = useAuth();
   const { filterTransactionsByPeriod } = useFinancialPeriod();
   const { data: transactions } = useSupabaseData('transactions', user?.id);
@@ -23,11 +23,14 @@ const ExpensePieChart = ({ selectedPeriod = 'current-month' }: ExpensePieChartPr
   console.log('ExpensePieChart - Transactions:', transactions);
   console.log('ExpensePieChart - Categories:', categories);
 
-  // Filter transactions by current period and expense type
-  const filteredTransactions = filterTransactionsByPeriod(
-    transactions.filter(t => t.type === 'expense'),
-    selectedPeriod
-  );
+// Filter transactions by current period and expense type
+const expenseTx = transactions.filter(t => t.type === 'expense');
+const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.from && customDateRange?.to && customDateRange.from <= customDateRange.to)
+  ? expenseTx.filter(t => {
+      const d = new Date(t.date);
+      return d >= (customDateRange.from as Date) && d <= (customDateRange.to as Date);
+    })
+  : filterTransactionsByPeriod(expenseTx, selectedPeriod);
 
   console.log('ExpensePieChart - Filtered Transactions:', filteredTransactions);
 

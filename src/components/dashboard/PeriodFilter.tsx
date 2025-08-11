@@ -22,6 +22,7 @@ export const PeriodFilter = ({ value, onChange }: PeriodFilterProps) => {
           <SelectItem value="last-3-months">Últimos 3 Meses</SelectItem>
           <SelectItem value="last-6-months">Últimos 6 Meses</SelectItem>
           <SelectItem value="current-year">Ano Atual</SelectItem>
+          <SelectItem value="custom">Personalizado</SelectItem>
         </SelectContent>
       </Select>
     </div>
