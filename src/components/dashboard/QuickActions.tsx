@@ -12,7 +12,7 @@ export const QuickActions = () => {
     {
       label: "Importar OFX",
       icon: FileText,
-      onClick: () => navigate('/transacoes?tab=importar'),
+      onClick: () => navigate('/importacoes/transacoes'),
       color: "bg-indigo-500 hover:bg-indigo-600"
     },
     {

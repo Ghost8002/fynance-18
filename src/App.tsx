@@ -24,6 +24,8 @@ import Help from "./pages/Help";
 import Control from "./pages/Control";
 import LandingPage from "@/landingpage/LandingPage";
 import { useAuth } from "@/hooks/useAuth";
+import Imports from "./pages/Imports";
+import ImportsTransactions from "./pages/ImportsTransactions";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +57,8 @@ const AppRoutes = () => {
       <Route path="/assistente-ia" element={<AIAssistantPage />} />
       <Route path="/configuracoes" element={<Settings />} />
       <Route path="/ajuda" element={<Help />} />
+      <Route path="/importacoes" element={<Imports />} />
+      <Route path="/importacoes/transacoes" element={<ImportsTransactions />} />
       {/* Manter rotas antigas em inglês para compatibilidade */}
       <Route path="/transactions" element={<Transactions />} />
       <Route path="/cards" element={<Cards />} />
