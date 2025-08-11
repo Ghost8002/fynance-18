@@ -342,22 +342,24 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
               onTagsChange={handleTagsChange}
             />
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value: 'pending' | 'received' | 'overdue') => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="received">Recebido</SelectItem>
-                  <SelectItem value="overdue">Em Atraso</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+{receivable && (
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value: 'pending' | 'received' | 'overdue') => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="received">Recebido</SelectItem>
+                    <SelectItem value="overdue">Em Atraso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-center space-x-2">

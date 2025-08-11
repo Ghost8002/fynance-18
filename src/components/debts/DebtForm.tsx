@@ -342,22 +342,24 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
               onTagsChange={handleTagsChange}
             />
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value: 'pending' | 'paid' | 'overdue') => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="paid">Paga</SelectItem>
-                  <SelectItem value="overdue">Em Atraso</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+{debt && (
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value: 'pending' | 'paid' | 'overdue') => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="paid">Paga</SelectItem>
+                    <SelectItem value="overdue">Em Atraso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
