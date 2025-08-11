@@ -60,39 +60,42 @@ export const applyTransactionFilters = (transactions: any[], filters: Transactio
   startOfThisWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
   const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfThisYear = new Date(now.getFullYear(), 0, 1);
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(now.getDate() - 7);
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(now.getDate() - 30);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
   switch (filters.dateRange) {
     case "today":
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate >= startOfToday;
-      });
+      filtered = filtered.filter(t => new Date(t.date) >= startOfToday);
       break;
     case "this-week":
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate >= startOfThisWeek;
-      });
+      filtered = filtered.filter(t => new Date(t.date) >= startOfThisWeek);
+      break;
+    case "last-7-days":
+      filtered = filtered.filter(t => new Date(t.date) >= sevenDaysAgo);
       break;
     case "current-month":
+      filtered = filtered.filter(t => new Date(t.date) >= startOfThisMonth);
+      break;
+    case "last-month":
       filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate >= startOfThisMonth;
+        const d = new Date(t.date);
+        return d >= startOfLastMonth && d <= endOfLastMonth;
       });
       break;
     case "this-year":
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate >= startOfThisYear;
-      });
+    case "current-year":
+      filtered = filtered.filter(t => new Date(t.date) >= startOfThisYear);
       break;
     case "last-30-days":
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(now.getDate() - 30);
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        return transactionDate >= thirtyDaysAgo;
-      });
+      filtered = filtered.filter(t => new Date(t.date) >= thirtyDaysAgo);
+      break;
+    case "all":
+    default:
+      // No date filtering
       break;
   }
 
