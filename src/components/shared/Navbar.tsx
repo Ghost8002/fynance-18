@@ -9,7 +9,7 @@ const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
 
   return (
-    <header className="glass border-b border-finance-primary/10 sticky top-0 z-50 bg-white/90 backdrop-blur-xl">
+    <header className="glass-nav border-b border-border sticky top-0 z-50">
       <div className="container mx-auto section-padding py-4 flex items-center justify-between">
         {/* Logo - Hidden on larger screens when sidebar is visible */}
         <Link to="/" className="md:hidden flex items-center space-x-3 group">
@@ -39,25 +39,25 @@ const Navbar = () => {
             <>
               <Link 
                 to="/dashboard" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Dashboard
               </Link>
               <Link 
                 to="/transacoes" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Transações
               </Link>
               <Link 
                 to="/metas" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Metas
               </Link>
               <Link 
                 to="/relatorios" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Relatórios
               </Link>
@@ -66,19 +66,19 @@ const Navbar = () => {
             <>
               <Link 
                 to="/" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Início
               </Link>
               <Link 
                 to="/recursos" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Recursos
               </Link>
               <Link 
                 to="/precos" 
-                className="text-finance-text-secondary hover:text-finance-primary transition-all duration-300 font-medium hover:scale-105"
+                className="text-muted-foreground hover:text-primary transition-all duration-300 font-medium hover:scale-105"
               >
                 Preços
               </Link>
@@ -91,13 +91,13 @@ const Navbar = () => {
           <ThemeToggle />
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center space-x-3 px-4 py-2 bg-finance-primary/5 rounded-full border border-finance-primary/10">
-                <div className="p-1 bg-finance-primary/10 rounded-full">
-                  <User className="h-4 w-4 text-finance-primary" />
+              <div className="hidden sm:flex items-center space-x-3 px-4 py-2 bg-primary/5 rounded-full border border-border">
+                <div className="p-1 bg-primary/10 rounded-full">
+                  <User className="h-4 w-4 text-primary" />
                 </div>
                 <div className="text-sm">
-                  <span className="block text-finance-text-tertiary text-xs">Bem-vindo,</span>
-                  <span className="font-semibold text-finance-text-primary">
+                  <span className="block text-muted-foreground text-xs">Bem-vindo,</span>
+                  <span className="font-semibold text-foreground">
                     {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}
                   </span>
                 </div>
@@ -105,7 +105,7 @@ const Navbar = () => {
               <Button 
                 variant="outline"
                 onClick={logout}
-                className="border-2 border-finance-primary/20 text-finance-primary hover:bg-finance-primary hover:text-white hover:border-finance-primary
+                className="border-2 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary
                          transition-all duration-300 hover:shadow-lg hover:scale-105 rounded-full px-6"
               >
                 Sair

@@ -34,36 +34,56 @@
     --ring: 36 113 156;
 
     --radius: 0.75rem;
+
+    /* Sidebar variables */
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 31 41 55;
+    --sidebar-primary: 36 113 156;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 31 41 55;
+    --sidebar-border: 226 232 240;
+    --sidebar-ring: 36 113 156;
   }
 
   .dark {
-    --background: 31 41 55;
-    --foreground: 255 255 255;
+    --background: 20 23 33;
+    --foreground: 248 250 252;
 
-    --card: 31 41 55;
-    --card-foreground: 255 255 255;
+    --card: 30 33 43;
+    --card-foreground: 248 250 252;
 
-    --popover: 31 41 55;
-    --popover-foreground: 255 255 255;
+    --popover: 30 33 43;
+    --popover-foreground: 248 250 252;
 
     --primary: 36 113 156;
     --primary-foreground: 255 255 255;
 
-    --secondary: 55 65 81;
-    --secondary-foreground: 255 255 255;
+    --secondary: 45 52 68;
+    --secondary-foreground: 248 250 252;
 
-    --muted: 55 65 81;
-    --muted-foreground: 156 163 175;
+    --muted: 40 47 63;
+    --muted-foreground: 148 163 184;
 
-    --accent: 55 65 81;
-    --accent-foreground: 255 255 255;
+    --accent: 45 52 68;
+    --accent-foreground: 248 250 252;
 
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
-    --border: 55 65 81;
-    --input: 55 65 81;
+    --border: 45 52 68;
+    --input: 40 47 63;
     --ring: 36 113 156;
+
+    /* Sidebar dark mode variables */
+    --sidebar-background: 20 23 33;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 36 113 156;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 45 52 68;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 45 52 68;
+    --sidebar-ring: 36 113 156;
   }
 }
 
@@ -84,12 +104,12 @@
 
 @layer components {
   .finance-card {
-    @apply bg-white text-finance-text-primary rounded-xl shadow-lg border border-gray-200 p-6 md:p-8 glass-hover;
+    @apply bg-card text-card-foreground rounded-xl shadow-lg border border-border p-6 md:p-8 glass-hover;
   }
 
   .input-finance {
-    @apply px-4 py-3 rounded-lg border border-gray-200 bg-white text-finance-text-primary 
-           focus:outline-none focus:ring-2 focus:ring-finance-primary/20 focus:border-finance-primary
+    @apply px-4 py-3 rounded-lg border border-input bg-background text-foreground 
+           focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary
            transition-all duration-300;
   }
 
@@ -99,20 +119,20 @@
   }
 
   .btn-secondary {
-    @apply bg-white text-finance-text-primary px-6 py-3 rounded-lg font-medium border border-gray-200
-           hover:bg-finance-background-secondary hover:shadow-md transform hover:-translate-y-0.5 
+    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-lg font-medium border border-border
+           hover:bg-secondary/80 hover:shadow-md transform hover:-translate-y-0.5 
            transition-all duration-300;
   }
 
   .btn-outline {
-    @apply border border-finance-primary text-finance-primary px-6 py-3 rounded-lg font-medium
-           hover:bg-finance-primary hover:text-white hover:shadow-lg transform hover:-translate-y-0.5
+    @apply border border-primary text-primary px-6 py-3 rounded-lg font-medium
+           hover:bg-primary hover:text-primary-foreground hover:shadow-lg transform hover:-translate-y-0.5
            transition-all duration-300;
   }
 
   .btn-ghost {
-    @apply text-finance-text-primary px-6 py-3 rounded-lg font-medium
-           hover:bg-finance-background-alt hover:shadow-md transform hover:-translate-y-0.5
+    @apply text-foreground px-6 py-3 rounded-lg font-medium
+           hover:bg-accent hover:text-accent-foreground hover:shadow-md transform hover:-translate-y-0.5
            transition-all duration-300;
   }
 
@@ -125,13 +145,21 @@
   }
 
   .glass-nav {
-    @apply bg-white/90 backdrop-blur-lg border border-white/20 shadow-lg;
+    @apply bg-background/90 backdrop-blur-lg border border-border/20 shadow-lg;
+  }
+
+  .glass {
+    @apply bg-card/80 backdrop-blur-lg shadow-lg border border-border/50;
+  }
+
+  .glass-hover {
+    @apply transition-all duration-300 hover:bg-card/95 hover:shadow-xl hover:border-border/80;
   }
 
   .spotlight {
     background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-                rgba(36, 113, 156, 0.1) 0%, 
-                rgba(36, 113, 156, 0.05) 25%, 
+                hsl(var(--primary) / 0.1) 0%, 
+                hsl(var(--primary) / 0.05) 25%, 
                 transparent 50%);
   }
 }
@@ -151,5 +179,44 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  .button-gradient {
+    @apply bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-100%);
   }
 }

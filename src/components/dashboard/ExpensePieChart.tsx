@@ -4,6 +4,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { PeriodType } from "@/components/dashboard/PeriodFilter";
+import { useTheme } from "@/hooks/useTheme";
 
 // Define category data type
 type CategoryData = {
@@ -16,9 +17,12 @@ type ExpensePieChartProps = { selectedPeriod?: PeriodType; customDateRange?: { f
 
 const ExpensePieChart = ({ selectedPeriod = 'current-month', customDateRange }: ExpensePieChartProps) => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { filterTransactionsByPeriod } = useFinancialPeriod();
   const { data: transactions } = useSupabaseData('transactions', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
+
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   console.log('ExpensePieChart - Transactions:', transactions);
   console.log('ExpensePieChart - Categories:', categories);
@@ -138,7 +142,11 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend 
+                wrapperStyle={{ 
+                  color: isDark ? 'hsl(248 250 252)' : 'hsl(31 41 55)'
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
