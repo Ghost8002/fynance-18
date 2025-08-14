@@ -3,10 +3,13 @@ import { Command, Menu, LogIn } from "lucide-react";
 import { Button } from "@/landingpage/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/landingpage/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "@/components/shared/ThemeToggle";
+
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -14,6 +17,7 @@ const Navigation = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  
   const scrollToSection = (sectionId: string) => {
     if (sectionId === 'testimonials') {
       const testimonialSection = document.querySelector('.animate-marquee');
@@ -44,12 +48,15 @@ const Navigation = () => {
       }
     }
   };
+  
   const handleLogin = () => {
     navigate('/login');
   };
+  
   const handleGetStarted = () => {
     navigate('/login');
   };
+  
   const navItems = [{
     name: "Recursos",
     href: "#features",
@@ -63,24 +70,39 @@ const Navigation = () => {
     href: "#testimonials",
     onClick: () => scrollToSection('testimonials')
   }];
-  return <header className={`fixed top-3.5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-full ${isScrolled ? "h-14 bg-white/80 backdrop-blur-xl border border-gray-200 scale-95 w-[90%] max-w-2xl shadow-lg" : "h-14 bg-white/90 backdrop-blur-lg border border-gray-200 w-[95%] max-w-3xl shadow-md"}`}>
+  
+  return (
+    <header className={`fixed top-3.5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-full ${
+      isScrolled 
+        ? "h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 scale-95 w-[90%] max-w-2xl shadow-lg" 
+        : "h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 w-[95%] max-w-3xl shadow-md"
+    }`}>
       <div className="mx-auto h-full px-6">
         <nav className="flex items-center justify-between h-full">
           <div className="flex items-center gap-2">
             <Command className="w-5 h-5 text-primary" />
-            <span className="font-bold text-base text-gray-900">Fynance</span>
+            <span className="font-bold text-base text-gray-900 dark:text-gray-100">Fynance</span>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {navItems.map(item => <a key={item.name} href={item.href} onClick={e => {
-            e.preventDefault();
-            if (item.onClick) {
-              item.onClick();
-            }
-          }} className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300">
+            {navItems.map(item => (
+              <a 
+                key={item.name} 
+                href={item.href} 
+                onClick={e => {
+                  e.preventDefault();
+                  if (item.onClick) {
+                    item.onClick();
+                  }
+                }} 
+                className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300"
+              >
                 {item.name}
-              </a>)}
+              </a>
+            ))}
+            
+            <ThemeToggle />
             
             <Button onClick={handleGetStarted} size="sm" className="button-gradient">
               Começar Grátis
@@ -88,35 +110,51 @@ const Navigation = () => {
           </div>
 
           {/* Mobile Navigation */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
+            
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="glass">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-white">
+              <SheetContent className="bg-white dark:bg-gray-900">
                 <div className="flex flex-col gap-4 mt-8">
-                  {navItems.map(item => <a key={item.name} href={item.href} className="text-lg text-gray-600 hover:text-gray-900 transition-colors" onClick={e => {
-                  e.preventDefault();
-                  setIsMobileMenuOpen(false);
-                  if (item.onClick) {
-                    item.onClick();
-                  }
-                }}>
+                  {navItems.map(item => (
+                    <a 
+                      key={item.name} 
+                      href={item.href} 
+                      className="text-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" 
+                      onClick={e => {
+                        e.preventDefault();
+                        setIsMobileMenuOpen(false);
+                        if (item.onClick) {
+                          item.onClick();
+                        }
+                      }}
+                    >
                       {item.name}
-                    </a>)}
-                  <Button variant="outline" onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleLogin();
-                }} className="mt-4">
+                    </a>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogin();
+                    }} 
+                    className="mt-4"
+                  >
                     <LogIn className="w-4 h-4 mr-2" />
                     Entrar
                   </Button>
-                  <Button onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleGetStarted();
-                }} className="button-gradient">
+                  <Button 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleGetStarted();
+                    }} 
+                    className="button-gradient"
+                  >
                     Começar Grátis
                   </Button>
                 </div>
@@ -125,6 +163,8 @@ const Navigation = () => {
           </div>
         </nav>
       </div>
-    </header>;
+    </header>
+  );
 };
+
 export default Navigation;

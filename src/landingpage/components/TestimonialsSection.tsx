@@ -51,7 +51,7 @@ const TestimonialsSection = () => {
   const extendedTestimonials = [...testimonials, ...testimonials];
 
   return (
-    <section className="py-20 bg-gray-50 overflow-hidden">
+    <section className="py-20 bg-gray-50 dark:bg-gray-800 overflow-hidden">
       <div className="container px-4 mb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -59,11 +59,11 @@ const TestimonialsSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center max-w-2xl mx-auto"
         >
-          <h2 className="text-5xl md:text-6xl font-normal mb-6 text-gray-900">
+          <h2 className="text-5xl md:text-6xl font-normal mb-6 text-gray-900 dark:text-gray-100">
             O que nossos{" "}
             <span className="text-gradient font-medium">clientes dizem</span>
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-300">
             Milhares de pessoas já transformaram suas finanças com o Fynance
           </p>
         </motion.div>
@@ -79,7 +79,7 @@ const TestimonialsSection = () => {
           {extendedTestimonials.map((testimonial, index) => (
             <motion.div
               key={`testimonial-${index}`}
-              className="glass glass-hover rounded-xl p-6 min-w-[350px] bg-white border border-gray-200 hover:shadow-lg transition-all duration-300"
+              className="glass glass-hover rounded-xl p-6 min-w-[350px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300"
               whileHover={{ scale: 1.02 }}
             >
               <div className="flex items-center mb-4">
@@ -87,7 +87,7 @@ const TestimonialsSection = () => {
                   <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
-              <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 mb-4 text-sm leading-relaxed">
                 "{testimonial.content}"
               </p>
               <div className="flex items-center gap-3">
@@ -97,8 +97,8 @@ const TestimonialsSection = () => {
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <h4 className="font-medium text-gray-900 text-sm">{testimonial.name}</h4>
-                  <p className="text-gray-600 text-xs">{testimonial.role}</p>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">{testimonial.name}</h4>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs">{testimonial.role}</p>
                 </div>
               </div>
             </motion.div>

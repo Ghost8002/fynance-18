@@ -12,7 +12,7 @@ import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white text-foreground">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-foreground">
       <Navigation />
       
       {/* Hero Section */}
@@ -25,7 +25,7 @@ const Index = () => {
         >
           {/* Background */}
           <div 
-            className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 to-white"
+            className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900"
           />
           
           <motion.div
@@ -34,7 +34,7 @@ const Index = () => {
             transition={{ delay: 0.2 }}
             className="inline-block mb-4 px-4 py-1.5 rounded-full glass"
           >
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               <Command className="w-4 h-4 inline-block mr-2 text-primary" />
               Sistema completo de gestão financeira
             </span>
@@ -42,11 +42,11 @@ const Index = () => {
           
           <div className="max-w-4xl relative z-10">
             <h1 className="text-5xl md:text-7xl font-normal mb-4 tracking-tight text-left">
-              <span className="text-gray-800">
+              <span className="text-gray-800 dark:text-gray-200">
                 <TextGenerateEffect words="Gerencie suas finanças com" />
               </span>
               <br />
-              <span className="text-gray-900 font-medium">
+              <span className="text-gray-900 dark:text-gray-100 font-medium">
                 <TextGenerateEffect words="inteligência & controle" />
               </span>
             </h1>
@@ -55,10 +55,10 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl text-left"
+              className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl text-left"
             >
               Tenha controle total sobre suas finanças pessoais e empresariais com análises avançadas, planejamento inteligente e segurança de nível bancário.{" "}
-              <span className="text-gray-900 font-medium">Comece agora mesmo.</span>
+              <span className="text-gray-900 dark:text-gray-100 font-medium">Comece agora mesmo.</span>
             </motion.p>
             
             <motion.div
@@ -80,28 +80,28 @@ const Index = () => {
 
       {/* Features Section */}
       <SectionSpotlight intensity={0.06}>
-        <div id="features" className="bg-gray-50">
+        <div id="features" className="bg-gray-50 dark:bg-gray-800">
           <FeaturesSection />
         </div>
       </SectionSpotlight>
 
       {/* Pricing Section */}
       <SectionSpotlight intensity={0.08}>
-        <div id="pricing" className="bg-white">
+        <div id="pricing" className="bg-white dark:bg-gray-900">
           <PricingSection />
         </div>
       </SectionSpotlight>
 
       {/* Testimonials Section */}
       <SectionSpotlight intensity={0.05}>
-        <div className="bg-gray-50">
+        <div className="bg-gray-50 dark:bg-gray-800">
           <TestimonialsSection />
         </div>
       </SectionSpotlight>
 
       {/* CTA Section */}
       <SectionSpotlight intensity={0.1}>
-        <section className="container px-4 py-20 relative bg-white">
+        <section className="container px-4 py-20 relative bg-white dark:bg-gray-900">
           <div 
             className="absolute inset-0 opacity-10"
             style={{
@@ -114,12 +114,12 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white/90 backdrop-blur-lg border border-gray-200 rounded-2xl p-8 md:p-12 text-center relative z-10 shadow-xl"
+            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl p-8 md:p-12 text-center relative z-10 shadow-xl"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               Pronto para transformar suas finanças?
             </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
               Junte-se a milhares de usuários que já descobriram o poder da gestão financeira inteligente.
             </p>
             <Button size="lg" className="button-gradient">
@@ -131,7 +131,7 @@ const Index = () => {
       </SectionSpotlight>
 
       {/* Footer */}
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 dark:bg-gray-800">
         <Footer />
       </div>
     </div>

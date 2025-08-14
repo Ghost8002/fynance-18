@@ -17,24 +17,24 @@ const PricingTier = ({
   features: string[];
   isPopular?: boolean;
 }) => (
-  <CardSpotlight className={`h-full ${isPopular ? "border-primary" : "border-gray-200"} border-2 bg-white`}>
+  <CardSpotlight className={`h-full ${isPopular ? "border-primary" : "border-gray-200 dark:border-gray-700"} border-2 bg-white dark:bg-gray-800`}>
     <div className="relative h-full p-6 flex flex-col">
       {isPopular && (
         <span className="text-xs font-medium bg-primary/10 text-primary rounded-full px-3 py-1 w-fit mb-4">
           Mais Popular
         </span>
       )}
-      <h3 className="text-xl font-medium mb-2 text-gray-900">{name}</h3>
+      <h3 className="text-xl font-medium mb-2 text-gray-900 dark:text-gray-100">{name}</h3>
       <div className="mb-4">
-        <span className="text-4xl font-bold text-gray-900">{price}</span>
-        {price !== "Personalizado" && <span className="text-gray-500">/mês</span>}
+        <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">{price}</span>
+        {price !== "Personalizado" && <span className="text-gray-500 dark:text-gray-400">/mês</span>}
       </div>
-      <p className="text-gray-600 mb-6">{description}</p>
+      <p className="text-gray-600 dark:text-gray-300 mb-6">{description}</p>
       <ul className="space-y-3 mb-8 flex-grow">
         {features.map((feature, index) => (
           <li key={index} className="flex items-center gap-2">
             <Check className="w-5 h-5 text-primary" />
-            <span className="text-sm text-gray-700">{feature}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
           </li>
         ))}
       </ul>
@@ -47,13 +47,13 @@ const PricingTier = ({
 
 export const PricingSection = () => {
   return (
-    <section className="container px-4 py-24 bg-white">
+    <section className="container px-4 py-24 bg-white dark:bg-gray-900">
       <div className="max-w-2xl mx-auto text-center mb-12">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-5xl md:text-6xl font-normal mb-6 text-gray-900"
+          className="text-5xl md:text-6xl font-normal mb-6 text-gray-900 dark:text-gray-100"
         >
           Escolha Seu{" "}
           <span className="text-gradient font-medium">Plano Ideal</span>
@@ -62,7 +62,7 @@ export const PricingSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.5 }}
-          className="text-lg text-gray-600"
+          className="text-lg text-gray-600 dark:text-gray-300"
         >
           Selecione o plano perfeito com recursos avançados e preços competitivos
         </motion.p>

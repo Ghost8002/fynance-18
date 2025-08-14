@@ -5,15 +5,15 @@ import { features } from "@/landingpage/config/features";
 
 export const FeaturesSection = () => {
   return (
-    <section className="container px-4 py-24 bg-gray-50">
+    <section className="container px-4 py-24 bg-gray-50 dark:bg-gray-800">
       {/* Header Section */}
       <div className="max-w-2xl mb-20">
-        <h2 className="text-5xl md:text-6xl font-normal mb-6 tracking-tight text-left text-gray-900">
+        <h2 className="text-5xl md:text-6xl font-normal mb-6 tracking-tight text-left text-gray-900 dark:text-gray-100">
           Recursos Avançados
           <br />
           <span className="text-gradient font-medium">Para Sua Gestão Financeira</span>
         </h2>
-        <p className="text-lg md:text-xl text-gray-600 text-left">
+        <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 text-left">
           Ferramentas profissionais e recursos avançados projetados para transformar sua relação com o dinheiro.
         </p>
       </div>

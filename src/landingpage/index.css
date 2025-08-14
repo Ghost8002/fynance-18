@@ -29,6 +29,28 @@
     --ring: 203 73% 37%;
     --radius: 0.75rem;
   }
+
+  .dark {
+    --background: 222 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 203 73% 37%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 203 73% 37%;
+  }
 }
 
 @layer base {
@@ -42,7 +64,7 @@
 }
 
 .glass {
-  @apply bg-white/80 backdrop-blur-lg shadow-lg;
+  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-lg;
   border: 1px solid rgba(36, 113, 156, 0.1);
   background-clip: padding-box;
   position: relative;
@@ -63,7 +85,7 @@
 }
 
 .glass-hover {
-  @apply transition-all duration-300 hover:bg-white/90 hover:shadow-xl;
+  @apply transition-all duration-300 hover:bg-white/90 dark:hover:bg-gray-900/90 hover:shadow-xl;
 }
 
 .text-gradient {
@@ -72,4 +94,34 @@
 
 .button-gradient {
   @apply bg-gradient-to-r from-primary to-blue-600 hover:opacity-90 transition-opacity rounded-full text-white;
+}
+
+/* Melhorias para o modo escuro */
+.dark .glass {
+  border: 1px solid rgba(36, 113, 156, 0.2);
+}
+
+.dark .glass::before {
+  background: linear-gradient(225deg, rgba(36, 113, 156, 0.3), rgba(36, 113, 156, 0.1));
+}
+
+/* Ajustes para melhor contraste no modo escuro */
+.dark .text-muted-foreground {
+  @apply text-gray-300;
+}
+
+.dark .text-foreground {
+  @apply text-gray-100;
+}
+
+.dark .bg-background {
+  @apply bg-gray-900;
+}
+
+.dark .bg-card {
+  @apply bg-gray-800;
+}
+
+.dark .border-border {
+  @apply border-gray-700;
 }
