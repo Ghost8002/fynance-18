@@ -9,7 +9,7 @@ const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
 
   return (
-    <header className="glass-nav border-b border-border sticky top-0 z-50">
+    <header className="border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-xl">
       <div className="container mx-auto section-padding py-4 flex items-center justify-between">
         {/* Logo - Hidden on larger screens when sidebar is visible */}
         <Link to="/" className="md:hidden flex items-center space-x-3 group">
