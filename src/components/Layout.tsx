@@ -11,7 +11,7 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-accent/20 w-full flex">
+      <div className="min-h-screen bg-background w-full flex">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col min-w-0">
