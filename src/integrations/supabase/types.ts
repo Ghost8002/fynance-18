@@ -408,6 +408,7 @@ export type Database = {
           paid_date: string | null
           recurrence_type: string | null
           status: string
+          transaction_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -424,6 +425,7 @@ export type Database = {
           paid_date?: string | null
           recurrence_type?: string | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -440,6 +442,7 @@ export type Database = {
           paid_date?: string | null
           recurrence_type?: string | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -516,6 +519,7 @@ export type Database = {
           received_date: string | null
           recurrence_type: string | null
           status: string
+          transaction_id: string | null
           updated_at: string
           user_id: string
         }
@@ -532,6 +536,7 @@ export type Database = {
           received_date?: string | null
           recurrence_type?: string | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -548,6 +553,7 @@ export type Database = {
           received_date?: string | null
           recurrence_type?: string | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }
