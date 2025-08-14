@@ -72,12 +72,12 @@ const Navigation = () => {
   }];
   
   return (
-    <header className={`fixed top-3.5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-full ${
+    <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-full ${
       isScrolled 
-        ? "h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 scale-95 w-[90%] max-w-2xl shadow-lg" 
-        : "h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 w-[95%] max-w-3xl shadow-md"
+        ? "h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200 dark:border-gray-700 scale-95 w-[92%] max-w-2xl shadow-lg" 
+        : "h-14 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border border-gray-200 dark:border-gray-700 w-[96%] max-w-3xl shadow-md"
     }`}>
-      <div className="mx-auto h-full px-6">
+      <div className="mx-auto h-full px-4 sm:px-6">
         <nav className="flex items-center justify-between h-full">
           <div className="flex items-center gap-2">
             <Command className="w-5 h-5 text-primary" />
@@ -85,7 +85,7 @@ const Navigation = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4 lg:gap-6">
             {navItems.map(item => (
               <a 
                 key={item.name} 
@@ -96,7 +96,7 @@ const Navigation = () => {
                     item.onClick();
                   }
                 }} 
-                className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300"
+                className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300 px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 {item.name}
               </a>
@@ -104,7 +104,7 @@ const Navigation = () => {
             
             <ThemeToggle />
             
-            <Button onClick={handleGetStarted} size="sm" className="button-gradient">
+            <Button onClick={handleGetStarted} size="sm" className="button-gradient ml-2">
               Começar Grátis
             </Button>
           </div>
@@ -115,17 +115,17 @@ const Navigation = () => {
             
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="glass">
-                  <Menu className="h-5 w-5" />
+                <Button variant="outline" size="icon" className="glass h-9 w-9">
+                  <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-white dark:bg-gray-900">
+              <SheetContent side="right" className="bg-white dark:bg-gray-900 w-[280px] sm:w-[320px]">
                 <div className="flex flex-col gap-4 mt-8">
                   {navItems.map(item => (
                     <a 
                       key={item.name} 
                       href={item.href} 
-                      className="text-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors" 
+                      className="text-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" 
                       onClick={e => {
                         e.preventDefault();
                         setIsMobileMenuOpen(false);
@@ -137,26 +137,28 @@ const Navigation = () => {
                       {item.name}
                     </a>
                   ))}
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      handleLogin();
-                    }} 
-                    className="mt-4"
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Entrar
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      handleGetStarted();
-                    }} 
-                    className="button-gradient"
-                  >
-                    Começar Grátis
-                  </Button>
+                  <div className="mt-4 space-y-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogin();
+                      }} 
+                      className="w-full"
+                    >
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Entrar
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleGetStarted();
+                      }} 
+                      className="button-gradient w-full"
+                    >
+                      Começar Grátis
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

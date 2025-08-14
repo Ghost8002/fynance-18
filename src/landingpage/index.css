@@ -57,9 +57,28 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+  }
+  
+  /* Prevenir overflow horizontal */
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Melhorar responsividade */
+  @media (max-width: 640px) {
+    .container {
+      @apply px-4;
+    }
   }
 }
 
@@ -124,4 +143,32 @@
 
 .dark .border-border {
   @apply border-gray-700;
+}
+
+/* Correções de layout específicas */
+.landing-page {
+  @apply overflow-x-hidden;
+}
+
+/* Melhorar responsividade dos botões */
+@media (max-width: 640px) {
+  .button-gradient {
+    @apply w-full justify-center;
+  }
+}
+
+/* Prevenir problemas de scroll horizontal */
+.section-spotlight {
+  @apply overflow-hidden;
+}
+
+/* Melhorar espaçamentos em mobile */
+@media (max-width: 768px) {
+  .hero-section {
+    @apply pt-24 pb-12;
+  }
+  
+  .cta-section {
+    @apply py-12;
+  }
 }
