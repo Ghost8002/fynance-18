@@ -81,7 +81,7 @@ export function AppSidebar() {
   return <Sidebar className="border-r border-border glass backdrop-blur-xl">
       <SidebarContent className="bg-background/95 backdrop-blur-xl">
         {/* Logo Section */}
-        <div className="p-6 border-b border-border">
+        <div className="px-6 py-4 border-b border-border flex items-center">
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">

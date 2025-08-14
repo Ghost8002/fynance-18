@@ -17,7 +17,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="flex-1 flex flex-col min-w-0">
           <Navbar />
           
-          <div className="md:hidden p-4 border-b bg-background/90 backdrop-blur-lg shadow-sm">
+          <div className="md:hidden p-4 bg-background/80 backdrop-blur-lg shadow-sm">
             <SidebarTrigger className="h-9 w-9 text-foreground hover:text-primary hover:bg-primary/10 rounded-full transition-all duration-300 hover:scale-105" />
           </div>
           

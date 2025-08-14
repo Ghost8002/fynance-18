@@ -118,6 +118,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-geist tracking-tight;
   }
+
+  /* Garantir alinhamento perfeito das bordas */
+  header.border-b {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+  }
+
+  .border-b.border-border {
+    border-bottom-color: hsl(var(--border));
+  }
 }
 
 @layer components {

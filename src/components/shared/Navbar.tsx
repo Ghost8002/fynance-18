@@ -9,8 +9,8 @@ const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
 
   return (
-    <header className="bg-background/95 backdrop-blur-xl border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto section-padding py-4 flex items-center justify-between">
+    <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo - Hidden on larger screens when sidebar is visible */}
         <Link to="/" className="md:hidden flex items-center space-x-3 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-finance-primary to-finance-secondary text-white transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
