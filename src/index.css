@@ -5,85 +5,103 @@
 
 @layer base {
   :root {
-    --background: 255 255 255;
-    --foreground: 31 41 55;
+    --background: 0 0% 100%;
+    --foreground: 222 84% 4.9%;
 
-    --card: 255 255 255;
-    --card-foreground: 31 41 55;
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 4.9%;
 
-    --popover: 255 255 255;
-    --popover-foreground: 31 41 55;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 4.9%;
 
-    --primary: 36 113 156;
-    --primary-foreground: 255 255 255;
+    --primary: 203 73% 37%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 248 250 252;
-    --secondary-foreground: 31 41 55;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222 84% 4.9%;
 
-    --muted: 241 245 249;
-    --muted-foreground: 107 114 128;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 241 245 249;
-    --accent-foreground: 31 41 55;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 84% 4.9%;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 36 113 156;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 203 73% 37%;
 
     --radius: 0.75rem;
 
+    /* Finance specific variables */
+    --finance-primary: 203 73% 37%;
+    --finance-secondary: 203 90% 22%;
+    --finance-green: 142 76% 36%;
+    --finance-red: 0 84% 60%;
+    --finance-yellow: 43 96% 56%;
+    --finance-purple: 262 83% 58%;
+    --finance-gray: 215 16% 47%;
+
     /* Sidebar variables */
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 31 41 55;
-    --sidebar-primary: 36 113 156;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 241 245 249;
-    --sidebar-accent-foreground: 31 41 55;
-    --sidebar-border: 226 232 240;
-    --sidebar-ring: 36 113 156;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 84% 4.9%;
+    --sidebar-primary: 203 73% 37%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 84% 4.9%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 203 73% 37%;
   }
 
   .dark {
-    --background: 20 23 33;
-    --foreground: 248 250 252;
+    --background: 222 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 30 33 43;
-    --card-foreground: 248 250 252;
+    --card: 222 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 30 33 43;
-    --popover-foreground: 248 250 252;
+    --popover: 222 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 36 113 156;
-    --primary-foreground: 255 255 255;
+    --primary: 203 73% 37%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 45 52 68;
-    --secondary-foreground: 248 250 252;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 40 47 63;
-    --muted-foreground: 148 163 184;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 45 52 68;
-    --accent-foreground: 248 250 252;
+    --accent: 217 32% 17%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 45 52 68;
-    --input: 40 47 63;
-    --ring: 36 113 156;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 203 73% 37%;
+
+    /* Finance specific dark mode variables */
+    --finance-primary: 203 73% 37%;
+    --finance-secondary: 203 90% 22%;
+    --finance-green: 142 76% 36%;
+    --finance-red: 0 84% 60%;
+    --finance-yellow: 43 96% 56%;
+    --finance-purple: 262 83% 58%;
+    --finance-gray: 215 20% 65%;
 
     /* Sidebar dark mode variables */
-    --sidebar-background: 20 23 33;
-    --sidebar-foreground: 248 250 252;
-    --sidebar-primary: 36 113 156;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 45 52 68;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 45 52 68;
-    --sidebar-ring: 36 113 156;
+    --sidebar-background: 222 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 203 73% 37%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 217 32% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 32% 17%;
+    --sidebar-ring: 203 73% 37%;
   }
 }
 

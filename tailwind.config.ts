@@ -64,22 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				finance: {
-					primary: '#24719c',
-					secondary: '#1a5a7a',
-					background: '#ffffff',
-					'background-secondary': '#f8fafc',
-					'background-alt': '#f1f5f9',
-					'text-primary': '#1f2937',
-					'text-secondary': '#6b7280',
-					'text-tertiary': '#9ca3af',
-					red: '#ef4444',
-					'red-dark': '#dc2626',
-					green: '#10b981',
-					blue: '#24719c',
-					yellow: '#f59e0b',
-					purple: '#8b5cf6',
-					gray: '#6b7280',
-					"light-gray": '#f1f5f9',
+					primary: 'hsl(var(--finance-primary))',
+					secondary: 'hsl(var(--finance-secondary))',
+					green: 'hsl(var(--finance-green))',
+					red: 'hsl(var(--finance-red))',
+					yellow: 'hsl(var(--finance-yellow))',
+					purple: 'hsl(var(--finance-purple))',
+					gray: 'hsl(var(--finance-gray))',
 				}
 			},
 			fontFamily: {
@@ -155,21 +146,21 @@ export default {
 		function({ addUtilities }: any) {
 			addUtilities({
 				'.glass': {
-					'background': 'rgba(255, 255, 255, 0.8)',
+					'background': 'hsl(var(--card) / 0.8)',
 					'backdrop-filter': 'blur(16px)',
 					'-webkit-backdrop-filter': 'blur(16px)',
-					'border': '1px solid rgba(255, 255, 255, 0.2)',
+					'border': '1px solid hsl(var(--border) / 0.2)',
 				},
 				'.glass-hover': {
 					'transition': 'all 0.3s ease',
 					'&:hover': {
-						'background': 'rgba(255, 255, 255, 0.9)',
+						'background': 'hsl(var(--card) / 0.9)',
 						'transform': 'translateY(-2px)',
-						'box-shadow': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+						'box-shadow': '0 20px 25px -5px hsl(var(--foreground) / 0.1), 0 10px 10px -5px hsl(var(--foreground) / 0.04)',
 					}
 				},
 				'.button-gradient': {
-					'background': 'linear-gradient(135deg, #24719c 0%, #1a5a7a 100%)',
+					'background': 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%)',
 					'transition': 'all 0.3s ease',
 					'&:hover': {
 						'opacity': '0.9',
@@ -177,7 +168,7 @@ export default {
 					}
 				},
 				'.text-gradient': {
-					'background': 'linear-gradient(135deg, #24719c 0%, #1a5a7a 100%)',
+					'background': 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%)',
 					'-webkit-background-clip': 'text',
 					'background-clip': 'text',
 					'-webkit-text-fill-color': 'transparent',
