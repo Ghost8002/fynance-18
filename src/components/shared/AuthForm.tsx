@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react";
-
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -18,48 +16,55 @@ const AuthForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  const { signIn, signUp } = useAuth();
-  const { toast } = useToast();
+  const {
+    signIn,
+    signUp
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       if (isLogin) {
         console.log('Attempting login...');
-        const { error } = await signIn(email, password);
+        const {
+          error
+        } = await signIn(email, password);
         if (error) {
           console.error('Login error:', error);
           throw error;
         }
-        
         console.log('Login successful, showing toast...');
         toast({
           title: "Sucesso",
-          description: "Login realizado com sucesso!",
+          description: "Login realizado com sucesso!"
         });
 
         // Force navigation after successful login
         setTimeout(() => {
           console.log('Forcing navigation to dashboard...');
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboard", {
+            replace: true
+          });
         }, 100);
-        
       } else {
         console.log('Attempting signup...');
-        const { error } = await signUp(email, password, { full_name: fullName });
+        const {
+          error
+        } = await signUp(email, password, {
+          full_name: fullName
+        });
         if (error) {
           console.error('Signup error:', error);
           throw error;
         }
-        
         toast({
           title: "Sucesso",
-          description: "Conta criada com sucesso! Verifique seu email.",
+          description: "Conta criada com sucesso! Verifique seu email."
         });
       }
     } catch (error: any) {
@@ -68,15 +73,13 @@ const AuthForm = () => {
       toast({
         title: "Erro",
         description: error.message || 'Ocorreu um erro durante a autenticação',
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+  return <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Background Decorativo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
@@ -89,9 +92,7 @@ const AuthForm = () => {
         <div className="w-full max-w-md">
           {/* Header com Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-white mb-4 shadow-xl">
-              <Sparkles className="w-8 h-8" />
-            </div>
+            
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Bem-vindo ao Fynance
             </h1>
@@ -120,25 +121,15 @@ const AuthForm = () => {
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-6">
-                {!isLogin && (
-                  <div className="space-y-2">
+                {!isLogin && <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Nome completo
                     </Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="fullName"
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required
-                        placeholder="Seu nome completo"
-                        className="pl-10 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                      />
+                      <Input id="fullName" type="text" value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Seu nome completo" className="pl-10 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
                     </div>
-                  </div>
-                )}
+                  </div>}
                 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -146,15 +137,7 @@ const AuthForm = () => {
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      placeholder="seu@email.com"
-                      className="pl-10 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                    />
+                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.com" className="pl-10 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
                   </div>
                 </div>
                 
@@ -164,78 +147,44 @@ const AuthForm = () => {
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      placeholder="Sua senha"
-                      minLength={6}
-                      className="pl-10 pr-12 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
+                    <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required placeholder="Sua senha" minLength={6} className="pl-10 pr-12 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm">
+                {error && <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm">
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
                       <p className="text-red-800 dark:text-red-200 text-sm font-medium">
                         {error}
                       </p>
                     </div>
-                  </div>
-                )}
+                  </div>}
                 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 h-12 group" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
+                <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 h-12 group" disabled={loading}>
+                  {loading ? <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       {isLogin ? 'Entrando...' : 'Criando conta...'}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center">
+                    </div> : <div className="flex items-center justify-center">
                       <span>{isLogin ? 'Entrar na conta' : 'Criar conta'}</span>
                       <div className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300">
                         →
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </Button>
               </form>
               
               <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setError('');
-                    setEmail('');
-                    setPassword('');
-                    setFullName('');
-                  }}
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors font-medium hover:underline"
-                >
-                  {isLogin 
-                    ? 'Não tem uma conta? Criar conta' 
-                    : 'Já tem uma conta? Fazer login'
-                  }
+                <button type="button" onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+                setEmail('');
+                setPassword('');
+                setFullName('');
+              }} className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors font-medium hover:underline">
+                  {isLogin ? 'Não tem uma conta? Criar conta' : 'Já tem uma conta? Fazer login'}
                 </button>
               </div>
             </div>
@@ -272,9 +221,7 @@ const AuthForm = () => {
             </div>
             
             <div className="mt-8 flex items-center justify-center">
-              <div className="w-14 h-14 bg-primary/20 backdrop-blur-sm rounded-full flex items-center justify-center mr-4 shadow-lg border border-primary/30">
-                <Command className="w-7 h-7 text-primary dark:text-white" />
-              </div>
+              
               <div className="text-left">
                 <p className="text-gray-900 dark:text-gray-100 text-lg font-bold">Fynance</p>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">Controle financeiro inteligente</p>
@@ -311,8 +258,6 @@ const AuthForm = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AuthForm;
