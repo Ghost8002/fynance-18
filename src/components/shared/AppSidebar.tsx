@@ -1,23 +1,6 @@
-
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Receipt, 
-  CreditCard, 
-  PiggyBank, 
-  BarChart3, 
-  Target, 
-  Settings, 
-  Calendar, 
-  Wallet, 
-  HelpCircle, 
-  FileText, 
-  Bot, 
-  Shield, 
-  FileDown 
-} from 'lucide-react';
+import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Shield, FileDown } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-
 const navigationItems = [{
   title: 'Dashboard',
   icon: LayoutDashboard,
@@ -75,7 +58,6 @@ const navigationItems = [{
   icon: HelpCircle,
   href: '/ajuda'
 }];
-
 export function AppSidebar() {
   const location = useLocation();
   return <Sidebar className="border-r border-border glass backdrop-blur-xl">
@@ -132,12 +114,8 @@ export function AppSidebar() {
         {/* Footer Section */}
         <div className="p-6 border-t border-border">
           <div className="text-center">
-            <p className="text-xs text-muted-foreground">
-              © 2024 Fynance
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Versão 2.0
-            </p>
+            <p className="text-xs text-muted-foreground">© 2025 Fynance</p>
+            <p className="text-xs text-muted-foreground mt-1">Versão demo (estou terminando, não é recomendado tu por nada aqui ainda, apenas testes)</p>
           </div>
         </div>
       </SidebarContent>
