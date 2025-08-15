@@ -24,7 +24,7 @@ const formatCurrency = (value: number) => {
   if (isNaN(value) || !isFinite(value)) return 'R$ 0,00';
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: 'BRL'
   }).format(value);
 };
 
@@ -32,12 +32,10 @@ const formatCurrency = (value: number) => {
 const getStatusBadge = (status: string, dueDate: string) => {
   const today = startOfDay(new Date());
   const due = startOfDay(new Date(dueDate));
-  
   let actualStatus = status;
   if (status === 'pending' && isBefore(due, today)) {
     actualStatus = 'overdue';
   }
-
   switch (actualStatus) {
     case 'paid':
       return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Paga</Badge>;
@@ -52,44 +50,57 @@ const getStatusBadge = (status: string, dueDate: string) => {
 // Helper function to get recurrence badge
 const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
   if (!isRecurring) return null;
-  
   const typeLabels = {
     'weekly': 'Semanal',
     'monthly': 'Mensal',
     'yearly': 'Anual'
   };
-  
-  return (
-    <Badge variant="outline" className="flex items-center gap-1">
+  return <Badge variant="outline" className="flex items-center gap-1">
       <Repeat className="h-3 w-3" />
       {typeLabels[recurrenceType as keyof typeof typeLabels] || 'Recorrente'}
-    </Badge>
-  );
+    </Badge>;
 };
-
 const DebtList: React.FC = () => {
-  const { user } = useSupabaseAuth();
-  const { data: debts, loading, error, update, remove, refetch } = useSupabaseData('debts', user?.id);
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { data: categories } = useSupabaseData('categories', user?.id);
-  const { updateAccountBalance } = useBalanceUpdates();
-  const { dateRange } = usePeriodFilterContext();
-  const { toast } = useToast();
-
+  const {
+    user
+  } = useSupabaseAuth();
+  const {
+    data: debts,
+    loading,
+    error,
+    update,
+    remove,
+    refetch
+  } = useSupabaseData('debts', user?.id);
+  const {
+    data: accounts
+  } = useSupabaseData('accounts', user?.id);
+  const {
+    data: categories
+  } = useSupabaseData('categories', user?.id);
+  const {
+    updateAccountBalance
+  } = useBalanceUpdates();
+  const {
+    dateRange
+  } = usePeriodFilterContext();
+  const {
+    toast
+  } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDebt, setSelectedDebt] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [debtForAccountSelection, setDebtForAccountSelection] = useState<any>(null);
-  
+
   // Estados de loading para feedback visual
-  const [loadingOperations, setLoadingOperations] = useState<{[key: string]: boolean}>({});
+  const [loadingOperations, setLoadingOperations] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Find default expense category
-  const defaultExpenseCategory = categories.find(cat => 
-    cat.type === 'expense' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('despesa'))
-  ) || categories.find(cat => cat.type === 'expense');
+  const defaultExpenseCategory = categories.find(cat => cat.type === 'expense' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('despesa'))) || categories.find(cat => cat.type === 'expense');
 
   // Filter and search debts
   const filteredDebts = useMemo(() => {
@@ -100,23 +111,19 @@ const DebtList: React.FC = () => {
         start: dateRange.startDate,
         end: dateRange.endDate
       });
-      
       if (!withinPeriod) return false;
-      
+
       // Search filter
       const matchesSearch = debt.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
       if (statusFilter === 'all') return matchesSearch;
-      
+
       // Status filter
       const today = startOfDay(new Date());
       const due = startOfDay(new Date(debt.due_date));
       let actualStatus = debt.status;
-      
       if (debt.status === 'pending' && isBefore(due, today)) {
         actualStatus = 'overdue';
       }
-      
       return matchesSearch && actualStatus === statusFilter;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
   }, [debts, searchTerm, statusFilter, dateRange]);
@@ -124,32 +131,34 @@ const DebtList: React.FC = () => {
   // Calculate totals for filtered debts
   const totals = useMemo(() => {
     const today = startOfDay(new Date());
-    
     return filteredDebts.reduce((acc, debt) => {
       const due = startOfDay(new Date(debt.due_date));
       let actualStatus = debt.status;
-      
       if (debt.status === 'pending' && isBefore(due, today)) {
         actualStatus = 'overdue';
       }
-      
       const amount = Number(debt.amount);
       if (!isNaN(amount) && isFinite(amount)) {
         acc[actualStatus] = (acc[actualStatus] || 0) + amount;
         acc.total += amount;
       }
-      
       return acc;
-    }, { pending: 0, paid: 0, overdue: 0, total: 0 });
+    }, {
+      pending: 0,
+      paid: 0,
+      overdue: 0,
+      total: 0
+    });
   }, [filteredDebts]);
-
   const handleMarkAsPaid = async (debt: any) => {
     const operationId = `mark-paid-${debt.id}`;
-    
     try {
       // Iniciar loading
-      setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
-      
+      setLoadingOperations(prev => ({
+        ...prev,
+        [operationId]: true
+      }));
+
       // Validation: check if debt has an associated account
       if (!debt.account_id) {
         // Em vez de bloquear, oferecer opção de selecionar conta
@@ -157,58 +166,57 @@ const DebtList: React.FC = () => {
         setShowAccountSelector(true);
         return;
       }
-
       console.log('Starting to mark debt as paid:', debt.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('mark_debt_as_paid_with_rollback', {
+      const {
+        data: transactionData,
+        error: transactionError
+      } = await supabase.rpc('mark_debt_as_paid_with_rollback', {
         p_debt_id: debt.id,
         p_account_id: debt.account_id
       });
-
       if (transactionError) {
         console.error('Error in database transaction:', transactionError);
         throw new Error(`Erro na operação: ${transactionError.message}`);
       }
-
       console.log('Database transaction completed successfully');
 
       // Feedback de sucesso
       if (debt.is_recurring) {
         toast({
           title: "Sucesso",
-          description: "Dívida recorrente marcada como paga, transação criada automaticamente e próxima ocorrência gerada!",
+          description: "Dívida recorrente marcada como paga, transação criada automaticamente e próxima ocorrência gerada!"
         });
       } else {
         toast({
           title: "Sucesso",
-          description: "Dívida marcada como paga e transação criada automaticamente na aba Transações!",
+          description: "Dívida marcada como paga e transação criada automaticamente na aba Transações!"
         });
       }
-
       refetch();
     } catch (error) {
       console.error('Error in handleMarkAsPaid:', error);
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Erro ao processar dívida. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       // Finalizar loading
-      setLoadingOperations(prev => ({ ...prev, [operationId]: false }));
+      setLoadingOperations(prev => ({
+        ...prev,
+        [operationId]: false
+      }));
     }
   };
-
   const handleSelectAccountAndMarkAsPaid = async (accountId: string) => {
     if (!debtForAccountSelection) return;
-    
     try {
       // Primeiro atualizar a dívida com a conta selecionada
       const updateResult = await update(debtForAccountSelection.id, {
         account_id: accountId
       });
-
       if (updateResult.error) {
         throw new Error(updateResult.error);
       }
@@ -218,131 +226,124 @@ const DebtList: React.FC = () => {
       setDebtForAccountSelection(null);
 
       // Agora marcar como paga com a conta selecionada
-      const debtWithAccount = { ...debtForAccountSelection, account_id: accountId };
+      const debtWithAccount = {
+        ...debtForAccountSelection,
+        account_id: accountId
+      };
       await handleMarkAsPaid(debtWithAccount);
-
     } catch (error) {
       console.error('Error selecting account:', error);
       toast({
         title: "Erro",
         description: "Erro ao selecionar conta. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleUnmarkAsPaid = async (debt: any) => {
     const operationId = `unmark-paid-${debt.id}`;
-    
     try {
       // Iniciar loading
-      setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
-      
+      setLoadingOperations(prev => ({
+        ...prev,
+        [operationId]: true
+      }));
       console.log('Starting to unmark debt as paid:', debt.id);
 
       // Iniciar transação de banco de dados para rollback automático
-      const { data: transactionData, error: transactionError } = await supabase.rpc('unmark_debt_as_paid_with_rollback', {
+      const {
+        data: transactionData,
+        error: transactionError
+      } = await supabase.rpc('unmark_debt_as_paid_with_rollback', {
         p_debt_id: debt.id,
         p_account_id: debt.account_id
       });
-
       if (transactionError) {
         console.error('Error in database transaction:', transactionError);
         throw new Error(`Erro na operação: ${transactionError.message}`);
       }
-
       console.log('Database transaction completed successfully');
-
       toast({
         title: "Sucesso",
-        description: "Dívida desmarcada como paga e transação removida!",
+        description: "Dívida desmarcada como paga e transação removida!"
       });
-
       refetch();
     } catch (error) {
       console.error('Error in handleUnmarkAsPaid:', error);
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Erro ao desmarcar dívida. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       // Finalizar loading
-      setLoadingOperations(prev => ({ ...prev, [operationId]: false }));
+      setLoadingOperations(prev => ({
+        ...prev,
+        [operationId]: false
+      }));
     }
   };
-
   const handleDelete = async (debtId: string) => {
     const operationId = `delete-${debtId}`;
-    
     try {
       // Iniciar loading
-      setLoadingOperations(prev => ({ ...prev, [operationId]: true }));
-      
+      setLoadingOperations(prev => ({
+        ...prev,
+        [operationId]: true
+      }));
       const result = await remove(debtId);
-
       if (result.error) {
         throw new Error(result.error);
       }
-
       toast({
         title: "Sucesso",
-        description: "Dívida excluída com sucesso!",
+        description: "Dívida excluída com sucesso!"
       });
-
       refetch();
     } catch (error) {
       console.error('Error deleting debt:', error);
       toast({
         title: "Erro",
         description: "Erro ao excluir dívida. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       // Finalizar loading
-      setLoadingOperations(prev => ({ ...prev, [operationId]: false }));
+      setLoadingOperations(prev => ({
+        ...prev,
+        [operationId]: false
+      }));
     }
   };
-
   const handleFormSubmit = () => {
     setSelectedDebt(null);
     setShowForm(false);
     refetch();
   };
-
   const handleFormCancel = () => {
     setSelectedDebt(null);
     setShowForm(false);
   };
-
   const getAccountName = (accountId: string) => {
     const account = accounts.find(acc => acc.id === accountId);
     return account ? `${account.name} - ${account.bank || 'Sem banco'}` : 'Conta não encontrada';
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
+    return <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Carregando dívidas...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (error) {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="p-6">
           <p className="text-destructive">Erro ao carregar dívidas: {error}</p>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -388,7 +389,7 @@ const DebtList: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>Dívidas a Pagar</CardTitle>
-              <CardDescription>Gerencie suas dívidas - transações são geradas automaticamente ao marcar como paga</CardDescription>
+              
             </div>
             
             <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -402,11 +403,7 @@ const DebtList: React.FC = () => {
                 <DialogHeader>
                   <DialogTitle>{selectedDebt ? 'Editar Dívida' : 'Nova Dívida'}</DialogTitle>
                 </DialogHeader>
-                <DebtForm
-                  debt={selectedDebt}
-                  onClose={handleFormCancel}
-                  onSave={handleFormSubmit}
-                />
+                <DebtForm debt={selectedDebt} onClose={handleFormCancel} onSave={handleFormSubmit} />
               </DialogContent>
             </Dialog>
           </div>
@@ -415,12 +412,7 @@ const DebtList: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Buscar dívidas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Buscar dívidas..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -438,8 +430,7 @@ const DebtList: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          {filteredDebts.length > 0 ? (
-            <div className="rounded-md border">
+          {filteredDebts.length > 0 ? <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -453,83 +444,40 @@ const DebtList: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDebts.map((debt) => (
-                    <TableRow key={debt.id}>
+                  {filteredDebts.map(debt => <TableRow key={debt.id}>
                       <TableCell className="font-medium">{debt.description}</TableCell>
                       <TableCell>{formatCurrency(Number(debt.amount))}</TableCell>
-                      <TableCell>{format(new Date(debt.due_date), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
+                      <TableCell>{format(new Date(debt.due_date), "dd/MM/yyyy", {
+                    locale: ptBR
+                  })}</TableCell>
                       <TableCell>
-                        {debt.account_id ? (
-                          <div className="flex items-center gap-1">
+                        {debt.account_id ? <div className="flex items-center gap-1">
                             <Receipt className="h-3 w-3 text-green-600" />
                             {getAccountName(debt.account_id)}
-                          </div>
-                        ) : (
-                          <Badge variant="outline" className="text-orange-600 border-orange-200">
+                          </div> : <Badge variant="outline" className="text-orange-600 border-orange-200">
                             Conta não especificada
-                          </Badge>
-                        )}
+                          </Badge>}
                       </TableCell>
                       <TableCell>{getStatusBadge(debt.status, debt.due_date)}</TableCell>
                       <TableCell>
-                        <RecurrenceProgress 
-                          isRecurring={debt.is_recurring}
-                          recurrenceType={debt.recurrence_type}
-                          currentCount={debt.current_count || 0}
-                          maxOccurrences={debt.max_occurrences}
-                          endDate={debt.recurrence_end_date}
-                        />
+                        <RecurrenceProgress isRecurring={debt.is_recurring} recurrenceType={debt.recurrence_type} currentCount={debt.current_count || 0} maxOccurrences={debt.max_occurrences} endDate={debt.recurrence_end_date} />
                       </TableCell>
                       
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {debt.status === 'pending' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleMarkAsPaid(debt)}
-                              disabled={loadingOperations[`mark-paid-${debt.id}`]}
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              {loadingOperations[`mark-paid-${debt.id}`] ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </Button>
-                          ) : debt.status === 'paid' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleUnmarkAsPaid(debt)}
-                              disabled={loadingOperations[`unmark-paid-${debt.id}`]}
-                              className="text-orange-600 hover:text-orange-700"
-                            >
-                              {loadingOperations[`unmark-paid-${debt.id}`] ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <X className="h-4 w-4" />
-                              )}
-                            </Button>
-                          ) : null}
+                          {debt.status === 'pending' ? <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(debt)} disabled={loadingOperations[`mark-paid-${debt.id}`]} className="text-green-600 hover:text-green-700">
+                              {loadingOperations[`mark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                            </Button> : debt.status === 'paid' ? <Button variant="outline" size="sm" onClick={() => handleUnmarkAsPaid(debt)} disabled={loadingOperations[`unmark-paid-${debt.id}`]} className="text-orange-600 hover:text-orange-700">
+                              {loadingOperations[`unmark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                            </Button> : null}
                           
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedDebt(debt)}
-                            disabled={Object.values(loadingOperations).some(Boolean)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => setSelectedDebt(debt)} disabled={Object.values(loadingOperations).some(Boolean)}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={Object.values(loadingOperations).some(Boolean)}
-                                className="text-red-600 hover:text-red-700"
-                              >
+                              <Button variant="outline" size="sm" disabled={Object.values(loadingOperations).some(Boolean)} className="text-red-600 hover:text-red-700">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
@@ -543,10 +491,7 @@ const DebtList: React.FC = () => {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(debt.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
+                                <AlertDialogAction onClick={() => handleDelete(debt.id)} className="bg-red-600 hover:bg-red-700">
                                   Excluir
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -554,27 +499,18 @@ const DebtList: React.FC = () => {
                           </AlertDialog>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8">
+            </div> : <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                {debts.length === 0 
-                  ? "Nenhuma dívida cadastrada. Comece adicionando sua primeira dívida!"
-                  : "Nenhuma dívida encontrada com os filtros aplicados."
-                }
+                {debts.length === 0 ? "Nenhuma dívida cadastrada. Comece adicionando sua primeira dívida!" : "Nenhuma dívida encontrada com os filtros aplicados."}
               </p>
-              {debts.length === 0 && (
-                <Button onClick={() => setShowForm(true)}>
+              {debts.length === 0 && <Button onClick={() => setShowForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Primeira Dívida
-                </Button>
-              )}
-            </div>
-          )}
+                </Button>}
+            </div>}
         </CardContent>
       </Card>
 
@@ -599,11 +535,9 @@ const DebtList: React.FC = () => {
                   <SelectValue placeholder="Selecione uma conta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {accounts?.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
+                  {accounts?.map(account => <SelectItem key={account.id} value={account.id}>
                       {account.name} - {account.bank || 'Sem banco'}
-                    </SelectItem>
-                  ))}
+                    </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -616,8 +550,6 @@ const DebtList: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default DebtList;
