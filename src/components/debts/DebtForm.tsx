@@ -55,6 +55,8 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
     category_id: '',
     is_recurring: false,
     recurrence_type: 'monthly' as 'weekly' | 'monthly' | 'yearly',
+    max_occurrences: '',
+    recurrence_end_date: undefined as Date | undefined,
     selectedTags: [] as string[]
   });
   const [loading, setLoading] = useState(false);
@@ -72,6 +74,8 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         category_id: debt.category_id || '',
         is_recurring: debt.is_recurring || false,
         recurrence_type: debt.recurrence_type || 'monthly',
+        max_occurrences: (debt as any).max_occurrences?.toString() || '',
+        recurrence_end_date: (debt as any).recurrence_end_date ? new Date((debt as any).recurrence_end_date) : undefined,
         selectedTags: []
       });
     }
@@ -120,13 +124,35 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
       return;
     }
 
-    if (formData.is_recurring && !formData.recurrence_type) {
-      toast({
-        title: "Erro",
-        description: "Selecione o tipo de recorrência",
-        variant: "destructive",
-      });
-      return;
+    // Validação de recorrência
+    if (formData.is_recurring) {
+      if (!formData.recurrence_type) {
+        toast({
+          title: "Erro",
+          description: "Selecione o tipo de recorrência",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validação de limite de recorrência
+      if (!formData.max_occurrences && !formData.recurrence_end_date) {
+        toast({
+          title: "Erro",
+          description: "Para dívidas recorrentes, defina um limite: número máximo de parcelas ou data de término",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (formData.max_occurrences && parseInt(formData.max_occurrences) <= 0) {
+        toast({
+          title: "Erro",
+          description: "O número máximo de parcelas deve ser maior que zero",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (!formData.account_id) {
@@ -149,7 +175,9 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         account_id: formData.account_id || null,
         category_id: formData.category_id || null,
         is_recurring: formData.is_recurring,
-        recurrence_type: formData.is_recurring ? formData.recurrence_type : null
+        recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
+        max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
+        recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null
       };
 
       console.log('Debt data to be saved:', debtData);
@@ -387,6 +415,59 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
                       <SelectItem value="yearly">Anual</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {/* Campos de limite de recorrência */}
+                  <div className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/20">
+                    <Label className="text-sm font-medium">Limite da Recorrência</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Defina quando a recorrência deve parar (obrigatório)
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="max_occurrences">Número Máximo de Parcelas</Label>
+                        <Input
+                          id="max_occurrences"
+                          type="number"
+                          min="1"
+                          value={formData.max_occurrences}
+                          onChange={(e) => setFormData({ ...formData, max_occurrences: e.target.value })}
+                          placeholder="Ex: 12"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Data de Término</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !formData.recurrence_end_date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.recurrence_end_date ? format(formData.recurrence_end_date, "dd/MM/yyyy", { locale: ptBR }) : "Data limite"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={formData.recurrence_end_date}
+                              onSelect={(date) => setFormData({...formData, recurrence_end_date: date})}
+                              initialFocus
+                              locale={ptBR}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Você pode definir um ou ambos os limites. A recorrência parará quando o primeiro limite for atingido.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

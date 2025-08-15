@@ -474,12 +474,15 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string | null
+          current_count: number | null
           description: string
           due_date: string
           id: string
           is_recurring: boolean | null
+          max_occurrences: number | null
           notes: string | null
           paid_date: string | null
+          recurrence_end_date: string | null
           recurrence_type: string | null
           status: string
           transaction_id: string | null
@@ -491,12 +494,15 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string | null
+          current_count?: number | null
           description: string
           due_date: string
           id?: string
           is_recurring?: boolean | null
+          max_occurrences?: number | null
           notes?: string | null
           paid_date?: string | null
+          recurrence_end_date?: string | null
           recurrence_type?: string | null
           status?: string
           transaction_id?: string | null
@@ -508,12 +514,15 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string | null
+          current_count?: number | null
           description?: string
           due_date?: string
           id?: string
           is_recurring?: boolean | null
+          max_occurrences?: number | null
           notes?: string | null
           paid_date?: string | null
+          recurrence_end_date?: string | null
           recurrence_type?: string | null
           status?: string
           transaction_id?: string | null
@@ -585,12 +594,15 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string
+          current_count: number | null
           description: string
           due_date: string
           id: string
           is_recurring: boolean | null
+          max_occurrences: number | null
           notes: string | null
           received_date: string | null
+          recurrence_end_date: string | null
           recurrence_type: string | null
           status: string
           transaction_id: string | null
@@ -602,12 +614,15 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string
+          current_count?: number | null
           description: string
           due_date: string
           id?: string
           is_recurring?: boolean | null
+          max_occurrences?: number | null
           notes?: string | null
           received_date?: string | null
+          recurrence_end_date?: string | null
           recurrence_type?: string | null
           status?: string
           transaction_id?: string | null
@@ -619,12 +634,15 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string
+          current_count?: number | null
           description?: string
           due_date?: string
           id?: string
           is_recurring?: boolean | null
+          max_occurrences?: number | null
           notes?: string | null
           received_date?: string | null
+          recurrence_end_date?: string | null
           recurrence_type?: string | null
           status?: string
           transaction_id?: string | null
