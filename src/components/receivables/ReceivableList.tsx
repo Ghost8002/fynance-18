@@ -8,12 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
+import { usePeriodFilterContext } from "@/context/PeriodFilterContext";
+import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
 import { supabase } from "@/integrations/supabase/client";
 import ReceivableForm from "./ReceivableForm";
 
@@ -71,6 +73,7 @@ const ReceivableList: React.FC = () => {
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
   const { updateAccountBalance } = useBalanceUpdates();
+  const { dateRange } = usePeriodFilterContext();
   const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,10 +94,21 @@ const ReceivableList: React.FC = () => {
   // Filter and search receivables
   const filteredReceivables = useMemo(() => {
     return receivables.filter(receivable => {
+      // Period filter
+      const dueDate = startOfDay(new Date(receivable.due_date));
+      const withinPeriod = isWithinInterval(dueDate, {
+        start: dateRange.startDate,
+        end: dateRange.endDate
+      });
+      
+      if (!withinPeriod) return false;
+      
+      // Search filter
       const matchesSearch = receivable.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (statusFilter === 'all') return matchesSearch;
       
+      // Status filter
       const today = startOfDay(new Date());
       const due = startOfDay(new Date(receivable.due_date));
       let actualStatus = receivable.status;
@@ -105,13 +119,13 @@ const ReceivableList: React.FC = () => {
       
       return matchesSearch && actualStatus === statusFilter;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [receivables, searchTerm, statusFilter]);
+  }, [receivables, searchTerm, statusFilter, dateRange]);
 
-  // Calculate totals
+  // Calculate totals for filtered receivables
   const totals = useMemo(() => {
     const today = startOfDay(new Date());
     
-    return receivables.reduce((acc, receivable) => {
+    return filteredReceivables.reduce((acc, receivable) => {
       const due = startOfDay(new Date(receivable.due_date));
       let actualStatus = receivable.status;
       
@@ -127,7 +141,7 @@ const ReceivableList: React.FC = () => {
       
       return acc;
     }, { pending: 0, received: 0, overdue: 0, total: 0 });
-  }, [receivables]);
+  }, [filteredReceivables]);
 
   const handleMarkAsReceived = async (receivable: any) => {
     const operationId = `mark-received-${receivable.id}`;
@@ -457,7 +471,15 @@ const ReceivableList: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>{getStatusBadge(receivable.status, receivable.due_date)}</TableCell>
-                      <TableCell>{getRecurrenceBadge(receivable.is_recurring, receivable.recurrence_type)}</TableCell>
+                      <TableCell>
+                        <RecurrenceProgress 
+                          isRecurring={receivable.is_recurring}
+                          recurrenceType={receivable.recurrence_type}
+                          currentCount={receivable.current_count || 0}
+                          maxOccurrences={receivable.max_occurrences}
+                          endDate={receivable.recurrence_end_date}
+                        />
+                      </TableCell>
                       
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">

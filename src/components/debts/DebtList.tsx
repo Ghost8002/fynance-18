@@ -8,12 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
+import { usePeriodFilterContext } from "@/context/PeriodFilterContext";
+import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
 import { supabase } from "@/integrations/supabase/client";
 import DebtForm from "./DebtForm";
 
@@ -71,6 +73,7 @@ const DebtList: React.FC = () => {
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
   const { updateAccountBalance } = useBalanceUpdates();
+  const { dateRange } = usePeriodFilterContext();
   const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,10 +94,21 @@ const DebtList: React.FC = () => {
   // Filter and search debts
   const filteredDebts = useMemo(() => {
     return debts.filter(debt => {
+      // Period filter
+      const dueDate = startOfDay(new Date(debt.due_date));
+      const withinPeriod = isWithinInterval(dueDate, {
+        start: dateRange.startDate,
+        end: dateRange.endDate
+      });
+      
+      if (!withinPeriod) return false;
+      
+      // Search filter
       const matchesSearch = debt.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (statusFilter === 'all') return matchesSearch;
       
+      // Status filter
       const today = startOfDay(new Date());
       const due = startOfDay(new Date(debt.due_date));
       let actualStatus = debt.status;
@@ -105,13 +119,13 @@ const DebtList: React.FC = () => {
       
       return matchesSearch && actualStatus === statusFilter;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [debts, searchTerm, statusFilter]);
+  }, [debts, searchTerm, statusFilter, dateRange]);
 
-  // Calculate totals
+  // Calculate totals for filtered debts
   const totals = useMemo(() => {
     const today = startOfDay(new Date());
     
-    return debts.reduce((acc, debt) => {
+    return filteredDebts.reduce((acc, debt) => {
       const due = startOfDay(new Date(debt.due_date));
       let actualStatus = debt.status;
       
@@ -127,7 +141,7 @@ const DebtList: React.FC = () => {
       
       return acc;
     }, { pending: 0, paid: 0, overdue: 0, total: 0 });
-  }, [debts]);
+  }, [filteredDebts]);
 
   const handleMarkAsPaid = async (debt: any) => {
     const operationId = `mark-paid-${debt.id}`;
@@ -457,7 +471,15 @@ const DebtList: React.FC = () => {
                         )}
                       </TableCell>
                       <TableCell>{getStatusBadge(debt.status, debt.due_date)}</TableCell>
-                      <TableCell>{getRecurrenceBadge(debt.is_recurring, debt.recurrence_type)}</TableCell>
+                      <TableCell>
+                        <RecurrenceProgress 
+                          isRecurring={debt.is_recurring}
+                          recurrenceType={debt.recurrence_type}
+                          currentCount={debt.current_count || 0}
+                          maxOccurrences={debt.max_occurrences}
+                          endDate={debt.recurrence_end_date}
+                        />
+                      </TableCell>
                       
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
