@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
-import { useTheme } from "@/hooks/useTheme";
+
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
@@ -77,19 +77,19 @@ const AppRoutes = () => {
 };
 
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const { theme } = useTheme();
-
   useEffect(() => {
+    // Aplicar tema diretamente sem usar o hook useTheme
+    const stored = localStorage.getItem('theme') || 'system';
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     
-    if (theme === 'system') {
+    if (stored === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
     } else {
-      root.classList.add(theme);
+      root.classList.add(stored);
     }
-  }, [theme]);
+  }, []);
 
   return <>{children}</>;
 };
