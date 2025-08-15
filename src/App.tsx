@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -25,7 +25,7 @@ import Reports from "./pages/Reports";
 import Help from "./pages/Help";
 import Control from "./pages/Control";
 import LandingPage from "@/landingpage/LandingPage";
-import { useAuth } from "@/hooks/useAuth";
+
 import Imports from "./pages/Imports";
 import ImportsTransactions from "./pages/ImportsTransactions";
 
@@ -95,8 +95,8 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
           <TooltipProvider>
@@ -106,8 +106,8 @@ const App = () => (
           </TooltipProvider>
         </ThemeProvider>
       </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;
