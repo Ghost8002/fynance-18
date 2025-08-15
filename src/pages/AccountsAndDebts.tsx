@@ -12,6 +12,8 @@ import ReceivableList from "@/components/receivables/ReceivableList";
 import ReceivableStats from "@/components/receivables/ReceivableStats";
 import DebtList from "@/components/debts/DebtList";
 import DebtStats from "@/components/debts/DebtStats";
+import { AdvancedFilters } from "@/components/shared/AdvancedFilters";
+import { useAdvancedFilters } from "@/hooks/useAdvancedFilters";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { isWithinInterval, startOfDay } from "date-fns";
 
@@ -23,11 +25,17 @@ const AccountsAndDebts = () => {
   // Period filter hook
   const { selectedPeriod, setSelectedPeriod, dateRange } = usePeriodFilter();
   
+  // Advanced filters hooks
+  const receivablesFilters = useAdvancedFilters('receivables');
+  const debtsFilters = useAdvancedFilters('debts');
+  
   const { data: payments, refetch: refetchPayments } = useSupabaseData('receivable_payments', user?.id);
   const { data: debts, refetch: refetchDebts } = useSupabaseData('debts', user?.id);
+  const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: accounts } = useSupabaseData('accounts', user?.id);
 
-  // Filter data by period
-  const filteredPayments = payments?.filter(payment => {
+  // Filter data by period and advanced filters
+  const periodFilteredPayments = payments?.filter(payment => {
     const dueDate = startOfDay(new Date(payment.due_date));
     return isWithinInterval(dueDate, {
       start: dateRange.startDate,
@@ -35,13 +43,17 @@ const AccountsAndDebts = () => {
     });
   }) || [];
 
-  const filteredDebts = debts?.filter(debt => {
+  const periodFilteredDebts = debts?.filter(debt => {
     const dueDate = startOfDay(new Date(debt.due_date));
     return isWithinInterval(dueDate, {
       start: dateRange.startDate,
       end: dateRange.endDate
     });
   }) || [];
+
+  // Apply advanced filters
+  const filteredPayments = receivablesFilters.applyFilters(periodFilteredPayments);
+  const filteredDebts = debtsFilters.applyFilters(periodFilteredDebts);
 
   // Calculate period totals for receivables
   const receivablesTotals = filteredPayments.reduce((acc, payment) => {
@@ -135,8 +147,17 @@ const AccountsAndDebts = () => {
               totalOverdue={receivablesTotals.overdue}
               type="receivables"
             />
+            
             <ReceivableStats payments={filteredPayments} />
-            <ReceivableList />
+            <ReceivableList 
+              filters={receivablesFilters.filters}
+              onFiltersChange={receivablesFilters.updateFilters}
+              categories={categories}
+              accounts={accounts}
+              presets={receivablesFilters.presets}
+              onSavePreset={receivablesFilters.savePreset}
+              onLoadPreset={receivablesFilters.loadPreset}
+            />
           </TabsContent>
           
           <TabsContent value="debts" className="space-y-6">
@@ -148,8 +169,17 @@ const AccountsAndDebts = () => {
               totalOverdue={debtsTotals.overdue}
               type="debts"
             />
+            
             <DebtStats debts={filteredDebts} />
-            <DebtList />
+            <DebtList 
+              filters={debtsFilters.filters}
+              onFiltersChange={debtsFilters.updateFilters}
+              categories={categories}
+              accounts={accounts}
+              presets={debtsFilters.presets}
+              onSavePreset={debtsFilters.savePreset}
+              onLoadPreset={debtsFilters.loadPreset}
+            />
           </TabsContent>
         </Tabs>
         </div>

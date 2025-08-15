@@ -16,6 +16,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { usePeriodFilterContext } from "@/context/PeriodFilterContext";
 import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
+import { AdvancedFilters, FilterConfig, FilterPreset } from "@/components/shared/AdvancedFilters";
 import { supabase } from "@/integrations/supabase/client";
 import DebtForm from "./DebtForm";
 
@@ -60,7 +61,25 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
       {typeLabels[recurrenceType as keyof typeof typeLabels] || 'Recorrente'}
     </Badge>;
 };
-const DebtList: React.FC = () => {
+interface DebtListProps {
+  filters: FilterConfig;
+  onFiltersChange: (filters: FilterConfig) => void;
+  categories?: Array<{ id: string; name: string; type: string }>;
+  accounts?: Array<{ id: string; name: string; type: string }>;
+  presets?: FilterPreset[];
+  onSavePreset?: (preset: FilterPreset) => void;
+  onLoadPreset?: (presetId: string) => void;
+}
+
+const DebtList: React.FC<DebtListProps> = ({
+  filters,
+  onFiltersChange,
+  categories: propCategories = [],
+  accounts: propAccounts = [],
+  presets = [],
+  onSavePreset,
+  onLoadPreset
+}) => {
   const {
     user
   } = useSupabaseAuth();
@@ -87,8 +106,6 @@ const DebtList: React.FC = () => {
   const {
     toast
   } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDebt, setSelectedDebt] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
@@ -113,20 +130,9 @@ const DebtList: React.FC = () => {
       });
       if (!withinPeriod) return false;
 
-      // Search filter
-      const matchesSearch = debt.description.toLowerCase().includes(searchTerm.toLowerCase());
-      if (statusFilter === 'all') return matchesSearch;
-
-      // Status filter
-      const today = startOfDay(new Date());
-      const due = startOfDay(new Date(debt.due_date));
-      let actualStatus = debt.status;
-      if (debt.status === 'pending' && isBefore(due, today)) {
-        actualStatus = 'overdue';
-      }
-      return matchesSearch && actualStatus === statusFilter;
+      return true; // Advanced filters are now handled at the page level
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [debts, searchTerm, statusFilter, dateRange]);
+  }, [debts, dateRange]);
 
   // Calculate totals for filtered debts
   const totals = useMemo(() => {
@@ -408,26 +414,21 @@ const DebtList: React.FC = () => {
             </Dialog>
           </div>
           
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Buscar dívidas..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="paid">Pagas</SelectItem>
-                <SelectItem value="overdue">Em Atraso</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Advanced filters are now handled at the page level */}
         </CardHeader>
+        
+        {/* Advanced Filters - Posicionado após o header e antes da tabela */}
+        <AdvancedFilters
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          categories={propCategories}
+          accounts={propAccounts}
+          presets={presets}
+          onSavePreset={onSavePreset}
+          onLoadPreset={onLoadPreset}
+          type="debts"
+          className="px-6 pb-4"
+        />
         
         <CardContent>
           {filteredDebts.length > 0 ? <div className="rounded-md border">

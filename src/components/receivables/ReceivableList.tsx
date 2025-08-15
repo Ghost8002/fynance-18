@@ -16,6 +16,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { usePeriodFilterContext } from "@/context/PeriodFilterContext";
 import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
+import { AdvancedFilters, FilterConfig, FilterPreset } from "@/components/shared/AdvancedFilters";
 import { supabase } from "@/integrations/supabase/client";
 import ReceivableForm from "./ReceivableForm";
 
@@ -60,7 +61,25 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
       {typeLabels[recurrenceType as keyof typeof typeLabels] || 'Recorrente'}
     </Badge>;
 };
-const ReceivableList: React.FC = () => {
+interface ReceivableListProps {
+  filters: FilterConfig;
+  onFiltersChange: (filters: FilterConfig) => void;
+  categories?: Array<{ id: string; name: string; type: string }>;
+  accounts?: Array<{ id: string; name: string; type: string }>;
+  presets?: FilterPreset[];
+  onSavePreset?: (preset: FilterPreset) => void;
+  onLoadPreset?: (presetId: string) => void;
+}
+
+const ReceivableList: React.FC<ReceivableListProps> = ({
+  filters,
+  onFiltersChange,
+  categories: propCategories = [],
+  accounts: propAccounts = [],
+  presets = [],
+  onSavePreset,
+  onLoadPreset
+}) => {
   const {
     user
   } = useSupabaseAuth();
@@ -87,8 +106,6 @@ const ReceivableList: React.FC = () => {
   const {
     toast
   } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedReceivable, setSelectedReceivable] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
@@ -113,20 +130,9 @@ const ReceivableList: React.FC = () => {
       });
       if (!withinPeriod) return false;
 
-      // Search filter
-      const matchesSearch = receivable.description.toLowerCase().includes(searchTerm.toLowerCase());
-      if (statusFilter === 'all') return matchesSearch;
-
-      // Status filter
-      const today = startOfDay(new Date());
-      const due = startOfDay(new Date(receivable.due_date));
-      let actualStatus = receivable.status;
-      if (receivable.status === 'pending' && isBefore(due, today)) {
-        actualStatus = 'overdue';
-      }
-      return matchesSearch && actualStatus === statusFilter;
+      return true; // Advanced filters are now handled at the page level
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [receivables, searchTerm, statusFilter, dateRange]);
+  }, [receivables, dateRange]);
 
   // Calculate totals for filtered receivables
   const totals = useMemo(() => {
@@ -408,26 +414,21 @@ const ReceivableList: React.FC = () => {
             </Dialog>
           </div>
           
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Buscar pagamentos..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="received">Recebidos</SelectItem>
-                <SelectItem value="overdue">Em Atraso</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Advanced filters are now handled at the page level */}
         </CardHeader>
+        
+        {/* Advanced Filters - Posicionado após o header e antes da tabela */}
+        <AdvancedFilters
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          categories={propCategories}
+          accounts={propAccounts}
+          presets={presets}
+          onSavePreset={onSavePreset}
+          onLoadPreset={onLoadPreset}
+          type="receivables"
+          className="px-6 pb-4"
+        />
         
         <CardContent>
           {filteredReceivables.length > 0 ? <div className="rounded-md border">
