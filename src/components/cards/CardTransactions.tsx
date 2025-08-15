@@ -4,154 +4,139 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, CreditCard } from "lucide-react";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { Search, Calendar, ArrowUpDown, FileText } from "lucide-react";
+
+interface CardTransactionsProps {
+  cardId: string;
+}
 
 interface Transaction {
   id: string;
   description: string;
   amount: number;
   date: string;
+  type: string;
   category_id: string;
   installments_count: number;
   installment_number: number;
-  notes: string | null;
-  tags: any;
+  notes: string;
+  tags: string[];
 }
 
-interface CardTransactionsProps {
-  cardId: string;
+interface Category {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const { data: transactions, loading: loadingTransactions } = useSupabaseData('transactions', user?.id);
+  const { data: categories } = useSupabaseData('categories', user?.id);
   
-  // Filters
-  const [filters, setFilters] = useState({
-    search: "",
-    category: "all",
-    period: "all"
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // Helper function to format currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'BRL'
     }).format(value);
   };
 
-  // Helper function to format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  const fetchTransactions = async () => {
-    if (!user?.id) return;
-
-    try {
-      setLoading(true);
-
-      // Fetch categories
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('id, name')
-        .eq('user_id', user.id);
-
-      const categoryMap = categoriesData?.reduce((acc, cat) => {
-        acc[cat.id] = cat.name;
-        return acc;
-      }, {} as Record<string, string>) || {};
-
-      setCategories(categoryMap);
-
-      // Fetch transactions for this card
-      const { data: transactionsData, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('card_id', cardId)
-        .eq('type', 'expense')
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-
-      setTransactions(transactionsData || []);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as transações",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const getCategoryName = (categoryId: string) => {
+    const category = (categories as Category[])?.find(cat => cat.id === categoryId);
+    return category?.name || "Sem categoria";
   };
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [cardId, user?.id]);
+  const getCategoryColor = (categoryId: string) => {
+    const category = (categories as Category[])?.find(cat => cat.id === categoryId);
+    return category?.color || "#6B7280";
+  };
 
-  // Filter transactions
+  // Filtrar transações do cartão
+  const cardTransactions = useMemo(() => {
+    if (!transactions) return [];
+    
+    return (transactions as Transaction[])
+      .filter(transaction => transaction.card_id === cardId)
+      .sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+      });
+  }, [transactions, cardId, sortOrder]);
+
+  // Aplicar filtros
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(transaction => {
-      // Search filter
-      if (filters.search && !transaction.description.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
+    let filtered = cardTransactions;
+
+    // Filtro por texto
+    if (searchTerm) {
+      filtered = filtered.filter(transaction =>
+        transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getCategoryName(transaction.category_id).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por categoria
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(transaction => transaction.category_id === selectedCategory);
+    }
+
+    // Filtro por período
+    if (selectedPeriod !== "all") {
+      const today = new Date();
+      let startDate: Date;
+
+      switch (selectedPeriod) {
+        case "this_month":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          break;
+        case "last_month":
+          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          const endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+          filtered = filtered.filter(transaction => {
+            const transactionDate = new Date(transaction.date);
+            return transactionDate >= startDate && transactionDate <= endDate;
+          });
+          return filtered;
+        case "last_3_months":
+          startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+          break;
+        default:
+          return filtered;
       }
 
-      // Category filter
-      if (filters.category !== "all" && transaction.category_id !== filters.category) {
-        return false;
-      }
-
-      // Period filter
-      if (filters.period !== "all") {
+      filtered = filtered.filter(transaction => {
         const transactionDate = new Date(transaction.date);
-        const now = new Date();
-        
-        switch (filters.period) {
-          case "current-month":
-            return transactionDate.getMonth() === now.getMonth() && 
-                   transactionDate.getFullYear() === now.getFullYear();
-          case "last-month":
-            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            return transactionDate.getMonth() === lastMonth.getMonth() && 
-                   transactionDate.getFullYear() === lastMonth.getFullYear();
-          case "current-year":
-            return transactionDate.getFullYear() === now.getFullYear();
-          default:
-            return true;
-        }
-      }
+        return transactionDate >= startDate;
+      });
+    }
 
-      return true;
-    });
-  }, [transactions, filters]);
+    return filtered;
+  }, [cardTransactions, searchTerm, selectedCategory, selectedPeriod]);
 
-  const uniqueCategories = Array.from(new Set(transactions.map(t => t.category_id)))
-    .filter(Boolean)
-    .map(id => ({ id, name: categories[id] || 'Sem categoria' }));
+  // Estatísticas
+  const totalAmount = filteredTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const transactionCount = filteredTransactions.length;
+  const averageAmount = transactionCount > 0 ? totalAmount / transactionCount : 0;
 
-  if (loading) {
+  if (loadingTransactions) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard size={20} />
-            Transações do Cartão
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4 text-muted-foreground">
-            Carregando transações...
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p>Carregando transações...</p>
           </div>
         </CardContent>
       </Card>
@@ -159,149 +144,205 @@ export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard size={20} />
-          Transações do Cartão ({filteredTransactions.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar transações..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="pl-10"
-            />
-          </div>
+    <div className="space-y-6">
+      {/* Estatísticas */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Total de Transações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {transactionCount}
+            </div>
+          </CardContent>
+        </Card>
 
-          <Select value={filters.category} onValueChange={(value) => setFilters({ ...filters, category: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              {uniqueCategories.map(category => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {formatCurrency(totalAmount)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Valor Médio</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(averageAmount)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Filtros de Transações
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar transações..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todas as categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {(categories as Category[])?.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todos os períodos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os períodos</SelectItem>
+                <SelectItem value="this_month">Este mês</SelectItem>
+                <SelectItem value="last_month">Mês passado</SelectItem>
+                <SelectItem value="last_3_months">Últimos 3 meses</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-4 h-4" />
+                    Mais recentes
+                  </div>
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filters.period} onValueChange={(value) => setFilters({ ...filters, period: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os períodos</SelectItem>
-              <SelectItem value="current-month">Mês atual</SelectItem>
-              <SelectItem value="last-month">Mês passado</SelectItem>
-              <SelectItem value="current-year">Ano atual</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Transactions Table */}
-        {filteredTransactions.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <CreditCard size={48} className="mx-auto mb-4 opacity-50" />
-            <p>
-              {transactions.length === 0 
-                ? "Nenhuma transação encontrada para este cartão"
-                : "Nenhuma transação encontrada com os filtros aplicados"
-              }
-            </p>
+                <SelectItem value="asc">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="w-4 h-4" />
+                    Mais antigos
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        ) : (
-          <div className="border rounded-lg overflow-hidden">
+        </CardContent>
+      </Card>
+
+      {/* Lista de Transações */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transações do Cartão</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredTransactions.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium mb-2">Nenhuma transação encontrada</h3>
+              <p className="text-muted-foreground">
+                {cardTransactions.length === 0 
+                  ? "Este cartão ainda não possui transações registradas."
+                  : "Tente ajustar os filtros para encontrar as transações desejadas."
+                }
+              </p>
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Descrição</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Valor</TableHead>
                   <TableHead>Categoria</TableHead>
-                  <TableHead>Parcelamento</TableHead>
-                  <TableHead>Tags</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Parcelas</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTransactions.map((transaction) => (
                   <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">
+                    <TableCell>
                       <div>
-                        <p>{transaction.description}</p>
+                        <p className="font-medium">{transaction.description}</p>
                         {transaction.notes && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {transaction.notes}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{transaction.notes}</p>
+                        )}
+                        {transaction.tags && transaction.tags.length > 0 && (
+                          <div className="flex gap-1 mt-1">
+                            {transaction.tags.slice(0, 2).map((tag, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {transaction.tags.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{transaction.tags.length - 2}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{formatDate(transaction.date)}</TableCell>
-                    <TableCell className="font-medium text-red-600">
-                      {formatCurrency(transaction.amount)}
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: getCategoryColor(transaction.category_id) }}
+                        />
+                        {getCategoryName(transaction.category_id)}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {categories[transaction.category_id] || 'Sem categoria'}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        {formatDate(transaction.date)}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {transaction.installments_count > 1 ? (
-                        <Badge variant="secondary">
+                        <Badge variant="outline">
                           {transaction.installment_number}/{transaction.installments_count}
                         </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">À vista</span>
+                        <span className="text-muted-foreground">À vista</span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {transaction.tags && Array.isArray(transaction.tags) && transaction.tags.length > 0 ? (
-                          transaction.tags.map((tag: any) => (
-                            <Badge
-                              key={tag.id}
-                              variant="outline"
-                              className="text-xs"
-                              style={{
-                                backgroundColor: `${tag.color}20`,
-                                borderColor: tag.color,
-                                color: tag.color
-                              }}
-                            >
-                              {tag.name}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Sem tags</span>
-                        )}
-                      </div>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(transaction.amount)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
-        )}
-
-        {/* Summary */}
-        {filteredTransactions.length > 0 && (
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Total das transações filtradas:</span>
-              <span className="font-bold text-lg text-red-600">
-                {formatCurrency(filteredTransactions.reduce((sum, t) => sum + t.amount, 0))}
-              </span>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };

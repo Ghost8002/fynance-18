@@ -1,266 +1,296 @@
-
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, CreditCard, Edit, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import CardForm from "./CardForm";
-import { useState, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency, parseCardData } from "@/utils/cardUtils";
+import { CreditCard, Search, MoreVertical, Edit2, Trash2, AlertTriangle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface CardListProps {
   onCardSelect?: (cardId: string) => void;
   selectedCard?: string | null;
 }
 
-const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
+interface CardData {
+  id: string;
+  name: string;
+  type: string;
+  bank: string;
+  credit_limit: number;
+  used_amount: number;
+  last_four_digits: string;
+  color: string;
+  closing_day: number;
+  due_day: number;
+}
+
+export const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
   const { user } = useAuth();
-  const { data: cards, loading, error, remove, refetch } = useSupabaseData('cards', user?.id);
   const { toast } = useToast();
-  const [editingCard, setEditingCard] = useState<any>(null);
-  const [search, setSearch] = useState("");
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [checkingDependencies, setCheckingDependencies] = useState(false);
+  const { data: cards, loading, error, remove, refetch } = useSupabaseData('cards', user?.id);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 
-  // Otimizar filtro com useMemo
-  const filteredCards = useMemo(() => {
-    if (!cards) return [];
-    const searchLower = search.toLowerCase();
-    return cards.filter(card => 
-      card.name.toLowerCase().includes(searchLower) ||
-      (card.type && card.type.toLowerCase().includes(searchLower))
-    );
-  }, [cards, search]);
-
-  // Função para checar dependências antes de excluir
-  const hasDependencies = async (cardId: string) => {
-    setCheckingDependencies(true);
-    try {
-      const { count: txCount } = await supabase
-        .from('transactions')
-        .select('id', { count: 'exact', head: true })
-        .eq('card_id', cardId);
-      const { count: billCount } = await supabase
-        .from('card_bills')
-        .select('id', { count: 'exact', head: true })
-        .eq('card_id', cardId);
-      return (txCount > 0 || billCount > 0);
-    } catch (e) {
-      console.error('Erro ao verificar dependências:', e);
-      return true; // Por segurança, bloqueia exclusão se erro
-    } finally {
-      setCheckingDependencies(false);
-    }
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
-  const handleDelete = async (id: string) => {
-    setDeleting(id);
+  const getCardTypeLabel = (type: string) => {
+    const types: { [key: string]: string } = {
+      credit: "Crédito",
+      debit: "Débito", 
+      food: "Alimentação",
+      meal: "Refeição",
+      transportation: "Transporte"
+    };
+    return types[type] || type;
+  };
+
+  const getUsageColor = (percentage: number) => {
+    if (percentage >= 90) return "text-destructive";
+    if (percentage >= 75) return "text-orange-500";
+    return "text-green-500";
+  };
+
+  const getUsageStatus = (percentage: number) => {
+    if (percentage >= 90) return { label: "Crítico", variant: "destructive" as const };
+    if (percentage >= 75) return { label: "Atenção", variant: "secondary" as const };
+    return { label: "Normal", variant: "outline" as const };
+  };
+
+  const filteredCards = cards?.filter((card: CardData) =>
+    card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    card.bank.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    card.last_four_digits.includes(searchTerm)
+  ) || [];
+
+  const handleDeleteCard = async (cardId: string) => {
     try {
-      if (await hasDependencies(id)) {
+      const { error } = await remove(cardId);
+      
+      if (error) {
         toast({
-          title: "Não é possível excluir",
-          description: "Este cartão possui transações ou faturas vinculadas. Exclua-as antes de remover o cartão.",
           variant: "destructive",
+          title: "Erro ao excluir cartão",
+          description: error
         });
         return;
       }
-      
-      const { error } = await remove(id);
-      if (error) {
-        throw new Error(error);
-      }
-      
+
       toast({
-        title: "Cartão removido",
-        description: "Cartão removido com sucesso.",
+        title: "Cartão excluído com sucesso"
       });
-      await refetch();
+
+      if (selectedCard === cardId) {
+        onCardSelect?.(filteredCards[0]?.id || "");
+      }
+
     } catch (error) {
-      console.error('Erro ao remover cartão:', error);
+      console.error('Error deleting card:', error);
       toast({
-        title: "Erro",
-        description: `Erro ao remover cartão: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         variant: "destructive",
+        title: "Erro inesperado ao excluir cartão"
       });
     } finally {
-      setDeleting(null);
+      setDeleteCardId(null);
     }
-  };
-
-  const handleEdit = (card: any) => {
-    setEditingCard(card);
   };
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <Loader2 className="animate-spin inline-block mr-2 h-4 w-4" />
-        Carregando cartões...
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p>Carregando cartões...</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-500">
-        Erro ao carregar cartões: {error}
-        <Button 
-          variant="outline" 
-          className="mt-2"
-          onClick={() => refetch()}
-        >
-          Tentar novamente
-        </Button>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p className="text-destructive">Erro ao carregar cartões</p>
+            <Button onClick={refetch} variant="outline" className="mt-2">
+              Tentar novamente
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!cards || cards.length === 0) {
-    return null; // Will be handled by parent component
+    return null; // O componente pai vai mostrar a mensagem de "nenhum cartão"
   }
 
   return (
-    <>
-      <div className="mb-4 flex items-center gap-2">
-        <input
-          type="text"
-          className="border rounded px-3 py-2 w-full max-w-xs"
-          placeholder="Buscar cartão por nome ou bandeira..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar cartões..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
         />
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCards.length === 0 && (
-          <div className="col-span-full text-center text-muted-foreground py-8">
-            Nenhum cartão encontrado.
-          </div>
-        )}
-        {filteredCards.map((card) => {
-          const { creditLimit, usedAmount, availableAmount, usagePercentage } = parseCardData(card);
 
+      {/* Cards Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredCards.map((card: CardData) => {
+          const usagePercentage = card.type === "credit" ? (card.used_amount / card.credit_limit) * 100 : 0;
+          const availableAmount = card.type === "credit" ? card.credit_limit - card.used_amount : 0;
+          const usageStatus = getUsageStatus(usagePercentage);
+          
           return (
-            <Card
+            <Card 
               key={card.id}
-              className={cn(
-                "cursor-pointer transition-all duration-200 hover:shadow-md",
-                selectedCard === card.id && "ring-2 ring-primary"
-              )}
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                selectedCard === card.id ? 'ring-2 ring-primary' : ''
+              }`}
               onClick={() => onCardSelect?.(card.id)}
+              style={{ borderColor: card.color }}
             >
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold text-lg">{card.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      •••• •••• •••• {card.last_four_digits}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(card);
-                      }}
-                      className="h-8 w-8 p-0"
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-10 h-6 rounded flex items-center justify-center"
+                      style={{ backgroundColor: card.color }}
                     >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => e.stopPropagation()}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                          disabled={deleting === card.id || checkingDependencies}
-                        >
-                          {deleting === card.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir o cartão "{card.name}"? 
-                            Esta ação não pode ser desfeita.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(card.id)}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Excluir
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Usado</span>
-                    <span className={usagePercentage > 80 ? "text-red-600 font-medium" : ""}>
-                      {formatCurrency(usedAmount)}
-                    </span>
+                      <CreditCard className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{card.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {card.bank} •••• {card.last_four_digits}
+                      </p>
+                    </div>
                   </div>
                   
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className={cn(
-                        "h-2 rounded-full transition-all",
-                        usagePercentage > 90 ? "bg-red-500" : 
-                        usagePercentage > 70 ? "bg-yellow-500" : "bg-green-500"
-                      )}
-                      style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-                    />
-                  </div>
-
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Disponível: {formatCurrency(availableAmount)}</span>
-                    <span>Limite: {formatCurrency(creditLimit)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-2">
-                    <Badge variant="outline">{card.type}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      Vence dia {card.due_day}
-                    </span>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteCardId(card.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+                
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{getCardTypeLabel(card.type)}</Badge>
+                  {card.type === "credit" && usagePercentage >= 75 && (
+                    <Badge variant={usageStatus.variant}>
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      {usageStatus.label}
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="pt-0">
+                {card.type === "credit" && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Limite usado</span>
+                        <span className={getUsageColor(usagePercentage)}>
+                          {usagePercentage.toFixed(1)}%
+                        </span>
+                      </div>
+                      <Progress value={usagePercentage} className="h-2" />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Usado</p>
+                        <p className="font-medium">{formatCurrency(card.used_amount)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Disponível</p>
+                        <p className="font-medium">{formatCurrency(availableAmount)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Limite total</span>
+                        <span className="font-medium">{formatCurrency(card.credit_limit)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Fechamento</span>
+                        <span>Dia {card.closing_day}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Vencimento</span>
+                        <span>Dia {card.due_day}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {card.type !== "credit" && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Cartão de {getCardTypeLabel(card.type)}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
-      
-      {editingCard && (
-        <CardForm
-          card={editingCard}
-          onSave={() => { 
-            setEditingCard(null); 
-            refetch(); 
-          }}
-          triggerButton={null}
-        />
-      )}
-    </>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteCardId} onOpenChange={() => setDeleteCardId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este cartão? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteCardId && handleDeleteCard(deleteCardId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
-
-export default CardList;

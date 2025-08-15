@@ -4,101 +4,119 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { useTags } from "@/hooks/useTags";
-import TagSelector from "@/components/shared/TagSelector";
-import { CreditCard, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { ShoppingBag, Calendar, CreditCard } from "lucide-react";
 
 interface InstallmentPurchaseFormProps {
   onPurchaseAdded?: () => void;
 }
 
+interface FormData {
+  description: string;
+  total_amount: string;
+  installments_count: string;
+  first_installment_date: string;
+  card_id: string;
+  category_id: string;
+  notes: string;
+}
+
 export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchaseFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
-  const { tags, loading: tagsLoading } = useTags();
-
-  const [formData, setFormData] = useState({
+  
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
     description: "",
-    totalAmount: "",
-    installments: "1",
-    firstInstallmentDate: new Date().toISOString().split('T')[0],
-    categoryId: "",
-    cardId: "",
+    total_amount: "",
+    installments_count: "2",
+    first_installment_date: "",
+    card_id: "",
+    category_id: "",
     notes: ""
   });
 
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const selectedCard = cards?.find(card => card.id === formData.card_id);
+  const installmentAmount = formData.total_amount ? parseFloat(formData.total_amount) / parseInt(formData.installments_count || "1") : 0;
 
   const validateForm = () => {
     if (!formData.description.trim()) {
       toast({
-        title: "Erro",
-        description: "Descrição é obrigatória",
         variant: "destructive",
+        title: "Descrição é obrigatória"
       });
       return false;
     }
 
-    if (!formData.totalAmount || parseFloat(formData.totalAmount) <= 0) {
+    if (!formData.total_amount || parseFloat(formData.total_amount) <= 0) {
       toast({
-        title: "Erro",
-        description: "Valor total deve ser maior que zero",
         variant: "destructive",
+        title: "Valor total deve ser maior que zero"
       });
       return false;
     }
 
-    if (!formData.categoryId) {
+    if (!formData.card_id) {
       toast({
-        title: "Erro",
-        description: "Categoria é obrigatória",
         variant: "destructive",
+        title: "Selecione um cartão"
       });
       return false;
     }
 
-    if (!formData.cardId) {
+    if (!formData.category_id) {
       toast({
-        title: "Erro",
-        description: "Cartão é obrigatório",
         variant: "destructive",
+        title: "Selecione uma categoria"
       });
       return false;
     }
 
-    const installmentCount = parseInt(formData.installments);
-    if (installmentCount < 1 || installmentCount > 24) {
+    const installmentsCount = parseInt(formData.installments_count);
+    if (installmentsCount < 1 || installmentsCount > 24) {
       toast({
-        title: "Erro",
-        description: "Número de parcelas deve ser entre 1 e 24",
         variant: "destructive",
+        title: "Número de parcelas deve ser entre 1 e 24"
       });
       return false;
     }
 
-    // Validate card limit
-    const selectedCard = cards?.find(card => card.id === formData.cardId);
-    if (selectedCard) {
-      const totalAmount = parseFloat(formData.totalAmount);
-      const currentUsed = selectedCard.used_amount || 0;
-      const creditLimit = selectedCard.credit_limit || 0;
+    if (!formData.first_installment_date) {
+      toast({
+        variant: "destructive",
+        title: "Data da primeira parcela é obrigatória"
+      });
+      return false;
+    }
+
+    // Verificar se a compra não excede o limite disponível do cartão
+    if (selectedCard && selectedCard.type === "credit") {
+      const availableLimit = selectedCard.credit_limit - selectedCard.used_amount;
+      const totalAmount = parseFloat(formData.total_amount);
       
-      if (currentUsed + totalAmount > creditLimit) {
+      if (totalAmount > availableLimit) {
         toast({
-          title: "Erro",
-          description: `Compra excederia o limite do cartão. Limite: R$ ${creditLimit.toFixed(2)}, Usado: R$ ${currentUsed.toFixed(2)}, Disponível: R$ ${(creditLimit - currentUsed).toFixed(2)}`,
           variant: "destructive",
+          title: "Limite insuficiente",
+          description: `Esta compra excede o limite disponível. Limite disponível: ${formatCurrency(availableLimit)}`
         });
         return false;
       }
@@ -107,342 +125,225 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
     return true;
   };
 
-  const createInstallmentPurchase = async () => {
-    try {
-      const totalAmount = parseFloat(formData.totalAmount);
-      const installmentCount = parseInt(formData.installments);
-      const installmentAmount = totalAmount / installmentCount;
-      const firstDate = new Date(formData.firstInstallmentDate);
-
-      // Prepare tags data
-      const transactionTags = selectedTags.length > 0 
-        ? selectedTags
-            .map(tagId => tags.find(tag => tag.id === tagId))
-            .filter(tag => tag)
-            .map(tag => ({
-              id: tag!.id,
-              name: tag!.name,
-              color: tag!.color
-            }))
-        : [];
-
-      // Create main installment record
-      const { data: installment, error: installmentError } = await supabase
-        .from('card_installments' as any)
-        .insert({
-          user_id: user.id,
-          card_id: formData.cardId,
-          category_id: formData.categoryId,
-          description: formData.description,
-          total_amount: totalAmount,
-          installments_count: installmentCount,
-          first_installment_date: formData.firstInstallmentDate,
-          notes: formData.notes || null,
-          tags: transactionTags
-        })
-        .select()
-        .single();
-
-      if (installmentError) throw installmentError;
-      if (!installment) throw new Error('Falha ao criar compra parcelada');
-
-      // Create installment items
-      const installmentItems = [];
-      for (let i = 0; i < installmentCount; i++) {
-        const installmentDate = new Date(firstDate);
-        installmentDate.setMonth(installmentDate.getMonth() + i);
-        
-        installmentItems.push({
-          installment_id: (installment as any).id,
-          installment_number: i + 1,
-          amount: installmentAmount,
-          due_date: installmentDate.toISOString().split('T')[0],
-          status: 'pending'
-        });
-      }
-
-      const { error: itemsError } = await supabase
-        .from('card_installment_items' as any)
-        .insert(installmentItems);
-
-      if (itemsError) throw itemsError;
-
-      // Update card used amount
-      const selectedCard = cards?.find(card => card.id === formData.cardId);
-      if (selectedCard) {
-        const currentUsed = selectedCard.used_amount || 0;
-        const newUsed = currentUsed + totalAmount;
-
-        const { error: updateError } = await supabase
-          .from('cards')
-          .update({ 
-            used_amount: newUsed,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', formData.cardId);
-
-        if (updateError) {
-          console.error('Erro ao atualizar limite do cartão:', updateError);
-        }
-
-        // Register in history
-        await supabase
-          .from('card_limit_history')
-          .insert({
-            user_id: user.id,
-            card_id: formData.cardId,
-            movement_type: 'charge',
-            amount: totalAmount,
-            previous_used_amount: currentUsed,
-            new_used_amount: newUsed,
-            description: 'Compra parcelada'
-          });
-      }
-
-              return (installment as any).id;
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
-
+    
     try {
-      await createInstallmentPurchase();
+      // Usar RPC para criar compra parcelada atomicamente
+      const { data, error } = await supabase.rpc('create_installment_purchase', {
+        p_user_id: user?.id,
+        p_card_id: formData.card_id,
+        p_category_id: formData.category_id,
+        p_description: formData.description.trim(),
+        p_total_amount: parseFloat(formData.total_amount),
+        p_installments_count: parseInt(formData.installments_count),
+        p_first_installment_date: formData.first_installment_date,
+        p_notes: formData.notes.trim() || null
+      });
+
+      if (error) {
+        console.error('RPC Error:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao criar compra parcelada",
+          description: "Tente novamente em alguns instantes"
+        });
+        return;
+      }
 
       toast({
-        title: "Sucesso",
-        description: `Compra parcelada em ${formData.installments}x criada com sucesso!`,
+        title: "Compra parcelada criada com sucesso!",
+        description: `${formData.installments_count} parcelas de ${formatCurrency(installmentAmount)}`
       });
 
       // Reset form
       setFormData({
         description: "",
-        totalAmount: "",
-        installments: "1",
-        firstInstallmentDate: new Date().toISOString().split('T')[0],
-        categoryId: "",
-        cardId: "",
+        total_amount: "",
+        installments_count: "2",
+        first_installment_date: "",
+        card_id: "",
+        category_id: "",
         notes: ""
       });
-      setSelectedTags([]);
 
       setOpen(false);
       onPurchaseAdded?.();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating installment purchase:', error);
-      
-      let errorMessage = "Não foi possível criar a compra parcelada";
-      
-      if (error?.message) {
-        if (error.message.includes('insufficient')) {
-          errorMessage = "Limite insuficiente no cartão selecionado";
-        } else if (error.message.includes('card not found')) {
-          errorMessage = "Cartão não encontrado";
-        } else if (error.message.includes('invalid amount')) {
-          errorMessage = "Valor inválido para compra";
-        } else if (error.message.includes('access denied')) {
-          errorMessage = "Você não tem permissão para realizar esta operação";
-        } else if (error.message.includes('not authenticated')) {
-          errorMessage = "Usuário não autenticado";
-        } else if (error.message.includes('duplicate')) {
-          errorMessage = "Compra duplicada detectada";
-        } else if (error.message.includes('network')) {
-          errorMessage = "Erro de conexão. Verifique sua internet.";
-        } else if (error.message.includes('function')) {
-          errorMessage = "Função de parcelamento não disponível. Contate o suporte.";
-        } else if (error.message.includes('foreign key')) {
-          errorMessage = "Categoria ou cartão inválido";
-        } else if (error.message.includes('check constraint')) {
-          errorMessage = "Dados inválidos fornecidos";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
       toast({
-        title: "Erro",
-        description: errorMessage,
         variant: "destructive",
+        title: "Erro inesperado",
+        description: "Não foi possível criar a compra parcelada"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const selectedCard = cards?.find(card => card.id === formData.cardId);
-  const availableCategories = categories?.filter(cat => cat.type === 'expense') || [];
+  // Filtrar apenas cartões de crédito
+  const creditCards = cards?.filter(card => card.type === "credit") || [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <CreditCard size={16} />
-          Compra Parcelada
+        <Button variant="outline">
+          <ShoppingBag className="w-4 h-4 mr-2" />
+          Nova Compra
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Nova Compra Parcelada</DialogTitle>
+          <DialogDescription>
+            Registre uma compra parcelada no cartão de crédito
+          </DialogDescription>
         </DialogHeader>
-
-        <ScrollArea className="max-h-[70vh] pr-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="description">Descrição *</Label>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição da Compra *</Label>
             <Input
               id="description"
               value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Ex: Notebook Dell"
-              required
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Ex: Smartphone Samsung Galaxy"
             />
           </div>
 
-          <div>
-            <Label htmlFor="totalAmount">Valor Total *</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="total_amount">Valor Total *</Label>
+              <Input
+                id="total_amount"
+                type="number"
+                step="0.01"
+                value={formData.total_amount}
+                onChange={(e) => handleInputChange('total_amount', e.target.value)}
+                placeholder="0,00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="installments_count">Número de Parcelas *</Label>
+              <Select value={formData.installments_count} onValueChange={(value) => handleInputChange('installments_count', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 24 }, (_, i) => i + 1).map((num) => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num}x {formData.total_amount && `de ${formatCurrency(parseFloat(formData.total_amount) / num)}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="first_installment_date">Data da Primeira Parcela *</Label>
             <Input
-              id="totalAmount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.totalAmount}
-              onChange={(e) => handleInputChange("totalAmount", e.target.value)}
-              placeholder="0,00"
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="categoryId">Categoria *</Label>
-            <Select 
-              value={formData.categoryId} 
-              onValueChange={(value) => handleInputChange("categoryId", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCategories.map(category => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="installments">Número de Parcelas *</Label>
-            <Select 
-              value={formData.installments} 
-              onValueChange={(value) => handleInputChange("installments", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 24 }, (_, i) => i + 1).map(num => (
-                  <SelectItem key={num} value={num.toString()}>
-                    {num}x
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="firstInstallmentDate">Data da Primeira Parcela *</Label>
-            <Input
-              id="firstInstallmentDate"
+              id="first_installment_date"
               type="date"
-              value={formData.firstInstallmentDate}
-              onChange={(e) => handleInputChange("firstInstallmentDate", e.target.value)}
-              required
+              value={formData.first_installment_date}
+              onChange={(e) => handleInputChange('first_installment_date', e.target.value)}
             />
           </div>
 
-          <div>
-            <Label htmlFor="cardId">Cartão *</Label>
-            <Select 
-              value={formData.cardId} 
-              onValueChange={(value) => handleInputChange("cardId", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cartão" />
-              </SelectTrigger>
-              <SelectContent>
-                {cards?.map(card => (
-                  <SelectItem key={card.id} value={card.id}>
-                    {card.name} (•••• {card.last_four_digits})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="card_id">Cartão de Crédito *</Label>
+              <Select value={formData.card_id} onValueChange={(value) => handleInputChange('card_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um cartão" />
+                </SelectTrigger>
+                <SelectContent>
+                  {creditCards.map((card) => (
+                    <SelectItem key={card.id} value={card.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: card.color }}
+                        />
+                        {card.name} - {card.bank}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category_id">Categoria *</Label>
+              <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories?.filter(cat => cat.type === 'expense').map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-              placeholder="Observações opcionais..."
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Informações adicionais sobre a compra..."
               rows={3}
             />
           </div>
 
-          <div>
-            <Label>Tags</Label>
-            {tagsLoading ? (
-              <div className="text-sm text-muted-foreground">Carregando tags...</div>
-            ) : (
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
-            )}
-          </div>
-
-          {selectedCard && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                <strong>Limite do cartão:</strong> R$ {selectedCard.credit_limit?.toFixed(2)}<br />
-                <strong>Limite usado:</strong> R$ {selectedCard.used_amount?.toFixed(2)}<br />
-                <strong>Limite disponível:</strong> R$ {(selectedCard.credit_limit - selectedCard.used_amount)?.toFixed(2)}
-              </p>
+          {/* Preview */}
+          {formData.total_amount && formData.installments_count && (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Resumo da Compra
+              </h4>
+              <div className="space-y-1 text-sm">
+                <p>Valor total: <span className="font-medium">{formatCurrency(parseFloat(formData.total_amount))}</span></p>
+                <p>Parcelas: <span className="font-medium">{formData.installments_count}x de {formatCurrency(installmentAmount)}</span></p>
+                {selectedCard && (
+                  <p>Cartão: <span className="font-medium">{selectedCard.name}</span></p>
+                )}
+                {selectedCard?.type === "credit" && (
+                  <p>Limite disponível: <span className="font-medium">
+                    {formatCurrency(selectedCard.credit_limit - selectedCard.used_amount)}
+                  </span></p>
+                )}
+              </div>
             </div>
           )}
-          </form>
-        </ScrollArea>
 
-        <DialogFooter>
-          <Button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1">
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Criando...
-              </>
-            ) : (
-              "Criar Compra Parcelada"
-            )}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Cancelar
-          </Button>
-        </DialogFooter>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Criando..." : "Criar Compra"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
