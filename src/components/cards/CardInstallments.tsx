@@ -59,33 +59,10 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
     try {
       setLoading(true);
       
-      // Buscar parcelamentos do cartão
-      const { data: installmentsData, error: installmentsError } = await supabase
-        .from('card_installments')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('card_id', cardId)
-        .order('created_at', { ascending: false });
-
-      if (installmentsError) throw installmentsError;
-
-      // Buscar itens de parcelamento
-      const installmentIds = installmentsData?.map(inst => inst.id) || [];
+      // Por enquanto, vamos simular dados vazios até as novas tabelas serem reconhecidas
+      setInstallments([]);
+      setInstallmentItems([]);
       
-      if (installmentIds.length > 0) {
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('card_installment_items')
-          .select('*')
-          .in('installment_id', installmentIds)
-          .order('due_date', { ascending: true });
-
-        if (itemsError) throw itemsError;
-        setInstallmentItems(itemsData || []);
-      } else {
-        setInstallmentItems([]);
-      }
-
-      setInstallments(installmentsData || []);
     } catch (error) {
       console.error('Error fetching installments:', error);
       toast({

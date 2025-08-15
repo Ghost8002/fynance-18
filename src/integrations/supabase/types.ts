@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -268,6 +268,80 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      card_installment_items: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          installment_id: string
+          installment_number: number
+          paid_date: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_id: string
+          installment_number: number
+          paid_date?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_id?: string
+          installment_number?: number
+          paid_date?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_installment_items_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "card_installments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_installments: {
+        Row: {
+          card_id: string
+          created_at: string
+          description: string
+          id: string
+          installments_count: number
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          description: string
+          id?: string
+          installments_count: number
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          installments_count?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       card_limit_history: {
         Row: {
@@ -711,6 +785,19 @@ export type Database = {
         Args: { p_card_id: string; p_new_limit: number; p_reason: string }
         Returns: Json
       }
+      create_installment_purchase: {
+        Args: {
+          p_card_id: string
+          p_category_id: string
+          p_description: string
+          p_first_installment_date: string
+          p_installments_count: number
+          p_notes?: string
+          p_total_amount: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_next_recurring_debt: {
         Args: { debt_id: string }
         Returns: string
@@ -724,54 +811,54 @@ export type Database = {
         Returns: Json
       }
       mark_debt_as_paid_with_rollback: {
-        Args: { p_debt_id: string; p_account_id?: string }
+        Args: { p_account_id?: string; p_debt_id: string }
         Returns: Json
       }
       mark_receivable_as_received_with_rollback: {
-        Args: { p_receivable_id: string; p_account_id?: string }
+        Args: { p_account_id?: string; p_receivable_id: string }
         Returns: Json
       }
       process_bill_payment: {
         Args: {
-          p_bill_id: string
-          p_amount: number
           p_account_id?: string
+          p_amount: number
+          p_bill_id: string
           p_description?: string
         }
         Returns: Json
       }
       process_card_payment: {
         Args: {
-          p_card_id: string
-          p_amount: number
           p_account_id?: string
+          p_amount: number
+          p_card_id: string
           p_description?: string
         }
         Returns: Json
       }
       process_card_payment_secure: {
         Args: {
-          p_card_id: string
-          p_amount: number
           p_account_id?: string
+          p_amount: number
+          p_card_id: string
           p_description?: string
         }
         Returns: Json
       }
       process_installment_payment: {
         Args: {
-          p_installment_item_id: string
-          p_amount: number
           p_account_id?: string
+          p_amount: number
+          p_installment_item_id: string
         }
         Returns: Json
       }
       unmark_debt_as_paid_with_rollback: {
-        Args: { p_debt_id: string; p_account_id?: string }
+        Args: { p_account_id?: string; p_debt_id: string }
         Returns: Json
       }
       unmark_receivable_as_received_with_rollback: {
-        Args: { p_receivable_id: string; p_account_id?: string }
+        Args: { p_account_id?: string; p_receivable_id: string }
         Returns: Json
       }
     }

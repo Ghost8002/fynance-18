@@ -66,7 +66,7 @@ export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
   const cardTransactions = useMemo(() => {
     if (!transactions) return [];
     
-    return (transactions as Transaction[])
+    return (transactions as any[])
       .filter(transaction => transaction.card_id === cardId)
       .sort((a, b) => {
         const dateA = new Date(a.date).getTime();
