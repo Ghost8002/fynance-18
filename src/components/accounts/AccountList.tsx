@@ -9,6 +9,7 @@ import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import TransactionForm from "@/components/shared/TransactionForm";
 import { AccountBalanceHistory } from "./AccountBalanceHistory";
 import { AccountTransfer } from "./AccountTransfer";
+import AccountEditForm from "./AccountEditForm";
 import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -42,6 +43,8 @@ const AccountList = () => {
   } = useToast();
   const [selectedAccountForHistory, setSelectedAccountForHistory] = useState<string | null>(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Calculate real account balances based on transactions
   const calculateAccountBalance = (accountId: string) => {
@@ -95,6 +98,15 @@ const AccountList = () => {
     setSelectedAccountForHistory(accountId);
     setHistoryDialogOpen(true);
   };
+
+  const handleEditAccount = (account: any) => {
+    setSelectedAccountForEdit(account);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    refetch();
+  };
   if (loading) {
     return <div className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -142,7 +154,7 @@ const AccountList = () => {
                     <Button variant="ghost" size="sm" onClick={() => handleViewHistory(account.id)}>
                       <TrendingUp className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditAccount(account)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
@@ -185,9 +197,6 @@ const AccountList = () => {
                   <Badge variant="outline" className="capitalize">
                     {account.type}
                   </Badge>
-                  {account.account_number && <span className="text-sm text-gray-500">
-                      ***{account.account_number.slice(-4)}
-                    </span>}
                 </div>
 
                 <div className="flex space-x-2">
@@ -210,6 +219,16 @@ const AccountList = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para edição de conta */}
+      {selectedAccountForEdit && (
+        <AccountEditForm
+          account={selectedAccountForEdit}
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </div>;
 };
 export default AccountList;

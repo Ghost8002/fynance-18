@@ -1,10 +1,14 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState } from "react";
+import TransactionEditForm from "./TransactionEditForm";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -22,10 +26,14 @@ const formatDate = (dateString: string) => {
 
 const TransactionList = () => {
   const { user } = useAuth();
-  const { data: transactions = [], loading, error } = useSupabaseData('transactions', user?.id);
+  const { data: transactions = [], loading, error, remove, refetch } = useSupabaseData('transactions', user?.id);
   const { data: categories = [] } = useSupabaseData('categories', user?.id);
   const { data: accounts = [] } = useSupabaseData('accounts', user?.id);
   const { data: cards = [] } = useSupabaseData('cards', user?.id);
+  const { toast } = useToast();
+
+  const [selectedTransactionForEdit, setSelectedTransactionForEdit] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -126,6 +134,35 @@ const TransactionList = () => {
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, filters]);
 
+  const handleEditTransaction = (transaction: any) => {
+    setSelectedTransactionForEdit(transaction);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteTransaction = async (id: string, description: string) => {
+    try {
+      const { error } = await remove(id);
+      if (error) {
+        throw new Error(error);
+      }
+      toast({
+        title: "Sucesso",
+        description: `Transação "${description}" removida com sucesso!`
+      });
+    } catch (error) {
+      console.error('Erro ao remover transação:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a transação. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditSuccess = () => {
+    refetch();
+  };
+
   if (loading) {
     return (
       <div className="bg-card rounded-lg shadow p-6">
@@ -169,6 +206,7 @@ const TransactionList = () => {
                 <TableHead>Tags</TableHead>
                 <TableHead>Conta/Cartão</TableHead>
                 <TableHead>Tipo</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,11 +265,53 @@ const TransactionList = () => {
                       </div>
                     )}
                   </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditTransaction(transaction)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remover transação</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja remover a transação "{transaction.description}"? Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteTransaction(transaction.id, transaction.description)} className="bg-red-600 hover:bg-red-700">
+                              Remover
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+      )}
+
+      {/* Dialog para edição de transação */}
+      {selectedTransactionForEdit && (
+        <TransactionEditForm
+          transaction={selectedTransactionForEdit}
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onSuccess={handleEditSuccess}
+        />
       )}
     </div>
   );

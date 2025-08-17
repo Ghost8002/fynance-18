@@ -1,25 +1,35 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
   DialogDescription, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wallet } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 
-const AccountForm = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface AccountEditFormProps {
+  account: {
+    id: string;
+    type: string;
+    name: string;
+    bank: string;
+    account_number: string;
+    balance: number;
+  };
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: '',
@@ -29,8 +39,20 @@ const AccountForm = () => {
   });
 
   const { user } = useSupabaseAuth();
-  const { insert } = useSupabaseData('accounts', user?.id);
+  const { update } = useSupabaseData('accounts', user?.id);
   const { toast } = useToast();
+
+  // Preencher formulário com dados da conta quando abrir
+  useEffect(() => {
+    if (account && isOpen) {
+      setFormData({
+        type: account.type,
+        name: account.name,
+        bank: account.bank || '',
+        balance: account.balance.toString()
+      });
+    }
+  }, [account, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,14 +79,13 @@ const AccountForm = () => {
 
     try {
       const accountData = {
-        user_id: user.id,
         type: formData.type,
         name: formData.name,
         bank: formData.bank || null,
         balance: formData.balance ? Number(formData.balance) : 0,
       };
 
-      const { error } = await insert(accountData);
+      const { error } = await update(account.id, accountData);
 
       if (error) {
         throw new Error(error);
@@ -72,23 +93,16 @@ const AccountForm = () => {
 
       toast({
         title: "Sucesso",
-        description: "Conta adicionada com sucesso!",
+        description: "Conta atualizada com sucesso!",
       });
 
-      // Reset form
-      setFormData({
-        type: '',
-        name: '',
-        bank: '',
-        balance: ''
-      });
-      
-      setIsOpen(false);
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error adding account:', error);
+      console.error('Error updating account:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível adicionar a conta. Tente novamente.",
+        description: "Não foi possível atualizar a conta. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -104,17 +118,12 @@ const AccountForm = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-                        <Button className="bg-finance-blue hover:bg-finance-blue/90">
-          <Wallet className="mr-2 h-4 w-4" /> Adicionar Conta
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Conta</DialogTitle>
+          <DialogTitle>Editar Conta</DialogTitle>
           <DialogDescription>
-            Cadastre sua conta para gerenciar suas finanças
+            Atualize os dados da sua conta
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
@@ -154,9 +163,9 @@ const AccountForm = () => {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="initialBalance">Saldo Inicial</Label>
+            <Label htmlFor="balance">Saldo Atual</Label>
             <Input 
-              id="initialBalance" 
+              id="balance" 
               type="number" 
               step="0.01"
               placeholder="0,00" 
@@ -169,7 +178,7 @@ const AccountForm = () => {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={() => setIsOpen(false)}
+            onClick={onClose}
             disabled={isLoading}
           >
             Cancelar
@@ -187,4 +196,4 @@ const AccountForm = () => {
   );
 };
 
-export default AccountForm;
+export default AccountEditForm;

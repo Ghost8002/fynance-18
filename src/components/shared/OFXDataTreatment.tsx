@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,14 +38,166 @@ interface OFXDataTreatmentProps {
 }
 
 const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXDataTreatmentProps) => {
+  console.log('=== OFXDataTreatment RENDERIZADO ===');
+  console.log('Props recebidas:', {
+    transactionsCount: transactions?.length || 0,
+    accountId,
+    transactions: transactions?.slice(0, 3) // Mostrar apenas as primeiras 3 para debug
+  });
+  
   const { user } = useAuth();
-  const { data: categories } = useSupabaseData('categories', user?.id);
+
+  // Log quando usuário muda
+  useEffect(() => {
+    console.log('Usuário carregado:', user?.id ? 'Sim' : 'Não');
+  }, [user]);
+  const { data: categories, refetch: refetchCategories } = useSupabaseData('categories', user?.id);
+
+  // Estado para controle de criação automática de categorias
+  const [autoCreateCategories, setAutoCreateCategories] = useState(false);
+  const [creatingCategories, setCreatingCategories] = useState(false);
+  const [creatingDefaultCategories, setCreatingDefaultCategories] = useState(false);
+  const [createdCategories, setCreatedCategories] = useState<string[]>([]);
+
+  // Log quando categorias mudam
+  useEffect(() => {
+    console.log('Categorias carregadas:', categories?.length || 0, 'categorias');
+    if (categories && categories.length > 0) {
+      console.log('Primeiras categorias:', categories.slice(0, 3).map(c => ({ id: c.id, name: c.name, type: c.type })));
+    }
+  }, [categories]);
+
+  // Verificar se já existem categorias para evitar criação duplicada
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      defaultCategoriesCreatedRef.current = true;
+      console.log('Categorias já existem, marcando como criadas');
+    }
+  }, [categories]);
+
+  // Verificar se o usuário já tem categorias no banco
+  useEffect(() => {
+    const checkExistingCategories = async () => {
+      if (user && !defaultCategoriesCreatedRef.current) {
+        try {
+          const { data: existingCategories } = await supabase
+            .from('categories')
+            .select('id, name, type')
+            .eq('user_id', user.id);
+
+          if (existingCategories && existingCategories.length > 0) {
+            defaultCategoriesCreatedRef.current = true;
+            console.log('Usuário já tem categorias no banco, marcando como criadas');
+          }
+        } catch (error) {
+          console.error('Erro ao verificar categorias existentes:', error);
+        }
+      }
+    };
+
+    checkExistingCategories();
+  }, [user]);
+
+  // Criar categorias padrão se o usuário não tiver nenhuma
+  useEffect(() => {
+    const createDefaultCategories = async () => {
+      // Verificar se já temos categorias ou se já foram criadas
+      if (categories && categories.length > 0) {
+        defaultCategoriesCreatedRef.current = true;
+        return;
+      }
+      
+      if (user && categories && categories.length === 0 && !creatingDefaultCategories && !defaultCategoriesCreatedRef.current) {
+        console.log('=== CRIANDO CATEGORIAS PADRÃO ===');
+        setCreatingDefaultCategories(true);
+        
+        const defaultCategories = [
+          // Receitas
+          { name: 'Salário', type: 'income', color: '#10B981' },
+          { name: 'Freelance', type: 'income', color: '#3B82F6' },
+          { name: 'Investimentos', type: 'income', color: '#8B5CF6' },
+          { name: 'Transferência Recebida', type: 'income', color: '#06B6D4' },
+          { name: 'Outras Receitas', type: 'income', color: '#84CC16' },
+          
+          // Despesas
+          { name: 'Alimentação', type: 'expense', color: '#EF4444' },
+          { name: 'Transporte', type: 'expense', color: '#F59E0B' },
+          { name: 'Moradia', type: 'expense', color: '#8B5CF6' },
+          { name: 'Saúde', type: 'expense', color: '#EC4899' },
+          { name: 'Educação', type: 'expense', color: '#06B6D4' },
+          { name: 'Lazer', type: 'expense', color: '#F97316' },
+          { name: 'Shopping', type: 'expense', color: '#6366F1' },
+          { name: 'Contas', type: 'expense', color: '#84CC16' },
+          { name: 'Transferência Enviada', type: 'expense', color: '#F59E0B' },
+          { name: 'Investimentos', type: 'expense', color: '#8B5CF6' },
+          { name: 'Outras Despesas', type: 'expense', color: '#6B7280' },
+        ];
+
+        try {
+          for (const category of defaultCategories) {
+            // Verificar se a categoria já existe antes de criar
+            const { data: existingCategory } = await supabase
+              .from('categories')
+              .select('id, name, type')
+              .eq('user_id', user.id)
+              .eq('name', category.name)
+              .eq('type', category.type)
+              .single();
+
+            if (existingCategory) {
+              console.log(`Categoria já existe: ${category.name} (${category.type})`);
+              continue;
+            }
+
+            const { data: newCategory, error } = await supabase
+              .from('categories')
+              .insert({
+                name: category.name,
+                type: category.type,
+                user_id: user.id,
+                color: category.color,
+                sort_order: 999
+              })
+              .select()
+              .single();
+
+            if (error) {
+              console.error(`Erro ao criar categoria ${category.name}:`, error);
+            } else {
+              console.log(`Categoria padrão criada: ${category.name} (${category.type})`);
+            }
+          }
+
+          // Atualizar a lista de categorias
+          await refetchCategories();
+          console.log('=== CATEGORIAS PADRÃO CRIADAS ===');
+          defaultCategoriesCreatedRef.current = true;
+          
+        } catch (error) {
+          console.error('Erro ao criar categorias padrão:', error);
+        } finally {
+          setCreatingDefaultCategories(false);
+        }
+      }
+    };
+
+    createDefaultCategories();
+  }, [user, categories, refetchCategories]); // Removido creatingDefaultCategories das dependências
   
   const [saving, setSaving] = useState(false);
   const [saveProgress, setSaveProgress] = useState(0);
   
   const [treatedTransactions, setTreatedTransactions] = useState<TreatedTransaction[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const initializedRef = useRef(false);
+  const defaultCategoriesCreatedRef = useRef(false);
+
+  // Garantir que o estado categoriesLoaded seja mantido durante a sessão
+  useEffect(() => {
+    if (categories && categories.length > 0 && !categoriesLoaded) {
+      setCategoriesLoaded(true);
+    }
+  }, [categories, categoriesLoaded]);
 
   const [bulkEdit, setBulkEdit] = useState({
     isOpen: false,
@@ -54,17 +206,28 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     tags: [] as string[]
   });
 
-  // Estado para controle de criação automática de categorias
-  const [autoCreateCategories, setAutoCreateCategories] = useState(false);
-  const [creatingCategories, setCreatingCategories] = useState(false);
-  const [createdCategories, setCreatedCategories] = useState<string[]>([]);
+  // Log quando autoCreateCategories muda
+  useEffect(() => {
+    console.log('autoCreateCategories mudou para:', autoCreateCategories);
+  }, [autoCreateCategories]);
 
   const { toast } = useToast();
 
   // Inicializar transações com categorização automática quando as categorias carregarem
   useEffect(() => {
-    if (categories && !categoriesLoaded) {
+    console.log('=== INICIALIZAÇÃO DE TRANSAÇÕES ===');
+    console.log('Estado atual:', {
+      categories: categories?.length || 0,
+      categoriesLoaded,
+      treatedTransactionsLength: treatedTransactions.length,
+      initializedRef: initializedRef.current,
+      transactionsLength: transactions.length
+    });
+    
+    if (categories && !categoriesLoaded && treatedTransactions.length === 0 && !initializedRef.current) {
       const initializeTransactions = async () => {
+        console.log('Inicializando transações...');
+        initializedRef.current = true;
         const initializedTransactions = await Promise.all(
           transactions.map(async (transaction, index) => {
             // Durante a inicialização, NÃO aplicar categorização automática
@@ -79,20 +242,41 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
           })
         );
         
+        console.log('Transações inicializadas:', initializedTransactions.length);
         setTreatedTransactions(initializedTransactions);
         setCategoriesLoaded(true);
       };
       
       initializeTransactions();
     }
-  }, [categories, transactions, categoriesLoaded]);
+  }, [categories, categoriesLoaded, treatedTransactions.length]); // Adicionado treatedTransactions.length para evitar re-inicialização
 
   // Função para aplicar categorização automática a todas as transações
   const applyAutoCategorization = async () => {
+    console.log('=== INICIANDO CATEGORIZAÇÃO AUTOMÁTICA ===');
+    console.log('Estado atual:', {
+      autoCreateCategories,
+      categoriesCount: categories?.length || 0,
+      transactionsCount: treatedTransactions.length,
+      categorizedCount: treatedTransactions.filter(t => t.category_id).length,
+      uncategorizedCount: treatedTransactions.filter(t => !t.category_id).length,
+      user: user?.id
+    });
+
     if (!autoCreateCategories) {
       toast({
         title: "Categorização Automática",
         description: "Ative a criação automática de categorias primeiro!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verificar se há categorias disponíveis
+    if (!categories || categories.length === 0) {
+      toast({
+        title: "Aguardando Categorias",
+        description: "Aguarde as categorias padrão serem criadas...",
         variant: "destructive",
       });
       return;
@@ -128,8 +312,14 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
           .eq('user_id', user.id);
         
         if (updatedCategories) {
-          // Forçar atualização das categorias
-          window.location.reload();
+          // Atualizar o estado das categorias usando a função refetch
+          await refetchCategories();
+          console.log('Categorias atualizadas:', updatedCategories);
+          
+          // Manter o estado categoriesLoaded para evitar re-inicialização
+          if (!categoriesLoaded) {
+            setCategoriesLoaded(true);
+          }
         }
       }
       
@@ -163,9 +353,10 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
   // Função unificada para determinar categoria automaticamente baseada na descrição
   async function getAutoCategory(transaction: ImportedTransaction): Promise<string> {
     console.log(`getAutoCategory: Processando transação: "${transaction.description}" (${transaction.type})`);
+    console.log(`getAutoCategory: Categorias disponíveis:`, categories?.map(c => ({ id: c.id, name: c.name, type: c.type })));
     
-    if (!categories) {
-      console.log('getAutoCategory: Nenhuma categoria disponível');
+    if (!categories || categories.length === 0) {
+      console.log('getAutoCategory: Nenhuma categoria disponível - aguardando criação de categorias padrão');
       return '';
     }
     
@@ -312,13 +503,19 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
     console.log(`getAutoCategory: Procurando por palavras-chave em: "${description}"`);
     console.log(`getAutoCategory: Criação automática ativada: ${autoCreateCategories}`);
+    console.log(`getAutoCategory: Mapeamento de palavras-chave:`, Object.keys(keywordToCategoryMap));
 
     // Estratégia 1: Buscar por frases completas (mais específicas)
+    let keywordFound = false;
     for (const [keyword, categoryName] of Object.entries(keywordToCategoryMap)) {
       if (description.includes(keyword)) {
+        keywordFound = true;
         console.log(`getAutoCategory: Palavra-chave encontrada: "${keyword}" -> "${categoryName}"`);
         
         // Verificar se a categoria já existe
+        console.log(`getAutoCategory: Procurando categoria existente: "${categoryName}"`);
+        console.log(`getAutoCategory: Categorias disponíveis para ${transaction.type}:`, availableCategories.map(c => c.name));
+        
         const existingCategory = availableCategories.find(cat => 
           cat.name.toLowerCase() === categoryName.toLowerCase()
         );
@@ -326,12 +523,37 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
         if (existingCategory) {
           console.log(`getAutoCategory: Categoria existente encontrada: "${categoryName}" -> ${existingCategory.id}`);
           return existingCategory.id;
+        } else {
+          console.log(`getAutoCategory: Categoria não encontrada: "${categoryName}"`);
         }
         
         // Se criação automática estiver ativada, criar nova categoria
         if (autoCreateCategories && user) {
           console.log(`getAutoCategory: Criando nova categoria: "${categoryName}"`);
+          
+          // Verificar se a categoria já existe no banco antes de criar
           try {
+            const { data: existingCategory } = await supabase
+              .from('categories')
+              .select('id, name, type')
+              .eq('user_id', user.id)
+              .eq('name', categoryName)
+              .eq('type', transaction.type)
+              .single();
+
+            if (existingCategory) {
+              console.log(`getAutoCategory: Categoria já existe no banco: ${categoryName} (${transaction.type}) -> ${existingCategory.id}`);
+              return existingCategory.id;
+            }
+
+            console.log(`getAutoCategory: Dados da categoria:`, {
+              name: categoryName,
+              type: transaction.type,
+              user_id: user.id,
+              color: getRandomColor(),
+              sort_order: 999
+            });
+            
             const { data: newCategory, error } = await supabase
               .from('categories')
               .insert({
@@ -346,6 +568,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
             if (error) {
               console.error('Erro ao criar categoria:', error);
+              console.error('Detalhes do erro:', error);
             } else if (newCategory) {
               console.log(`getAutoCategory: Nova categoria criada: ${categoryName} (${transaction.type}) -> ${newCategory.id}`);
               setCreatedCategories(prev => [...prev, newCategory.id]);
@@ -357,22 +580,33 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                 .eq('user_id', user.id);
               
               if (updatedCategories) {
-                // Forçar atualização das categorias
-                window.location.reload();
+                // Atualizar o estado das categorias usando a função refetch
+                await refetchCategories();
+                console.log('Categorias atualizadas:', updatedCategories);
+                
+                // Manter o estado categoriesLoaded para evitar re-inicialização
+                if (!categoriesLoaded) {
+                  setCategoriesLoaded(true);
+                }
               }
               
               return newCategory.id;
             }
           } catch (error) {
-            console.error('Erro ao criar categoria:', error);
+            console.error('Erro ao verificar/criar categoria:', error);
           }
         } else {
           console.log(`getAutoCategory: Criação automática desativada para: "${categoryName}"`);
         }
       }
     }
+    
+    if (!keywordFound) {
+      console.log(`getAutoCategory: Nenhuma palavra-chave encontrada para: "${description}"`);
+    }
 
     // Estratégia 2: Buscar por nome exato da categoria existente
+    console.log(`getAutoCategory: Estratégia 2 - Buscando por nome exato de categoria`);
     for (const category of availableCategories) {
       const categoryName = category.name.toLowerCase();
       if (description.includes(categoryName)) {
@@ -380,8 +614,10 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
         return category.id;
       }
     }
+    console.log(`getAutoCategory: Estratégia 2 - Nenhuma categoria encontrada por nome exato`);
 
     // Estratégia 3: Buscar por palavras similares
+    console.log(`getAutoCategory: Estratégia 3 - Buscando por palavras similares`);
     for (const category of availableCategories) {
       const categoryName = category.name.toLowerCase();
       const categoryWords = categoryName.split(' ');
@@ -395,8 +631,10 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
         return category.id;
       }
     }
+    console.log(`getAutoCategory: Estratégia 3 - Nenhuma categoria encontrada por palavras similares`);
 
     // Estratégia 4: Categoria padrão do tipo
+    console.log(`getAutoCategory: Estratégia 4 - Usando categoria padrão`);
     const defaultCategory = availableCategories[0]?.id || '';
     console.log(`getAutoCategory: Usando categoria padrão: ${defaultCategory} (${availableCategories[0]?.name || 'N/A'})`);
     return defaultCategory;
@@ -541,13 +779,21 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                     ✅ {createdCategories.length} categoria(s) criada(s) automaticamente
                   </p>
                 )}
+                {creatingDefaultCategories && (
+                  <p className="text-sm text-blue-700 font-medium">
+                    🔄 Criando categorias padrão...
+                  </p>
+                )}
               </div>
               
               <div className="flex items-center gap-2">
                 <Button
                   variant={autoCreateCategories ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setAutoCreateCategories(!autoCreateCategories)}
+                  onClick={() => {
+                    console.log('Botão de ativação clicado. Estado atual:', autoCreateCategories);
+                    setAutoCreateCategories(!autoCreateCategories);
+                  }}
                   disabled={creatingCategories}
                   className={autoCreateCategories ? "bg-green-600 hover:bg-green-700" : ""}
                 >
@@ -568,7 +814,10 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={applyAutoCategorization}
+                    onClick={() => {
+                      console.log('Botão de categorização automática clicado');
+                      applyAutoCategorization();
+                    }}
                     disabled={creatingCategories}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -612,7 +861,10 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                 {autoCreateCategories && treatedTransactions.filter(t => !t.category_id).length > 0 && (
                   <div className="mt-3 text-center">
                     <Button
-                      onClick={applyAutoCategorization}
+                      onClick={() => {
+                        console.log('Botão principal de categorização clicado');
+                        applyAutoCategorization();
+                      }}
                       disabled={creatingCategories}
                       className="w-full bg-green-600 hover:bg-green-700"
                       size="sm"
