@@ -10,9 +10,10 @@ import GeneralSettings from "@/components/settings/GeneralSettings";
 import SecuritySettings from "@/components/settings/SecuritySettings";
 import CategorySettings from "@/components/settings/CategorySettings";
 import TagSettings from "@/components/settings/TagSettings";
+import AccountSettings from "@/components/settings/AccountSettings";
 import SectionSpotlight from "@/components/shared/SectionSpotlight";
 import { DashboardCustomization } from "@/components/dashboard/DashboardCustomization";
-import { Settings as SettingsIcon, User, Bell, Shield, Palette, Tag, Sliders, Layout } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Palette, Tag, Sliders, Layout, UserCog } from "lucide-react";
 
 const Settings = () => {
   const { isAuthenticated } = useAuth();
@@ -77,6 +78,12 @@ const Settings = () => {
       label: "Segurança",
       icon: Shield,
       component: SecuritySettings
+    },
+    {
+      id: "account",
+      label: "Conta",
+      icon: UserCog,
+      component: AccountSettings
     }
   ];
 
@@ -105,7 +112,7 @@ const Settings = () => {
           <Tabs defaultValue="profile" className="w-full">
             {/* Tabs List */}
             <div className="border-b px-6 pt-6">
-              <TabsList className="grid grid-cols-7 w-full max-w-4xl bg-muted/50 p-1 rounded-lg h-auto">
+              <TabsList className="grid grid-cols-8 w-full max-w-5xl bg-muted/50 p-1 rounded-lg h-auto">
                 {settingsTabs.map((tab) => (
                   <TabsTrigger 
                     key={tab.id}
