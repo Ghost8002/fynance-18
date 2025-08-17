@@ -112,7 +112,7 @@ const GoalForm = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-finance-blue hover:bg-blue-700">
+                        <Button className="bg-finance-blue hover:bg-finance-blue/90">
           <Target className="mr-2 h-4 w-4" /> Criar Nova Meta
         </Button>
       </DialogTrigger>

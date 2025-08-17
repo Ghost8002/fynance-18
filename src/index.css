@@ -43,6 +43,7 @@
     --finance-yellow: 43 96% 56%;
     --finance-purple: 262 83% 58%;
     --finance-gray: 215 16% 47%;
+    --finance-blue: 203 73% 37%;
 
     /* Sidebar variables */
     --sidebar-background: 0 0% 100%;
@@ -92,6 +93,7 @@
     --finance-yellow: 43 96% 56%;
     --finance-purple: 262 83% 58%;
     --finance-gray: 215 20% 65%;
+    --finance-blue: 203 73% 37%;
 
     /* Sidebar dark mode variables */
     --sidebar-background: 222 84% 4.9%;

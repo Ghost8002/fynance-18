@@ -116,7 +116,7 @@ const ContactSupport = () => {
         <CardFooter>
           <Button 
             type="submit" 
-            className="bg-finance-blue hover:bg-blue-700"
+            className="bg-finance-blue hover:bg-finance-blue/90"
             onClick={handleSubmit}
           >
             Enviar mensagem

@@ -71,6 +71,7 @@ export default {
 					yellow: 'hsl(var(--finance-yellow))',
 					purple: 'hsl(var(--finance-purple))',
 					gray: 'hsl(var(--finance-gray))',
+					blue: 'hsl(var(--finance-blue))',
 				}
 			},
 			fontFamily: {
