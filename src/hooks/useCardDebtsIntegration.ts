@@ -127,7 +127,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Criar dívida a partir de fatura de cartão (função placeholder)
+  // Criar dívida a partir de fatura de cartão
   const createDebtFromCardBill = async (
     cardId: string, 
     billMonth: number, 
@@ -136,12 +136,29 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return null;
 
     try {
-      // Esta funcionalidade ainda está em desenvolvimento
-      // Por enquanto, apenas retorna um placeholder
-      toast({
-        title: "Em Desenvolvimento",
-        description: "Funcionalidade de integração cartão/dívidas em breve",
+      const { data, error } = await supabase.rpc('create_debt_from_card_bill', {
+        p_card_id: cardId,
+        p_bill_month: billMonth,
+        p_bill_year: billYear
       });
+
+      if (error) {
+        console.error('Erro ao criar dívida da fatura:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao criar dívida da fatura",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      if (data) {
+        toast({
+          title: "Dívida criada",
+          description: "Dívida da fatura criada com sucesso",
+        });
+        return data;
+      }
 
       return null;
     } catch (error) {
@@ -210,45 +227,27 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return;
 
     try {
-      // Buscar faturas não pagas
-      let billsQuery = supabase
-        .from('card_bills')
-        .select('*')
-        .eq('user_id', user.id)
-        .neq('status', 'paid');
+      const { data, error } = await supabase.rpc('sync_card_debts');
 
-      if (cardId) {
-        billsQuery = billsQuery.eq('card_id', cardId);
+      if (error) {
+        console.error('Erro ao sincronizar dívidas:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao sincronizar dívidas de cartão",
+          variant: "destructive",
+        });
+        return;
       }
 
-      const { data: bills } = await billsQuery;
-
-      // Criar dívidas para faturas não pagas
-      for (const bill of bills || []) {
-        await createDebtFromCardBill(bill.card_id, bill.bill_month, bill.bill_year);
-      }
-
-      // Buscar parcelamentos ativos
-      let installmentsQuery = supabase
-        .from('card_installments')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (cardId) {
-        installmentsQuery = installmentsQuery.eq('card_id', cardId);
-      }
-
-      const { data: installments } = await installmentsQuery;
-
-      // Criar dívidas para parcelamentos ativos
-      for (const installment of installments || []) {
-        await createDebtsFromInstallments(installment.id);
-      }
-
+      const result = data as { debts_created?: number };
       toast({
         title: "Sincronização Concluída",
-        description: "Todas as dívidas de cartão foram sincronizadas",
+        description: `${result?.debts_created || 0} dívidas de cartão foram criadas`,
       });
+
+      // Recarregar dados após sincronização
+      await fetchCardBills(cardId);
+      await fetchCardInstallments(cardId);
 
     } catch (error) {
       console.error('Erro ao sincronizar dívidas:', error);

@@ -11,14 +11,17 @@ import { CardInstallments } from "@/components/cards/CardInstallments";
 import { CardTransactions } from "@/components/cards/CardTransactions";
 import { CardLimitManagement } from "@/components/cards/CardLimitManagement";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useCardDebtsIntegration } from "@/hooks/useCardDebtsIntegration";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CreditCard, RefreshCw } from "lucide-react";
 
 const Cards = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { data: cards, refetch: refetchCards } = useSupabaseData('cards', user?.id);
+  const { syncAllCardDebts, loadingBills } = useCardDebtsIntegration();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   // Redirect to login if not authenticated
@@ -51,6 +54,15 @@ const Cards = () => {
           </div>
           
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => syncAllCardDebts()}
+              disabled={loadingBills}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loadingBills ? 'animate-spin' : ''}`} />
+              Sincronizar Dívidas
+            </Button>
             <InstallmentPurchaseForm onPurchaseAdded={handlePurchaseAdded} />
             <CardForm />
           </div>

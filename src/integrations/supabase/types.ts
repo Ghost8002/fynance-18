@@ -806,6 +806,10 @@ export type Database = {
         Args: { p_card_id: string; p_new_limit: number; p_reason: string }
         Returns: Json
       }
+      create_debt_from_card_bill: {
+        Args: { p_bill_month: number; p_bill_year: number; p_card_id: string }
+        Returns: string
+      }
       create_installment_purchase: {
         Args: {
           p_card_id: string
@@ -872,6 +876,10 @@ export type Database = {
           p_amount: number
           p_installment_item_id: string
         }
+        Returns: Json
+      }
+      sync_card_debts: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       unmark_debt_as_paid_with_rollback: {
