@@ -6,7 +6,7 @@ import OFXImporter from "@/components/shared/OFXImporter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Info, CheckCircle, AlertTriangle, Download, Upload, Database, TrendingUp, Shield, Clock } from "lucide-react";
+import { ArrowLeft, FileText, Info, CheckCircle, AlertTriangle, Download, Upload, Database, TrendingUp, Shield, Timer } from "lucide-react";
 const ImportsTransactions = () => {
   const {
     isAuthenticated
@@ -164,7 +164,7 @@ const ImportsTransactions = () => {
               </div>
               <div className="space-y-2">
                 <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                  <Timer className="h-4 w-4" />
                   Período recomendado
                 </h4>
                 <p className="text-sm text-gray-600">
