@@ -41,17 +41,17 @@ const Imports = () => {
     features: ["Suporte a OFX 1.x e 2.x", "Categorização automática", "Validação de dados"],
     to: "/importacoes/transacoes",
     comingSoon: false
-  }, {
-    id: "csv",
-    title: "Transações CSV",
-    description: "Importe dados de planilhas CSV",
-    icon: Receipt,
-    color: "bg-gradient-to-br from-green-500 to-green-600",
-    status: "Em breve",
-    features: ["Múltiplos formatos", "Mapeamento personalizado", "Validação avançada"],
-    to: "/importacoes/csv",
-    comingSoon: true
-  }, {
+  },     {
+      id: "csv",
+      title: "Transações CSV",
+      description: "Importe dados de planilhas CSV",
+      icon: Receipt,
+      color: "bg-gradient-to-br from-green-500 to-green-600",
+      status: "Disponível",
+      features: ["Múltiplos formatos", "Mapeamento personalizado", "Validação avançada"],
+      to: "/importacoes/csv",
+      comingSoon: false
+    }, {
     id: "accounts",
     title: "Contas Bancárias",
     description: "Sincronize suas contas bancárias",

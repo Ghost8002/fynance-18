@@ -43,6 +43,8 @@ interface ImportedTransaction {
   description: string;
   amount: number;
   type: 'income' | 'expense';
+  category?: string;
+  tags?: string[];
   reference?: string;
 }
 
@@ -53,14 +55,14 @@ interface TreatedTransaction extends ImportedTransaction {
   selected: boolean;
 }
 
-interface OFXDataTreatmentProps {
+interface CSVDataTreatmentProps {
   transactions: ImportedTransaction[];
   accountId: string;
   onSave: (treatedTransactions: TreatedTransaction[]) => void;
   onCancel: () => void;
 }
 
-const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXDataTreatmentProps) => {
+const CSVDataTreatment = ({ transactions, accountId, onSave, onCancel }: CSVDataTreatmentProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: categories, refetch: refetchCategories } = useSupabaseData('categories', user?.id);
@@ -98,7 +100,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
               ...transaction,
               id: `temp-${index}`,
               category_id: '',
-              tags: [],
+              tags: transaction.tags || [],
               selected: false
             };
           })
@@ -111,8 +113,6 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       initializeTransactions();
     }
   }, [categories, categoriesLoaded, treatedTransactions.length, transactions]);
-
-  
 
   // Função para categorização automática
   async function getAutoCategory(transaction: ImportedTransaction): Promise<string> {
@@ -745,7 +745,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
           </CardContent>
         </Card>
                 </div>
-                
+
       {/* Card principal */}
       <Card className="w-full border-border bg-card">
         <CardHeader className="pb-4">
@@ -763,7 +763,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                     </Button>
               <div>
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  Tratamento de Dados OFX
+                  Tratamento de Dados CSV
                 </CardTitle>
                 <p className="text-muted-foreground mt-1">
                   Revise e categorize suas transações antes da importação
@@ -1197,10 +1197,12 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
               ))}
             </div>
           )}
+
+
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default OFXDataTreatment;
+export default CSVDataTreatment;
