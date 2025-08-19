@@ -183,91 +183,42 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Criar dívidas a partir de parcelamentos
+  // Criar dívidas a partir de parcelamentos (via RPC)
   const createDebtsFromInstallments = async (installmentId: string): Promise<string[]> => {
     if (!user?.id) return [];
 
     try {
-      // Buscar os itens do parcelamento para criar dívidas manualmente
-      const { data: installment, error: installmentError } = await supabase
-        .from('card_installments')
-        .select('*')
-        .eq('id', installmentId)
-        .single();
+      const { data, error } = await supabase.rpc('create_debts_from_installments', {
+        p_installment_id: installmentId,
+      });
 
-      if (installmentError) {
-        console.error('Erro ao buscar parcelamento:', installmentError);
+      if (error) {
+        console.error('Erro ao criar dívidas dos parcelamentos (RPC):', error);
         toast({
           title: "Erro",
-          description: "Erro ao buscar parcelamento",
+          description: "Erro ao criar dívidas dos parcelamentos",
           variant: "destructive",
         });
         return [];
       }
 
-      const { data: items, error: itemsError } = await supabase
-        .from('card_installment_items')
-        .select('*')
-        .eq('installment_id', installmentId)
-        .order('installment_number');
+      const createdIds = (data as string[]) || [];
 
-      if (itemsError) {
-        console.error('Erro ao buscar itens do parcelamento:', itemsError);
-        toast({
-          title: "Erro",
-          description: "Erro ao buscar itens do parcelamento",
-          variant: "destructive",
-        });
-        return [];
-      }
-
-      const createdDebtIds: string[] = [];
-
-      // Criar dívidas para cada item
-      for (const item of items || []) {
-        // Verificar se já existe uma dívida para esta parcela
-        const { data: existingDebt } = await supabase
-          .from('debts')
-          .select('id')
-          .eq('installment_id', installmentId)
-          .eq('installment_number', item.installment_number)
-          .single();
-
-        if (!existingDebt) {
-          // Criar nova dívida para a parcela
-          const { data: debt, error: debtError } = await supabase
-            .from('debts')
-            .insert({
-              user_id: installment.user_id,
-              description: `${installment.description} - ${item.installment_number}/${installment.installments_count}`,
-              amount: item.amount,
-              due_date: item.due_date,
-              status: item.status === 'paid' ? 'paid' : (new Date(item.due_date) < new Date() ? 'overdue' : 'pending'),
-              card_id: installment.card_id,
-              installment_id: installmentId,
-              installment_number: item.installment_number,
-              category_id: installment.category_id,
-              notes: 'Dívida gerada automaticamente do parcelamento'
-            })
-            .select('id')
-            .single();
-
-          if (!debtError && debt) {
-            createdDebtIds.push(debt.id);
-          }
-        }
-      }
-
-      if (createdDebtIds.length > 0) {
+      if (createdIds.length > 0) {
         toast({
           title: "Dívidas Criadas",
-          description: `${createdDebtIds.length} dívidas de parcelamento foram criadas com sucesso`,
+          description: `${createdIds.length} dívidas de parcelamento foram criadas com sucesso`,
+        });
+      } else {
+        toast({
+          title: "Sem novas dívidas",
+          description: "Nenhuma nova dívida precisava ser criada",
         });
       }
 
-      return createdDebtIds;
+      return createdIds;
     } catch (error) {
-      console.error('Erro ao criar dívidas dos parcelamentos:', error);
+      console.error('Erro ao criar dívidas dos parcelamentos (RPC):', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao criar dívidas",
@@ -277,7 +228,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Sincronizar pagamento de dívida
+  // Sincronizar pagamento de dívida (via RPC)
   const syncDebtPayment = async (
     debtId: string, 
     paymentAmount: number, 
@@ -286,46 +237,33 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return false;
 
     try {
-      // Buscar a dívida para verificar se está relacionada a um parcelamento
-      const { data: debt, error: debtError } = await supabase
-        .from('debts')
-        .select('*')
-        .eq('id', debtId)
-        .single();
+      const { data, error } = await supabase.rpc('sync_debt_payment', {
+        p_debt_id: debtId,
+        p_payment_amount: paymentAmount,
+        p_payment_date: paymentDate || new Date().toISOString().split('T')[0],
+      });
 
-      if (debtError || !debt) {
-        console.error('Erro ao buscar dívida:', debtError);
+      if (error) {
+        console.error('Erro ao sincronizar pagamento (RPC):', error);
         toast({
           title: "Erro",
-          description: "Dívida não encontrada",
+          description: "Erro ao sincronizar pagamento",
           variant: "destructive",
         });
         return false;
       }
 
-      // Se a dívida está relacionada a um parcelamento, sincronizar o item também
-      if (debt.installment_id && debt.installment_number) {
-        const { error: itemError } = await supabase
-          .from('card_installment_items')
-          .update({
-            status: 'paid',
-            paid_date: paymentDate || new Date().toISOString().split('T')[0]
-          })
-          .eq('installment_id', debt.installment_id)
-          .eq('installment_number', debt.installment_number);
-
-        if (itemError) {
-          console.error('Erro ao atualizar item do parcelamento:', itemError);
-        }
+      if (data === true) {
+        toast({
+          title: "Pagamento Sincronizado",
+          description: "Pagamento foi sincronizado com o cartão com sucesso",
+        });
+        return true;
       }
 
-      toast({
-        title: "Pagamento Sincronizado",
-        description: "Pagamento foi sincronizado com o cartão com sucesso",
-      });
-      return true;
+      return false;
     } catch (error) {
-      console.error('Erro ao sincronizar pagamento:', error);
+      console.error('Erro ao sincronizar pagamento (RPC):', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao sincronizar pagamento",
@@ -407,17 +345,16 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Sincronizar parcelamentos existentes (para resolver problemas de sincronização)
+  // Sincronizar parcelamentos existentes (via RPC por parcelamento)
   const syncExistingInstallments = async () => {
     if (!user?.id) return;
 
     try {
-      console.log('Sincronizando parcelamentos existentes...');
+      console.log('Sincronizando parcelamentos existentes (RPC)...');
       
-      // Buscar parcelamentos ativos
       const { data: installments, error: installmentsError } = await supabase
         .from('card_installments')
-        .select('*')
+        .select('id')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
@@ -433,53 +370,9 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
       let totalDebtsCreated = 0;
 
-      // Para cada parcelamento, verificar se já existem dívidas
-      for (const installment of installments || []) {
-        const { data: existingDebts, error: debtsError } = await supabase
-          .from('debts')
-          .select('id')
-          .eq('installment_id', installment.id);
-
-        if (debtsError) {
-          console.error('Error checking existing debts:', debtsError);
-          continue;
-        }
-
-        // Se não existem dívidas, buscar itens para criar dívidas manualmente
-        if (!existingDebts || existingDebts.length === 0) {
-          const { data: items, error: itemsError } = await supabase
-            .from('card_installment_items')
-            .select('*')
-            .eq('installment_id', installment.id)
-            .order('installment_number');
-
-          if (itemsError) {
-            console.error('Error fetching installment items:', itemsError);
-            continue;
-          }
-
-          // Criar dívidas para cada item
-          for (const item of items || []) {
-            const { error: insertError } = await supabase
-              .from('debts')
-              .insert({
-                user_id: installment.user_id,
-                description: `${installment.description} - ${item.installment_number}/${installment.installments_count}`,
-                amount: item.amount,
-                due_date: item.due_date,
-                status: item.status === 'paid' ? 'paid' : (new Date(item.due_date) < new Date() ? 'overdue' : 'pending'),
-                card_id: installment.card_id,
-                installment_id: installment.id,
-                installment_number: item.installment_number,
-                category_id: installment.category_id,
-                notes: 'Dívida gerada automaticamente do parcelamento'
-              });
-
-            if (!insertError) {
-              totalDebtsCreated++;
-            }
-          }
-        }
+      for (const inst of installments || []) {
+        const ids = await createDebtsFromInstallments(inst.id);
+        totalDebtsCreated += ids.length;
       }
 
       console.log('Parcelamentos sincronizados:', totalDebtsCreated);
@@ -489,11 +382,10 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         description: `${totalDebtsCreated} dívidas de parcelamentos foram criadas`,
       });
 
-      // Recarregar dados após sincronização
       await fetchCardInstallments();
 
     } catch (error) {
-      console.error('Erro ao sincronizar parcelamentos existentes:', error);
+      console.error('Erro ao sincronizar parcelamentos existentes (RPC):', error);
       toast({
         title: "Erro",
         description: "Erro ao sincronizar parcelamentos existentes",
