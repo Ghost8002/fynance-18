@@ -133,30 +133,102 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
     setLoading(true);
     
     try {
-      // Por enquanto, simular sucesso até a função RPC estar disponível
-      const data = { success: true };
-      const error = null;
+      console.log('Iniciando criação de compra parcelada...');
+      console.log('Dados do formulário:', formData);
+      console.log('Usuário:', user?.id);
       
-      // TODO: Usar RPC quando estiver disponível
-      // const { data, error } = await supabase.rpc('create_installment_purchase', {
-      //   p_user_id: user?.id,
-      //   p_card_id: formData.card_id,
-      //   p_category_id: formData.category_id,
-      //   p_description: formData.description.trim(),
-      //   p_total_amount: parseFloat(formData.total_amount),
-      //   p_installments_count: parseInt(formData.installments_count),
-      //   p_first_installment_date: formData.first_installment_date,
-      //   p_notes: formData.notes.trim() || null
-      // });
+      // Criar o parcelamento principal
+      const installmentPayload = {
+        user_id: user?.id,
+        card_id: formData.card_id,
+        category_id: formData.category_id,
+        description: formData.description.trim(),
+        total_amount: parseFloat(formData.total_amount),
+        installments_count: parseInt(formData.installments_count),
+        first_installment_date: formData.first_installment_date,
+        notes: formData.notes.trim() || null,
+        status: 'active'
+      };
+      
+      console.log('Payload para card_installments:', installmentPayload);
+      
+      const { data: installmentData, error: installmentError } = await supabase
+        .from('card_installments')
+        .insert(installmentPayload)
+        .select()
+        .single();
 
-      if (error) {
-        console.error('RPC Error:', error);
+      if (installmentError) {
+        console.error('Erro detalhado ao criar parcelamento:', installmentError);
+        console.error('Código do erro:', installmentError.code);
+        console.error('Mensagem do erro:', installmentError.message);
+        console.error('Detalhes do erro:', installmentError.details);
+        console.error('Hint do erro:', installmentError.hint);
+        
         toast({
           variant: "destructive",
-          title: "Erro ao criar compra parcelada",
-          description: "Tente novamente em alguns instantes"
+          title: "Erro ao criar parcelamento",
+          description: `Erro: ${installmentError.message}`
         });
         return;
+      }
+
+      console.log('Parcelamento criado com sucesso:', installmentData);
+
+      // Calcular valor por parcela
+      const installmentAmount = parseFloat(formData.total_amount) / parseInt(formData.installments_count);
+      console.log('Valor por parcela:', installmentAmount);
+      
+      // Criar os itens individuais do parcelamento
+      const installmentItems = [];
+      for (let i = 0; i < parseInt(formData.installments_count); i++) {
+        const installmentDate = new Date(formData.first_installment_date);
+        installmentDate.setMonth(installmentDate.getMonth() + i);
+        
+        installmentItems.push({
+          installment_id: installmentData.id,
+          installment_number: i + 1,
+          amount: installmentAmount,
+          due_date: installmentDate.toISOString().split('T')[0],
+          status: 'pending'
+        });
+      }
+
+      console.log('Itens de parcelamento a serem criados:', installmentItems);
+
+      const { error: itemsError } = await supabase
+        .from('card_installment_items')
+        .insert(installmentItems);
+
+      if (itemsError) {
+        console.error('Erro ao criar itens do parcelamento:', itemsError);
+        toast({
+          variant: "destructive",
+          title: "Erro ao criar parcelas",
+          description: "O parcelamento foi criado mas as parcelas não foram geradas"
+        });
+        return;
+      }
+
+      console.log('Itens de parcelamento criados com sucesso');
+
+      // Atualizar o limite usado do cartão
+      if (selectedCard?.type === "credit") {
+        console.log('Atualizando limite do cartão...');
+        const { error: updateError } = await supabase
+          .from('cards')
+          .update({ 
+            used_amount: selectedCard.used_amount + parseFloat(formData.total_amount),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', formData.card_id);
+
+        if (updateError) {
+          console.error('Erro ao atualizar limite do cartão:', updateError);
+          // Não falhar a operação por causa disso
+        } else {
+          console.log('Limite do cartão atualizado com sucesso');
+        }
       }
 
       toast({
@@ -179,7 +251,7 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
       onPurchaseAdded?.();
 
     } catch (error) {
-      console.error('Error creating installment purchase:', error);
+      console.error('Erro inesperado na criação:', error);
       toast({
         variant: "destructive",
         title: "Erro inesperado",

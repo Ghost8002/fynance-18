@@ -59,9 +59,59 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
     try {
       setLoading(true);
       
-      // Por enquanto, vamos simular dados vazios até as novas tabelas serem reconhecidas
-      setInstallments([]);
-      setInstallmentItems([]);
+      // Buscar parcelamentos do cartão
+      const { data: installmentsData, error: installmentsError } = await supabase
+        .from('card_installments')
+        .select('*')
+        .eq('card_id', cardId)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (installmentsError) {
+        console.error('Erro ao buscar parcelamentos:', installmentsError);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar parcelamentos"
+        });
+        return;
+      }
+
+      // Buscar itens dos parcelamentos
+      if (installmentsData && installmentsData.length > 0) {
+        const installmentIds = installmentsData.map(inst => inst.id);
+        
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('card_installment_items')
+          .select('*')
+          .in('installment_id', installmentIds)
+          .order('installment_number', { ascending: true });
+
+        if (itemsError) {
+          console.error('Erro ao buscar itens dos parcelamentos:', itemsError);
+        } else {
+          setInstallmentItems(itemsData || []);
+        }
+      }
+
+      // Processar dados para exibição
+      const processedInstallments = (installmentsData || []).map(installment => {
+        const items = installmentItems.filter(item => item.installment_id === installment.id);
+        const paidItems = items.filter(item => item.status === 'paid');
+        const nextDueItem = items.find(item => item.status === 'pending');
+        
+        return {
+          id: installment.id,
+          description: installment.description,
+          total_amount: installment.total_amount,
+          installments_count: installment.installments_count,
+          created_at: installment.created_at,
+          next_due_date: nextDueItem?.due_date || '',
+          paid_installments: paidItems.length,
+          remaining_amount: installment.total_amount - (paidItems.reduce((sum, item) => sum + item.amount, 0))
+        };
+      });
+
+      setInstallments(processedInstallments);
       
     } catch (error) {
       console.error('Error fetching installments:', error);
@@ -77,6 +127,13 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
   useEffect(() => {
     fetchInstallments();
   }, [user?.id, cardId]);
+
+  // Recarregar quando installmentItems mudar para processar os dados corretamente
+  useEffect(() => {
+    if (installmentItems.length > 0) {
+      fetchInstallments();
+    }
+  }, [installmentItems.length]);
 
   const handlePayInstallment = async (itemId: string) => {
     try {

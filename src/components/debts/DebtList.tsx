@@ -399,7 +399,7 @@ const DebtList: React.FC<DebtListProps> = ({
       </div>
 
       {/* Card Debts Section */}
-      <CardDebtsSection onDebtCreated={refetch} />
+      {/* Removido: CardDebtsSection - as dívidas de cartão agora aparecem integradas na lista principal */}
 
       {/* Filters and Actions */}
       <Card>

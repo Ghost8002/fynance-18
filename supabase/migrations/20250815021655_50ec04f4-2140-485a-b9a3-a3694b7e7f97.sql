@@ -3,9 +3,14 @@ CREATE TABLE public.card_installments (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL,
   card_id UUID NOT NULL,
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
   description TEXT NOT NULL,
   total_amount NUMERIC NOT NULL,
   installments_count INTEGER NOT NULL,
+  first_installment_date DATE NOT NULL,
+  notes TEXT,
+  tags JSONB,
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -18,7 +23,11 @@ CREATE TABLE public.card_installment_items (
   due_date DATE NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   paid_date DATE,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+  account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
+  transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  UNIQUE(installment_id, installment_number)
 );
 
 -- Habilitar RLS
@@ -44,6 +53,22 @@ CREATE POLICY "Users can update their own installment items" ON public.card_inst
 CREATE POLICY "Users can delete their own installment items" ON public.card_installment_items FOR DELETE USING (
   EXISTS (SELECT 1 FROM public.card_installments WHERE id = installment_id AND user_id = auth.uid())
 );
+
+-- Criar índices para melhor performance
+CREATE INDEX idx_card_installments_user_id ON public.card_installments(user_id);
+CREATE INDEX idx_card_installments_card_id ON public.card_installments(card_id);
+CREATE INDEX idx_card_installment_items_installment_id ON public.card_installment_items(installment_id);
+CREATE INDEX idx_card_installment_items_status ON public.card_installment_items(status);
+CREATE INDEX idx_card_installment_items_due_date ON public.card_installment_items(due_date);
+
+-- Criar triggers para updated_at
+CREATE TRIGGER handle_updated_at_card_installments
+    BEFORE UPDATE ON public.card_installments
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
+CREATE TRIGGER handle_updated_at_card_installment_items
+    BEFORE UPDATE ON public.card_installment_items
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
 -- Função para criar compra parcelada
 CREATE OR REPLACE FUNCTION public.create_installment_purchase(

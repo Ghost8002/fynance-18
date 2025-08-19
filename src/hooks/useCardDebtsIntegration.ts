@@ -42,6 +42,8 @@ interface CardDebtsIntegration {
   fetchCardInstallments: (cardId?: string) => Promise<void>;
   // Função para sincronizar automaticamente
   syncAllCardDebts: (cardId?: string) => Promise<void>;
+  // Função para sincronizar parcelamentos existentes
+  syncExistingInstallments: () => Promise<void>;
 }
 
 export const useCardDebtsIntegration = (): CardDebtsIntegration => {
@@ -58,6 +60,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
     try {
       setLoadingBills(true);
+      console.log('Buscando faturas de cartão para usuário:', user.id);
       
       let query = supabase
         .from('card_bills')
@@ -82,6 +85,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return;
       }
 
+      console.log('Faturas encontradas:', data);
       setCardBills(data || []);
     } catch (error) {
       console.error('Erro ao buscar faturas:', error);
@@ -96,6 +100,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
     try {
       setLoadingInstallments(true);
+      console.log('Buscando parcelamentos de cartão para usuário:', user.id);
       
       let query = supabase
         .from('card_installments')
@@ -119,6 +124,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return;
       }
 
+      console.log('Parcelamentos encontrados:', data);
       setCardInstallments(data || []);
     } catch (error) {
       console.error('Erro ao buscar parcelamentos:', error);
@@ -160,6 +166,11 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return data;
       }
 
+      // Se não retornou ID, pode ser que a dívida já exista
+      toast({
+        title: "Dívida já existe",
+        description: "Esta fatura já possui uma dívida associada",
+      });
       return null;
     } catch (error) {
       console.error('Erro ao criar dívida da fatura:', error);
@@ -172,16 +183,32 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Criar dívidas a partir de parcelamentos (função placeholder)
+  // Criar dívidas a partir de parcelamentos
   const createDebtsFromInstallments = async (installmentId: string): Promise<string[]> => {
     if (!user?.id) return [];
 
     try {
-      // Esta funcionalidade ainda está em desenvolvimento
-      toast({
-        title: "Em Desenvolvimento",
-        description: "Funcionalidade de integração parcelamentos/dívidas em breve",
+      const { data, error } = await supabase.rpc('create_debts_from_installments', {
+        p_installment_id: installmentId
       });
+
+      if (error) {
+        console.error('Erro ao criar dívidas dos parcelamentos:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao criar dívidas dos parcelamentos",
+          variant: "destructive",
+        });
+        return [];
+      }
+
+      if (data && Array.isArray(data)) {
+        toast({
+          title: "Dívidas Criadas",
+          description: `${data.length} dívidas de parcelamento foram criadas com sucesso`,
+        });
+        return data;
+      }
 
       return [];
     } catch (error) {
@@ -195,7 +222,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Sincronizar pagamento de dívida (função placeholder)
+  // Sincronizar pagamento de dívida
   const syncDebtPayment = async (
     debtId: string, 
     paymentAmount: number, 
@@ -204,11 +231,29 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return false;
 
     try {
-      // Esta funcionalidade ainda está em desenvolvimento
-      toast({
-        title: "Em Desenvolvimento",
-        description: "Sincronização de pagamentos em breve",
+      const { data, error } = await supabase.rpc('sync_debt_payment', {
+        p_debt_id: debtId,
+        p_payment_amount: paymentAmount,
+        p_payment_date: paymentDate || new Date().toISOString().split('T')[0]
       });
+
+      if (error) {
+        console.error('Erro ao sincronizar pagamento:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao sincronizar pagamento com cartão",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (data) {
+        toast({
+          title: "Pagamento Sincronizado",
+          description: "Pagamento foi sincronizado com o cartão com sucesso",
+        });
+        return true;
+      }
 
       return false;
     } catch (error) {
@@ -227,6 +272,8 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return;
 
     try {
+      console.log('Iniciando sincronização completa de dívidas de cartão...');
+      
       const { data, error } = await supabase.rpc('sync_card_debts');
 
       if (error) {
@@ -239,13 +286,46 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return;
       }
 
-      const result = data as { debts_created?: number };
-      toast({
-        title: "Sincronização Concluída",
-        description: `${result?.debts_created || 0} dívidas de cartão foram criadas`,
-      });
+      console.log('Resposta da sincronização:', data);
+
+      const result = data as { 
+        success?: boolean; 
+        debts_created?: number;
+        bills_synced?: number;
+        installments_synced?: number;
+      };
+      
+      if (result?.success) {
+        const totalDebts = result?.debts_created || 0;
+        const billsSynced = result?.bills_synced || 0;
+        const installmentsSynced = result?.installments_synced || 0;
+        
+        console.log('Sincronização bem-sucedida:', {
+          totalDebts,
+          billsSynced,
+          installmentsSynced
+        });
+        
+        let description = `${totalDebts} dívidas de cartão foram criadas`;
+        
+        if (billsSynced > 0 || installmentsSynced > 0) {
+          description = `${billsSynced} faturas e ${installmentsSynced} parcelamentos sincronizados`;
+        }
+        
+        toast({
+          title: "Sincronização Concluída",
+          description: description,
+        });
+      } else {
+        console.log('Nenhuma nova dívida foi criada');
+        toast({
+          title: "Sincronização",
+          description: "Nenhuma nova dívida foi criada",
+        });
+      }
 
       // Recarregar dados após sincronização
+      console.log('Recarregando dados após sincronização...');
       await fetchCardBills(cardId);
       await fetchCardInstallments(cardId);
 
@@ -254,6 +334,57 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       toast({
         title: "Erro",
         description: "Erro ao sincronizar dívidas de cartão",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Sincronizar parcelamentos existentes (para resolver problemas de sincronização)
+  const syncExistingInstallments = async () => {
+    if (!user?.id) return;
+
+    try {
+      console.log('Sincronizando parcelamentos existentes...');
+      
+      const { data, error } = await supabase.rpc('sync_existing_installments');
+
+      if (error) {
+        console.error('Erro ao sincronizar parcelamentos existentes:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao sincronizar parcelamentos existentes",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Resposta da sincronização de parcelamentos:', data);
+
+      const result = data as { 
+        success?: boolean; 
+        debts_created?: number;
+        message?: string;
+      };
+      
+      if (result?.success) {
+        const totalDebts = result?.debts_created || 0;
+        
+        console.log('Parcelamentos sincronizados:', totalDebts);
+        
+        toast({
+          title: "Parcelamentos Sincronizados",
+          description: `${totalDebts} dívidas de parcelamentos foram criadas`,
+        });
+
+        // Recarregar dados após sincronização
+        await fetchCardInstallments();
+      }
+
+    } catch (error) {
+      console.error('Erro ao sincronizar parcelamentos existentes:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao sincronizar parcelamentos existentes",
         variant: "destructive",
       });
     }
@@ -278,5 +409,6 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     fetchCardBills,
     fetchCardInstallments,
     syncAllCardDebts,
+    syncExistingInstallments,
   };
 };

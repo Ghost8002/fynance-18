@@ -67,7 +67,9 @@ SET search_path = public
 AS $$
 DECLARE
   v_bill RECORD;
+  v_installment RECORD;
   v_debt_count INTEGER := 0;
+  v_installment_debt_count INTEGER := 0;
 BEGIN
   -- Create debts for unpaid card bills
   FOR v_bill IN 
@@ -81,6 +83,31 @@ BEGIN
     END IF;
   END LOOP;
   
-  RETURN json_build_object('success', true, 'debts_created', v_debt_count);
+  -- Create debts for active installments
+  FOR v_installment IN 
+    SELECT * FROM public.card_installments 
+    WHERE user_id = auth.uid() 
+    AND status = 'active'
+  LOOP
+    -- Verificar se já existem dívidas para este parcelamento
+    IF NOT EXISTS (
+      SELECT 1 FROM public.debts 
+      WHERE installment_id = v_installment.id 
+      AND user_id = auth.uid()
+    ) THEN
+      -- Criar dívidas para cada parcela pendente
+      SELECT COUNT(*) INTO v_installment_debt_count
+      FROM create_debts_from_installments(v_installment.id);
+      
+      v_debt_count := v_debt_count + v_installment_debt_count;
+    END IF;
+  END LOOP;
+  
+  RETURN json_build_object(
+    'success', true, 
+    'debts_created', v_debt_count,
+    'bills_synced', v_debt_count - v_installment_debt_count,
+    'installments_synced', v_installment_debt_count
+  );
 END;
 $$;
