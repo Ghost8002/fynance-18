@@ -32,6 +32,12 @@ interface Debt {
   category_id?: string;
   is_recurring?: boolean;
   recurrence_type?: 'weekly' | 'monthly' | 'yearly';
+  card_id?: string;
+  is_card_bill?: boolean;
+  bill_month?: number;
+  bill_year?: number;
+  installment_id?: string;
+  installment_number?: number;
 }
 
 interface DebtFormProps {

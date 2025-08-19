@@ -20,8 +20,8 @@ interface CardInstallment {
   description: string;
   total_amount: number;
   installments_count: number;
-  first_installment_date: string;
-  status: string;
+  first_installment_date?: string;
+  status?: string;
 }
 
 interface CardDebtsIntegration {
@@ -32,10 +32,10 @@ interface CardDebtsIntegration {
   // Estados de carregamento
   loadingBills: boolean;
   loadingInstallments: boolean;
-  // Funções para criar dívidas
+  // Funções para criar dívidas (placeholder - funções não implementadas no banco)
   createDebtFromCardBill: (cardId: string, billMonth: number, billYear: number) => Promise<string | null>;
   createDebtsFromInstallments: (installmentId: string) => Promise<string[]>;
-  // Funções para sincronizar pagamentos
+  // Funções para sincronizar pagamentos (placeholder - funções não implementadas no banco)
   syncDebtPayment: (debtId: string, paymentAmount: number, paymentDate?: string) => Promise<boolean>;
   // Funções para buscar dados
   fetchCardBills: (cardId?: string) => Promise<void>;
@@ -127,7 +127,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Criar dívida a partir de fatura de cartão
+  // Criar dívida a partir de fatura de cartão (função placeholder)
   const createDebtFromCardBill = async (
     cardId: string, 
     billMonth: number, 
@@ -136,28 +136,14 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return null;
 
     try {
-      const { data, error } = await supabase.rpc('create_debt_from_card_bill', {
-        p_card_id: cardId,
-        p_bill_month: billMonth,
-        p_bill_year: billYear
-      });
-
-      if (error) {
-        console.error('Erro ao criar dívida da fatura:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao criar dívida da fatura",
-          variant: "destructive",
-        });
-        return null;
-      }
-
+      // Esta funcionalidade ainda está em desenvolvimento
+      // Por enquanto, apenas retorna um placeholder
       toast({
-        title: "Sucesso",
-        description: "Dívida criada a partir da fatura",
+        title: "Em Desenvolvimento",
+        description: "Funcionalidade de integração cartão/dívidas em breve",
       });
 
-      return data;
+      return null;
     } catch (error) {
       console.error('Erro ao criar dívida da fatura:', error);
       toast({
@@ -169,31 +155,18 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Criar dívidas a partir de parcelamentos
+  // Criar dívidas a partir de parcelamentos (função placeholder)
   const createDebtsFromInstallments = async (installmentId: string): Promise<string[]> => {
     if (!user?.id) return [];
 
     try {
-      const { data, error } = await supabase.rpc('create_debts_from_installments', {
-        p_installment_id: installmentId
-      });
-
-      if (error) {
-        console.error('Erro ao criar dívidas dos parcelamentos:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao criar dívidas dos parcelamentos",
-          variant: "destructive",
-        });
-        return [];
-      }
-
+      // Esta funcionalidade ainda está em desenvolvimento
       toast({
-        title: "Sucesso",
-        description: `${data?.length || 0} dívidas criadas a partir dos parcelamentos`,
+        title: "Em Desenvolvimento",
+        description: "Funcionalidade de integração parcelamentos/dívidas em breve",
       });
 
-      return data || [];
+      return [];
     } catch (error) {
       console.error('Erro ao criar dívidas dos parcelamentos:', error);
       toast({
@@ -205,7 +178,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     }
   };
 
-  // Sincronizar pagamento de dívida
+  // Sincronizar pagamento de dívida (função placeholder)
   const syncDebtPayment = async (
     debtId: string, 
     paymentAmount: number, 
@@ -214,28 +187,13 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return false;
 
     try {
-      const { data, error } = await supabase.rpc('sync_debt_payment', {
-        p_debt_id: debtId,
-        p_payment_amount: paymentAmount,
-        p_payment_date: paymentDate || new Date().toISOString().split('T')[0]
-      });
-
-      if (error) {
-        console.error('Erro ao sincronizar pagamento:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao sincronizar pagamento",
-          variant: "destructive",
-        });
-        return false;
-      }
-
+      // Esta funcionalidade ainda está em desenvolvimento
       toast({
-        title: "Sucesso",
-        description: "Pagamento sincronizado com sucesso",
+        title: "Em Desenvolvimento",
+        description: "Sincronização de pagamentos em breve",
       });
 
-      return true;
+      return false;
     } catch (error) {
       console.error('Erro ao sincronizar pagamento:', error);
       toast({
@@ -274,8 +232,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       let installmentsQuery = supabase
         .from('card_installments')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active');
+        .eq('user_id', user.id);
 
       if (cardId) {
         installmentsQuery = installmentsQuery.eq('card_id', cardId);

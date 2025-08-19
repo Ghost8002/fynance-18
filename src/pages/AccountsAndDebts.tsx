@@ -109,9 +109,9 @@ const AccountsAndDebts = () => {
             </p>
           </div>
 
-          <PeriodFilter
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
+          <PeriodFilter 
+            value={selectedPeriod}
+            onChange={setSelectedPeriod}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
