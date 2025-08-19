@@ -15,38 +15,23 @@ import { AdvancedFilters } from "@/components/shared/AdvancedFilters";
 import { useAdvancedFilters } from "@/hooks/useAdvancedFilters";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { isWithinInterval, startOfDay } from "date-fns";
+
 const AccountsAndDebts = () => {
-  const {
-    isAuthenticated,
-    user
-  } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("receivables");
 
   // Period filter hook
-  const {
-    selectedPeriod,
-    setSelectedPeriod,
-    dateRange
-  } = usePeriodFilter();
+  const { selectedPeriod, setSelectedPeriod, dateRange } = usePeriodFilter();
 
   // Advanced filters hooks
   const receivablesFilters = useAdvancedFilters('receivables');
   const debtsFilters = useAdvancedFilters('debts');
-  const {
-    data: payments,
-    refetch: refetchPayments
-  } = useSupabaseData('receivable_payments', user?.id);
-  const {
-    data: debts,
-    refetch: refetchDebts
-  } = useSupabaseData('debts', user?.id);
-  const {
-    data: categories
-  } = useSupabaseData('categories', user?.id);
-  const {
-    data: accounts
-  } = useSupabaseData('accounts', user?.id);
+
+  const { data: payments, refetch: refetchPayments } = useSupabaseData('receivable_payments', user?.id);
+  const { data: debts, refetch: refetchDebts } = useSupabaseData('debts', user?.id);
+  const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: accounts } = useSupabaseData('accounts', user?.id);
 
   // Filter data by period and advanced filters
   const periodFilteredPayments = payments?.filter(payment => {
@@ -56,6 +41,7 @@ const AccountsAndDebts = () => {
       end: dateRange.endDate
     });
   }) || [];
+
   const periodFilteredDebts = debts?.filter(debt => {
     const dueDate = startOfDay(new Date(debt.due_date));
     return isWithinInterval(dueDate, {
@@ -83,11 +69,7 @@ const AccountsAndDebts = () => {
       }
     }
     return acc;
-  }, {
-    pending: 0,
-    completed: 0,
-    overdue: 0
-  });
+  }, { pending: 0, completed: 0, overdue: 0 });
 
   // Calculate period totals for debts
   const debtsTotals = filteredDebts.reduce((acc, debt) => {
@@ -104,68 +86,95 @@ const AccountsAndDebts = () => {
       }
     }
     return acc;
-  }, {
-    pending: 0,
-    completed: 0,
-    overdue: 0
-  });
+  }, { pending: 0, completed: 0, overdue: 0 });
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
-  // Auto-refresh data every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (activeTab === "receivables") {
-        refetchPayments();
-      } else {
-        refetchDebts();
-      }
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [activeTab, refetchPayments, refetchDebts]);
   if (!isAuthenticated) {
     return null;
   }
-  return <AppLayout>
-      <PeriodFilterProvider>
-        <div className="space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+  return (
+    <AppLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex flex-col space-y-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">Contas e Dívidas</h1>
-            <p className="text-muted-foreground">Gerencie seus pagamentos a receber e dívidas a pagar com foco no planejamento mensal</p>
+            <h1 className="text-3xl font-bold tracking-tight">Contas e Dívidas</h1>
+            <p className="text-muted-foreground">
+              Gerencie suas contas a receber e dívidas a pagar
+            </p>
           </div>
-          
-          {/* Period Filter */}
-          
+
+          <PeriodFilter
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PeriodSummary
+              startDate={dateRange.startDate}
+              endDate={dateRange.endDate}
+              totalPending={receivablesTotals.pending}
+              totalCompleted={receivablesTotals.completed}
+              totalOverdue={receivablesTotals.overdue}
+              type="receivables"
+            />
+            <PeriodSummary
+              startDate={dateRange.startDate}
+              endDate={dateRange.endDate}
+              totalPending={debtsTotals.pending}
+              totalCompleted={debtsTotals.completed}
+              totalOverdue={debtsTotals.overdue}
+              type="debts"
+            />
+          </div>
         </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="receivables">Pagamentos a Receber</TabsTrigger>
+            <TabsTrigger value="receivables">Contas a Receber</TabsTrigger>
             <TabsTrigger value="debts">Dívidas a Pagar</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="receivables" className="space-y-6">
-            <PeriodSummary startDate={dateRange.startDate} endDate={dateRange.endDate} totalPending={receivablesTotals.pending} totalCompleted={receivablesTotals.completed} totalOverdue={receivablesTotals.overdue} type="receivables" />
-            
+
+          <TabsContent value="receivables" className="space-y-4">
             <ReceivableStats payments={filteredPayments} />
-            <ReceivableList filters={receivablesFilters.filters} onFiltersChange={receivablesFilters.updateFilters} categories={categories} accounts={accounts} presets={receivablesFilters.presets} onSavePreset={receivablesFilters.savePreset} onLoadPreset={receivablesFilters.loadPreset} />
+            <ReceivableList
+              filters={receivablesFilters.filters}
+              onFiltersChange={receivablesFilters.updateFilters}
+              categories={categories}
+              accounts={accounts}
+              presets={receivablesFilters.presets}
+              onSavePreset={receivablesFilters.savePreset}
+              onLoadPreset={receivablesFilters.loadPreset}
+            />
           </TabsContent>
-          
-          <TabsContent value="debts" className="space-y-6">
-            <PeriodSummary startDate={dateRange.startDate} endDate={dateRange.endDate} totalPending={debtsTotals.pending} totalCompleted={debtsTotals.completed} totalOverdue={debtsTotals.overdue} type="debts" />
-            
+
+          <TabsContent value="debts" className="space-y-4">
             <DebtStats debts={filteredDebts} />
-            <DebtList filters={debtsFilters.filters} onFiltersChange={debtsFilters.updateFilters} categories={categories} accounts={accounts} presets={debtsFilters.presets} onSavePreset={debtsFilters.savePreset} onLoadPreset={debtsFilters.loadPreset} />
+            <DebtList
+              filters={debtsFilters.filters}
+              onFiltersChange={debtsFilters.updateFilters}
+              categories={categories}
+              accounts={accounts}
+              presets={debtsFilters.presets}
+              onSavePreset={debtsFilters.savePreset}
+              onLoadPreset={debtsFilters.loadPreset}
+            />
           </TabsContent>
         </Tabs>
-        </div>
-      </PeriodFilterProvider>
-    </AppLayout>;
+      </div>
+    </AppLayout>
+  );
 };
-export default AccountsAndDebts;
+
+const AccountsAndDebtsWithProvider = () => (
+  <PeriodFilterProvider>
+    <AccountsAndDebts />
+  </PeriodFilterProvider>
+);
+
+export default AccountsAndDebtsWithProvider;

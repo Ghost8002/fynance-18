@@ -67,7 +67,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
     if (!formData.name.trim()) {
       toast({
         variant: "destructive",
-        title: "Nome do cartão é obrigatório"
+        title: "Nome do cartão é obrigatório",
+        description: "Por favor, informe o nome do cartão"
       });
       return false;
     }
@@ -75,7 +76,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
     if (!formData.bank.trim()) {
       toast({
         variant: "destructive", 
-        title: "Banco é obrigatório"
+        title: "Banco é obrigatório",
+        description: "Por favor, informe o banco emissor do cartão"
       });
       return false;
     }
@@ -84,7 +86,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       if (!formData.credit_limit || parseFloat(formData.credit_limit) <= 0) {
         toast({
           variant: "destructive",
-          title: "Limite de crédito deve ser maior que zero"
+          title: "Limite de crédito deve ser maior que zero",
+          description: "Por favor, informe um valor válido para o limite"
         });
         return false;
       }
@@ -95,7 +98,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       if (closingDay < 1 || closingDay > 31) {
         toast({
           variant: "destructive",
-          title: "Dia de fechamento deve ser entre 1 e 31"
+          title: "Dia de fechamento deve ser entre 1 e 31",
+          description: "Por favor, selecione um dia válido"
         });
         return false;
       }
@@ -103,10 +107,21 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       if (dueDay < 1 || dueDay > 31) {
         toast({
           variant: "destructive",
-          title: "Dia de vencimento deve ser entre 1 e 31"
+          title: "Dia de vencimento deve ser entre 1 e 31",
+          description: "Por favor, selecione um dia válido"
         });
         return false;
       }
+    }
+
+    // Validate last four digits if provided
+    if (formData.last_four_digits && !/^\d{4}$/.test(formData.last_four_digits)) {
+      toast({
+        variant: "destructive",
+        title: "Últimos 4 dígitos inválidos",
+        description: "Deve conter exatamente 4 números"
+      });
+      return false;
     }
 
     return true;
@@ -136,6 +151,7 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       const { error } = await insert(cardData);
 
       if (error) {
+        console.error('Insert error:', error);
         toast({
           variant: "destructive",
           title: "Erro ao adicionar cartão",
@@ -163,11 +179,27 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       setOpen(false);
       onCardAdded?.();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding card:', error);
+      
+      let errorMessage = "Erro inesperado ao adicionar cartão";
+      
+      if (error.message?.includes('duplicate key')) {
+        errorMessage = "Já existe um cartão com esses dados";
+      } else if (error.message?.includes('invalid input')) {
+        errorMessage = "Dados inválidos fornecidos";
+      } else if (error.message?.includes('permission denied')) {
+        errorMessage = "Você não tem permissão para realizar esta operação";
+      } else if (error.message?.includes('network')) {
+        errorMessage = "Erro de conexão. Verifique sua internet";
+      } else if (error.message?.includes('bank')) {
+        errorMessage = "Campo banco é obrigatório";
+      }
+      
       toast({
         variant: "destructive",
-        title: "Erro inesperado ao adicionar cartão"
+        title: "Erro ao adicionar cartão",
+        description: errorMessage
       });
     } finally {
       setLoading(false);
@@ -284,10 +316,15 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
               <Label htmlFor="last_four_digits">Últimos 4 dígitos</Label>
               <Input
                 id="last_four_digits"
+                type="text"
                 value={formData.last_four_digits}
-                onChange={(e) => handleInputChange('last_four_digits', e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  handleInputChange('last_four_digits', value);
+                }}
                 placeholder="1234"
                 maxLength={4}
+                pattern="[0-9]{4}"
               />
             </div>
 

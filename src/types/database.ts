@@ -396,6 +396,12 @@ export type Database = {
           is_recurring: boolean;
           recurrence_type: string | null;
           paid_date: string | null;
+          card_id: string | null;
+          is_card_bill: boolean;
+          bill_month: number | null;
+          bill_year: number | null;
+          installment_id: string | null;
+          installment_number: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -412,6 +418,12 @@ export type Database = {
           is_recurring?: boolean;
           recurrence_type?: string | null;
           paid_date?: string | null;
+          card_id?: string | null;
+          is_card_bill?: boolean;
+          bill_month?: number | null;
+          bill_year?: number | null;
+          installment_id?: string | null;
+          installment_number?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -428,6 +440,12 @@ export type Database = {
           is_recurring?: boolean;
           recurrence_type?: string | null;
           paid_date?: string | null;
+          card_id?: string | null;
+          is_card_bill?: boolean;
+          bill_month?: number | null;
+          bill_year?: number | null;
+          installment_id?: string | null;
+          installment_number?: number | null;
           created_at?: string;
           updated_at?: string;
         };

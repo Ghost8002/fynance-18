@@ -61,7 +61,24 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
       return { data: result, error: null };
     } catch (err) {
       console.error(`Error inserting into ${table}:`, err);
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      let errorMessage = 'An error occurred';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('duplicate key')) {
+          errorMessage = 'Dados duplicados';
+        } else if (err.message.includes('invalid input')) {
+          errorMessage = 'Dados inválidos';
+        } else if (err.message.includes('permission denied')) {
+          errorMessage = 'Permissão negada';
+        } else if (err.message.includes('network')) {
+          errorMessage = 'Erro de conexão';
+        } else if (err.message.includes('column') && err.message.includes('does not exist')) {
+          errorMessage = 'Estrutura do banco desatualizada';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       return { data: null, error: errorMessage };
     }
   };

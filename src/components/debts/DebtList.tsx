@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
 import { AdvancedFilters, FilterConfig, FilterPreset } from "@/components/shared/AdvancedFilters";
 import { supabase } from "@/integrations/supabase/client";
 import DebtForm from "./DebtForm";
+import { CardDebtsSection } from "./CardDebtsSection";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -97,6 +98,9 @@ const DebtList: React.FC<DebtListProps> = ({
   const {
     data: categories
   } = useSupabaseData('categories', user?.id);
+  const {
+    data: cards
+  } = useSupabaseData('cards', user?.id);
   const {
     updateAccountBalance
   } = useBalanceUpdates();
@@ -334,6 +338,11 @@ const DebtList: React.FC<DebtListProps> = ({
     const account = accounts.find(acc => acc.id === accountId);
     return account ? `${account.name} - ${account.bank || 'Sem banco'}` : 'Conta não encontrada';
   };
+
+  const getCardInfo = (cardId: string) => {
+    const card = cards?.find(card => card.id === cardId);
+    return card;
+  };
   if (loading) {
     return <div className="flex items-center justify-center p-8">
         <div className="text-center">
@@ -389,6 +398,9 @@ const DebtList: React.FC<DebtListProps> = ({
         </Card>
       </div>
 
+      {/* Card Debts Section */}
+      <CardDebtsSection onDebtCreated={refetch} />
+
       {/* Filters and Actions */}
       <Card>
         <CardHeader>
@@ -439,6 +451,7 @@ const DebtList: React.FC<DebtListProps> = ({
                     <TableHead>Valor</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Conta</TableHead>
+                    <TableHead>Cartão</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -458,6 +471,31 @@ const DebtList: React.FC<DebtListProps> = ({
                           </div> : <Badge variant="outline" className="text-orange-600 border-orange-200">
                             Conta não especificada
                           </Badge>}
+                      </TableCell>
+                      <TableCell>
+                        {debt.card_id ? (
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: getCardInfo(debt.card_id)?.color || '#3B82F6' }}
+                            />
+                            <span className="text-sm">
+                              {getCardInfo(debt.card_id)?.name || 'Cartão não encontrado'}
+                              {debt.is_card_bill && debt.bill_month && debt.bill_year && (
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  ({debt.bill_month}/{debt.bill_year})
+                                </span>
+                              )}
+                              {debt.installment_id && debt.installment_number && (
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  (Parcela {debt.installment_number})
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
                       </TableCell>
                       <TableCell>{getStatusBadge(debt.status, debt.due_date)}</TableCell>
                       <TableCell>

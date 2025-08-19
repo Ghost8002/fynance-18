@@ -14,7 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { CalendarIcon, AlertCircle } from "lucide-react";
+import { CalendarIcon, AlertCircle, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -45,6 +45,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
   const { toast } = useToast();
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: cards } = useSupabaseData('cards', user?.id);
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -57,7 +58,13 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
     recurrence_type: 'monthly' as 'weekly' | 'monthly' | 'yearly',
     max_occurrences: '',
     recurrence_end_date: undefined as Date | undefined,
-    selectedTags: [] as string[]
+    selectedTags: [] as string[],
+    card_id: '',
+    is_card_bill: false,
+    bill_month: '',
+    bill_year: '',
+    installment_id: '',
+    installment_number: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -76,7 +83,13 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         recurrence_type: debt.recurrence_type || 'monthly',
         max_occurrences: (debt as any).max_occurrences?.toString() || '',
         recurrence_end_date: (debt as any).recurrence_end_date ? new Date((debt as any).recurrence_end_date) : undefined,
-        selectedTags: []
+        selectedTags: [],
+        card_id: debt.card_id || '',
+        is_card_bill: debt.is_card_bill || false,
+        bill_month: debt.bill_month?.toString() || '',
+        bill_year: debt.bill_year?.toString() || '',
+        installment_id: debt.installment_id || '',
+        installment_number: debt.installment_number?.toString() || ''
       });
     }
   }, [debt]);
@@ -177,7 +190,13 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         is_recurring: formData.is_recurring,
         recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
         max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
-        recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null
+        recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null,
+        card_id: formData.card_id || null,
+        is_card_bill: formData.is_card_bill,
+        bill_month: formData.is_card_bill && formData.bill_month ? parseInt(formData.bill_month) : null,
+        bill_year: formData.is_card_bill && formData.bill_year ? parseInt(formData.bill_year) : null,
+        installment_id: formData.installment_id || null,
+        installment_number: formData.installment_id && formData.installment_number ? parseInt(formData.installment_number) : null
       };
 
       console.log('Debt data to be saved:', debtData);
@@ -369,6 +388,132 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
               selectedTags={formData.selectedTags}
               onTagsChange={handleTagsChange}
             />
+
+            {/* Card Integration Fields */}
+            <div className="space-y-4 p-4 border border-dashed border-gray-300 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                <Label className="text-sm font-medium">Integração com Cartão (Opcional)</Label>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="card">Cartão Relacionado</Label>
+                <Select 
+                  value={formData.card_id || "none"} 
+                  onValueChange={(value) => setFormData({...formData, card_id: value === "none" ? "" : value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um cartão (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum cartão</SelectItem>
+                    {cards?.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name} - {card.last_four_digits}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.card_id && (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_card_bill"
+                        checked={formData.is_card_bill}
+                        onCheckedChange={(checked) => setFormData({...formData, is_card_bill: checked})}
+                      />
+                      <Label htmlFor="is_card_bill">Esta dívida representa uma fatura de cartão</Label>
+                    </div>
+                  </div>
+
+                  {formData.is_card_bill && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="bill_month">Mês da Fatura</Label>
+                        <Select 
+                          value={formData.bill_month || ""} 
+                          onValueChange={(value) => setFormData({...formData, bill_month: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Mês" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length: 12}, (_, i) => i + 1).map((month) => (
+                              <SelectItem key={month} value={month.toString()}>
+                                {month}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="bill_year">Ano da Fatura</Label>
+                        <Select 
+                          value={formData.bill_year || ""} 
+                          onValueChange={(value) => setFormData({...formData, bill_year: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Ano" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length: 5}, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_installment"
+                        checked={!!formData.installment_id}
+                        onCheckedChange={(checked) => {
+                          if (!checked) {
+                            setFormData({...formData, installment_id: '', installment_number: ''});
+                          }
+                        }}
+                      />
+                      <Label htmlFor="is_installment">Esta dívida representa uma parcela de cartão</Label>
+                    </div>
+                  </div>
+
+                  {formData.installment_id && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="installment_id">ID do Parcelamento</Label>
+                        <Input
+                          id="installment_id"
+                          value={formData.installment_id}
+                          onChange={(e) => setFormData({...formData, installment_id: e.target.value})}
+                          placeholder="UUID do parcelamento"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="installment_number">Número da Parcela</Label>
+                        <Input
+                          id="installment_number"
+                          type="number"
+                          value={formData.installment_number}
+                          onChange={(e) => setFormData({...formData, installment_number: e.target.value})}
+                          placeholder="1, 2, 3..."
+                          min="1"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
 
 {debt && (
               <div className="space-y-2">
