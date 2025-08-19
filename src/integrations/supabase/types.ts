@@ -271,6 +271,7 @@ export type Database = {
       }
       card_installment_items: {
         Row: {
+          account_id: string | null
           amount: number
           created_at: string
           due_date: string
@@ -279,8 +280,11 @@ export type Database = {
           installment_number: number
           paid_date: string | null
           status: string
+          transaction_id: string | null
+          updated_at: string | null
         }
         Insert: {
+          account_id?: string | null
           amount: number
           created_at?: string
           due_date: string
@@ -289,8 +293,11 @@ export type Database = {
           installment_number: number
           paid_date?: string | null
           status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
         }
         Update: {
+          account_id?: string | null
           amount?: number
           created_at?: string
           due_date?: string
@@ -299,8 +306,17 @@ export type Database = {
           installment_number?: number
           paid_date?: string | null
           status?: string
+          transaction_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "card_installment_items_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "card_installment_items_installment_id_fkey"
             columns: ["installment_id"]
@@ -308,40 +324,70 @@ export type Database = {
             referencedRelation: "card_installments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "card_installment_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       card_installments: {
         Row: {
           card_id: string
+          category_id: string | null
           created_at: string
           description: string
+          first_installment_date: string | null
           id: string
           installments_count: number
+          notes: string | null
+          status: string | null
+          tags: Json | null
           total_amount: number
           updated_at: string
           user_id: string
         }
         Insert: {
           card_id: string
+          category_id?: string | null
           created_at?: string
           description: string
+          first_installment_date?: string | null
           id?: string
           installments_count: number
+          notes?: string | null
+          status?: string | null
+          tags?: Json | null
           total_amount: number
           updated_at?: string
           user_id: string
         }
         Update: {
           card_id?: string
+          category_id?: string | null
           created_at?: string
           description?: string
+          first_installment_date?: string | null
           id?: string
           installments_count?: number
+          notes?: string | null
+          status?: string | null
+          tags?: Json | null
           total_amount?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "card_installments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       card_limit_history: {
         Row: {
@@ -809,6 +855,10 @@ export type Database = {
       create_debt_from_card_bill: {
         Args: { p_bill_month: number; p_bill_year: number; p_card_id: string }
         Returns: string
+      }
+      create_debts_from_installments: {
+        Args: { p_installment_id: string }
+        Returns: string[]
       }
       create_installment_purchase: {
         Args: {
