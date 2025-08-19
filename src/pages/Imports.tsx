@@ -3,8 +3,25 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Receipt } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Receipt, 
+  FileText, 
+  Database, 
+  Upload, 
+  Download, 
+  Settings,
+  TrendingUp,
+  Users,
+  Calendar,
+  CreditCard,
+  Wallet,
+  BarChart3,
+  Clock,
+  Info
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Imports = () => {
   const { isAuthenticated } = useAuth();
@@ -34,12 +51,70 @@ const Imports = () => {
   const importOptions = [
     {
       id: "transactions",
-      title: "Transações",
-      description: "Importar transações OFX",
-      icon: Receipt,
-      color: "bg-gradient-to-br from-finance-primary to-finance-secondary",
+      title: "Transações OFX",
+      description: "Importe extratos bancários no formato OFX",
+      icon: FileText,
+      color: "bg-gradient-to-br from-blue-500 to-blue-600",
+      status: "Disponível",
+      features: ["Suporte a OFX 1.x e 2.x", "Categorização automática", "Validação de dados"],
       to: "/importacoes/transacoes",
+      comingSoon: false
     },
+    {
+      id: "csv",
+      title: "Transações CSV",
+      description: "Importe dados de planilhas CSV",
+      icon: Receipt,
+      color: "bg-gradient-to-br from-green-500 to-green-600",
+      status: "Em breve",
+      features: ["Múltiplos formatos", "Mapeamento personalizado", "Validação avançada"],
+      to: "/importacoes/csv",
+      comingSoon: true
+    },
+    {
+      id: "accounts",
+      title: "Contas Bancárias",
+      description: "Sincronize suas contas bancárias",
+      icon: Database,
+      color: "bg-gradient-to-br from-purple-500 to-purple-600",
+      status: "Em breve",
+      features: ["Sincronização automática", "Múltiplos bancos", "Saldo em tempo real"],
+      to: "/importacoes/contas",
+      comingSoon: true
+    },
+    {
+      id: "cards",
+      title: "Cartões de Crédito",
+      description: "Importe faturas de cartões",
+      icon: CreditCard,
+      color: "bg-gradient-to-br from-orange-500 to-orange-600",
+      status: "Em breve",
+      features: ["Faturas automáticas", "Parcelamentos", "Categorização inteligente"],
+      to: "/importacoes/cartoes",
+      comingSoon: true
+    },
+    {
+      id: "investments",
+      title: "Investimentos",
+      description: "Importe dados de investimentos",
+      icon: TrendingUp,
+      color: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+      status: "Em breve",
+      features: ["Múltiplas corretoras", "Rentabilidade", "Relatórios avançados"],
+      to: "/importacoes/investimentos",
+      comingSoon: true
+    },
+    {
+      id: "budgets",
+      title: "Orçamentos",
+      description: "Importe orçamentos existentes",
+      icon: BarChart3,
+      color: "bg-gradient-to-br from-pink-500 to-pink-600",
+      status: "Em breve",
+      features: ["Templates prontos", "Metas personalizadas", "Acompanhamento"],
+      to: "/importacoes/orcamentos",
+      comingSoon: true
+    }
   ];
 
   if (!isAuthenticated) return null;
@@ -47,43 +122,217 @@ const Imports = () => {
   return (
     <AppLayout>
       <div className="mb-8 animate-fade-in">
-        <h1 className="text-4xl md:text-5xl font-bold text-finance-text-primary mb-2 text-gradient">
-          Importações
-        </h1>
-        <p className="text-lg text-finance-text-secondary">
-          Selecione o tipo de dado que deseja importar
-        </p>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+            <Upload className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold text-finance-text-primary mb-2 text-gradient">
+              Importações
+            </h1>
+            <p className="text-lg text-finance-text-secondary">
+              Importe e sincronize seus dados financeiros de forma simples e segura
+            </p>
+          </div>
+        </div>
+
+        {/* Estatísticas rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500 rounded-lg">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600 font-medium">Importações Realizadas</p>
+                  <p className="text-2xl font-bold text-blue-700">0</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-500 rounded-lg">
+                  <Database className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">Contas Conectadas</p>
+                  <p className="text-2xl font-bold text-green-700">0</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-purple-600 font-medium">Transações Importadas</p>
+                  <p className="text-2xl font-bold text-purple-700">0</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-500 rounded-lg">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-orange-600 font-medium">Última Importação</p>
+                  <p className="text-2xl font-bold text-orange-700">-</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-6 text-finance-text-primary">Escolha uma Importação</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-semibold mb-2 text-finance-text-primary">
+              Escolha uma Importação
+            </h2>
+            <p className="text-finance-text-secondary">
+              Selecione o tipo de dados que deseja importar para o Fynance
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              <Settings className="h-3 w-3 mr-1" />
+              Configurações
+            </Badge>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {importOptions.map((item, index) => (
             <Card
               key={item.id}
-              className={`cursor-pointer glass-hover transition-all duration-300 border-gray-200 hover:shadow-xl hover:scale-105`}
-              onClick={() => navigate(item.to)}
+              className={`cursor-pointer transition-all duration-300 border-gray-200 hover:shadow-xl hover:scale-105 ${
+                item.comingSoon ? 'opacity-60' : 'hover:border-blue-300'
+              }`}
+              onClick={() => !item.comingSoon && navigate(item.to)}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CardHeader className="pb-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between mb-3">
                   <div className={`p-3 rounded-xl ${item.color} text-white shadow-lg`}>
                     <item.icon className="h-6 w-6" />
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-base font-semibold text-finance-text-primary mb-1">
-                      {item.title}
-                    </CardTitle>
-                    <CardDescription className="text-sm text-finance-text-secondary">
-                      {item.description}
-                    </CardDescription>
-                  </div>
+                  <Badge 
+                    variant={item.comingSoon ? "secondary" : "default"}
+                    className="text-xs"
+                  >
+                    {item.status}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <CardTitle className="text-lg font-semibold text-finance-text-primary">
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-finance-text-secondary">
+                    {item.description}
+                  </CardDescription>
                 </div>
               </CardHeader>
+
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Recursos
+                    </p>
+                    <ul className="space-y-1">
+                      {item.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-3 border-t">
+                    {item.comingSoon ? (
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        disabled
+                      >
+                        <Clock className="h-4 w-4 mr-2" />
+                        Em Breve
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                        onClick={() => navigate(item.to)}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Começar Importação
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Seção de ajuda */}
+      <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-gray-800">
+            <Info className="h-5 w-5 text-blue-600" />
+            Precisa de Ajuda?
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="p-3 bg-blue-100 rounded-full w-fit mx-auto mb-3">
+                <FileText className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-800 mb-1">Documentação</h3>
+              <p className="text-sm text-gray-600">
+                Guias detalhados para cada tipo de importação
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="p-3 bg-green-100 rounded-full w-fit mx-auto mb-3">
+                <Users className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-gray-800 mb-1">Suporte</h3>
+              <p className="text-sm text-gray-600">
+                Nossa equipe está pronta para ajudar
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="p-3 bg-purple-100 rounded-full w-fit mx-auto mb-3">
+                <Settings className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-800 mb-1">Configurações</h3>
+              <p className="text-sm text-gray-600">
+                Personalize suas preferências de importação
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </AppLayout>
   );
 };
