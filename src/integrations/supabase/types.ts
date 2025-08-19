@@ -521,12 +521,15 @@ export type Database = {
         Row: {
           account_id: string | null
           amount: number
+          card_id: string | null
           category_id: string | null
           created_at: string | null
           current_count: number | null
           description: string
           due_date: string
           id: string
+          installment_id: string | null
+          installment_number: number | null
           is_recurring: boolean | null
           max_occurrences: number | null
           notes: string | null
@@ -541,12 +544,15 @@ export type Database = {
         Insert: {
           account_id?: string | null
           amount: number
+          card_id?: string | null
           category_id?: string | null
           created_at?: string | null
           current_count?: number | null
           description: string
           due_date: string
           id?: string
+          installment_id?: string | null
+          installment_number?: number | null
           is_recurring?: boolean | null
           max_occurrences?: number | null
           notes?: string | null
@@ -561,12 +567,15 @@ export type Database = {
         Update: {
           account_id?: string | null
           amount?: number
+          card_id?: string | null
           category_id?: string | null
           created_at?: string | null
           current_count?: number | null
           description?: string
           due_date?: string
           id?: string
+          installment_id?: string | null
+          installment_number?: number | null
           is_recurring?: boolean | null
           max_occurrences?: number | null
           notes?: string | null
@@ -587,10 +596,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "debts_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "debts_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debts_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "card_installments"
             referencedColumns: ["id"]
           },
         ]
@@ -858,7 +881,7 @@ export type Database = {
       }
       create_debts_from_installments: {
         Args: { p_installment_id: string }
-        Returns: string[]
+        Returns: number
       }
       create_installment_purchase: {
         Args: {
@@ -929,6 +952,14 @@ export type Database = {
         Returns: Json
       }
       sync_card_debts: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      sync_debt_payment: {
+        Args: { p_installment_id: string; p_installment_number: number }
+        Returns: Json
+      }
+      sync_existing_installments: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
