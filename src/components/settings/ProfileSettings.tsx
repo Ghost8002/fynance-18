@@ -95,6 +95,8 @@ export default function ProfileSettings() {
       const file = event.target.files?.[0];
       if (!file || !user) return;
 
+      setLoading(true);
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
@@ -122,6 +124,8 @@ export default function ProfileSettings() {
         description: "Não foi possível fazer upload do avatar.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
