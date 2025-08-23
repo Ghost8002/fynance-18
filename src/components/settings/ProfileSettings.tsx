@@ -68,6 +68,8 @@ export default function ProfileSettings() {
           user_id: user.id,
           full_name: profile.full_name,
           avatar_url: profile.avatar_url,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
