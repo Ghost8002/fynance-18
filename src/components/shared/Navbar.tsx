@@ -4,9 +4,34 @@ import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import { Command, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
+  const [profileName, setProfileName] = useState<string>('');
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+
+      try {
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data?.full_name) {
+          setProfileName(data.full_name);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   return (
     <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
@@ -98,7 +123,7 @@ const Navbar = () => {
                 <div className="text-sm">
                   <span className="block text-muted-foreground text-xs">Bem-vindo,</span>
                   <span className="font-semibold text-foreground">
-                    {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}
+                    {profileName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}
                   </span>
                 </div>
               </div>
