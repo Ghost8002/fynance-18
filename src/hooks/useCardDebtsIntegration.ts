@@ -202,7 +202,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return [];
       }
 
-      const createdIds = (data as string[]) || [];
+      const createdIds = Array.isArray(data) ? data : [];
 
       if (createdIds.length > 0) {
         toast({
