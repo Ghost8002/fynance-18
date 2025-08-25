@@ -55,14 +55,14 @@ interface TreatedTransaction extends ImportedTransaction {
   selected: boolean;
 }
 
-interface CSVDataTreatmentProps {
+interface XLSXDataTreatmentProps {
   transactions: ImportedTransaction[];
   accountId: string;
   onSave: (treatedTransactions: TreatedTransaction[]) => void;
   onCancel: () => void;
 }
 
-const CSVDataTreatment = ({ transactions, accountId, onSave, onCancel }: CSVDataTreatmentProps) => {
+const XLSXDataTreatment = ({ transactions, accountId, onSave, onCancel }: XLSXDataTreatmentProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: categories, refetch: refetchCategories } = useSupabaseData('categories', user?.id);
@@ -763,7 +763,7 @@ const CSVDataTreatment = ({ transactions, accountId, onSave, onCancel }: CSVData
                     </Button>
               <div>
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  Tratamento de Dados CSV
+                  Tratamento de Dados XLSX
                 </CardTitle>
                 <p className="text-muted-foreground mt-1">
                   Revise e categorize suas transações antes da importação
@@ -1205,4 +1205,4 @@ const CSVDataTreatment = ({ transactions, accountId, onSave, onCancel }: CSVData
   );
 };
 
-export default CSVDataTreatment;
+export default XLSXDataTreatment;

@@ -28,7 +28,7 @@ import LandingPage from "@/landingpage/LandingPage";
 
 import Imports from "./pages/Imports";
 import ImportsTransactions from "./pages/ImportsTransactions";
-import ImportsCSV from "./pages/ImportsCSV";
+import ImportsXLSX from "./pages/ImportsXLSX";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,7 +62,7 @@ const AppRoutes = () => {
       <Route path="/ajuda" element={<Help />} />
       <Route path="/importacoes" element={<Imports />} />
       <Route path="/importacoes/transacoes" element={<ImportsTransactions />} />
-      <Route path="/importacoes/csv" element={<ImportsCSV />} />
+      <Route path="/importacoes/xlsx" element={<ImportsXLSX />} />
       {/* Manter rotas antigas em inglês para compatibilidade */}
       <Route path="/transactions" element={<Transactions />} />
       <Route path="/cards" element={<Cards />} />

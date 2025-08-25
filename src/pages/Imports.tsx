@@ -42,14 +42,14 @@ const Imports = () => {
     to: "/importacoes/transacoes",
     comingSoon: false
   },     {
-      id: "csv",
-      title: "Transações CSV",
-      description: "Importe dados de planilhas CSV",
+      id: "xlsx",
+      title: "Transações XLSX",
+      description: "Importe dados de planilhas XLSX",
       icon: Receipt,
       color: "bg-gradient-to-br from-green-500 to-green-600",
       status: "Disponível",
-      features: ["Múltiplos formatos", "Mapeamento personalizado", "Validação avançada"],
-      to: "/importacoes/csv",
+      features: ["Formato Excel", "Mapeamento personalizado", "Validação avançada"],
+      to: "/importacoes/xlsx",
       comingSoon: false
     }, {
     id: "accounts",
