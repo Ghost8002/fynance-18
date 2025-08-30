@@ -115,7 +115,7 @@ export function AppSidebar() {
         <div className="p-6 border-t border-border">
           <div className="text-center">
             <p className="text-xs text-muted-foreground">© 2025 Fynance</p>
-            <p className="text-xs text-muted-foreground mt-1">Versão demo (estou terminando, não é recomendado tu por nada aqui ainda, apenas testes)</p>
+            <p className="text-xs text-muted-foreground mt-1">Versão demo </p>
           </div>
         </div>
       </SidebarContent>
