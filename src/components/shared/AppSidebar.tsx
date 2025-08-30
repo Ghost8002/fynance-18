@@ -26,10 +26,6 @@ const navigationItems = [{
   icon: Wallet,
   href: '/contas'
 }, {
-  title: 'Controle',
-  icon: Shield,
-  href: '/controle'
-}, {
   title: 'Orçamentos',
   icon: PiggyBank,
   href: '/orcamentos'
