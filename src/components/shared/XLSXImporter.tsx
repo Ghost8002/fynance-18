@@ -29,7 +29,8 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import XLSXDataTreatment from "./XLSXDataTreatment";
 import XLSXValidationModal from "./XLSXValidationModal";
-import { XLSXProcessor, XLSXTemplate, XLSXTransaction, CategoryMapping } from "@/utils/xlsxProcessor";
+import XLSXCategoryMappingModal from "./XLSXCategoryMappingModal";
+import { XLSXProcessor, XLSXTemplate, XLSXTransaction, CategoryMapping, TagMapping } from "@/utils/xlsxProcessor";
 import * as XLSX from 'xlsx';
 
 interface ImportedTransaction {
@@ -54,6 +55,7 @@ const XLSXImporter = () => {
   const { toast } = useToast();
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: existingCategories } = useSupabaseData('categories', user?.id);
+  const { data: existingTags } = useSupabaseData('tags', user?.id);
   const { insert: insertTransaction } = useSupabaseData('transactions', user?.id);
   const { updateAccountBalance } = useBalanceUpdates();
   
@@ -75,7 +77,9 @@ const XLSXImporter = () => {
   const [template, setTemplate] = useState<XLSXTemplate | null>(null);
   const [validationResult, setValidationResult] = useState<any>(null);
   const [categoryMappings, setCategoryMappings] = useState<CategoryMapping[]>([]);
+  const [tagMappings, setTagMappings] = useState<TagMapping[]>([]);
   const [showValidationModal, setShowValidationModal] = useState(false);
+  const [showCategoryMappingModal, setShowCategoryMappingModal] = useState(false);
 
   // Mapeamento de colunas (legado)
   const [columnMapping, setColumnMapping] = useState<{ [key: string]: string }>({});
@@ -148,34 +152,68 @@ const XLSXImporter = () => {
     }
   };
 
-  const handleFileSelection = (selectedFile: File | null) => {
-    if (selectedFile) {
-      const fileName = selectedFile.name.toLowerCase();
-      const isXLSX = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+  const handleFileSelection = async (selectedFile: File | null) => {
+    if (!selectedFile) return;
+
+    const fileName = selectedFile.name.toLowerCase();
+    const isXLSX = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+    
+    if (!isXLSX) {
+      toast({
+        title: "Arquivo Inválido",
+        description: "Por favor, selecione um arquivo XLSX ou XLS válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFile(selectedFile);
+    setImporting(true);
+    setProgress(0);
+    setResults(null);
+    setImportedTransactions([]);
+    setShowDataTreatment(false);
+    setShowCategoryMappingModal(false);
+    setPreviewData([]);
+    setAvailableColumns([]);
+    setColumnMapping({});
+
+    try {
+      // Usar o novo sistema de processamento
+      const template = await processor.processFile(selectedFile);
+      setTemplate(template);
       
-      if (isXLSX) {
-        setFile(selectedFile);
-        setResults(null);
-        setImportedTransactions([]);
-        setShowDataTreatment(false);
-        setPreviewData([]);
-        setAvailableColumns([]);
-        setColumnMapping({});
-        
-        // Processar preview do arquivo
-        processXLSXPreview(selectedFile);
-        
-        toast({
-          title: "Arquivo Selecionado",
-          description: `${selectedFile.name} foi carregado com sucesso.`,
-        });
-      } else {
-        toast({
-          title: "Arquivo Inválido",
-          description: "Por favor, selecione um arquivo XLSX ou XLS válido.",
-          variant: "destructive",
-        });
-      }
+      // Detectar categorias e tags automaticamente
+      const { categories: detectedCategories, tags: detectedTags } = processor.detectCategoriesAndTags(template.transactions);
+      
+      // Gerar mapeamentos automáticos
+      const categoryMappings = processor.generateCategoryMapping(detectedCategories, existingCategories || []);
+      const tagMappings = processor.generateTagMapping(detectedTags, existingTags || []);
+      
+      setCategoryMappings(categoryMappings);
+      setTagMappings(tagMappings);
+      
+             // Se há categorias ou tags não mapeadas, mostrar modal de mapeamento
+       const hasUnmappedCategories = categoryMappings.some(m => m.action === 'create');
+       const hasUnmappedTags = tagMappings.some(t => t.action === 'create');
+       
+       if (hasUnmappedCategories || hasUnmappedTags) {
+         setShowCategoryMappingModal(true);
+       } else {
+         // Se tudo está mapeado, prosseguir com importação
+         await proceedWithImport(categoryMappings, tagMappings, false);
+       }
+      
+    } catch (error) {
+      console.error('Erro ao processar arquivo:', error);
+      toast({
+        title: "Erro ao processar arquivo",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive"
+      });
+    } finally {
+      setImporting(false);
+      setProgress(100);
     }
   };
 
@@ -195,6 +233,90 @@ const XLSXImporter = () => {
     const droppedFile = e.dataTransfer.files[0];
     handleFileSelection(droppedFile);
   }, []);
+
+  const proceedWithImport = async (categoryMappings: CategoryMapping[], tagMappings: TagMapping[], autoCreate: boolean) => {
+    if (!template || !selectedAccountId) return;
+
+    setImporting(true);
+    setProgress(0);
+
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < template.transactions.length; i++) {
+        const transaction = template.transactions[i];
+        
+        // Encontrar categoria mapeada
+        let categoryId: string | undefined;
+        if (transaction.category) {
+          const mapping = categoryMappings.find(m => m.xlsxName === transaction.category);
+          if (mapping && mapping.action === 'map' && mapping.systemId) {
+            categoryId = mapping.systemId;
+          }
+        }
+
+        // Encontrar tags mapeadas
+        const tagIds: string[] = [];
+        if (transaction.tags && transaction.tags.length > 0) {
+          transaction.tags.forEach(tag => {
+            const mapping = tagMappings.find(m => m.xlsxName === tag);
+            if (mapping && mapping.action === 'map' && mapping.systemId) {
+              tagIds.push(mapping.systemId);
+            }
+          });
+        }
+
+        // Inserir transação
+        const { error } = await insertTransaction({
+          date: transaction.date,
+          description: transaction.description,
+          amount: transaction.type === 'expense' ? -transaction.amount : transaction.amount,
+          type: transaction.type,
+          category_id: categoryId,
+          account_id: selectedAccountId,
+          reference: transaction.reference,
+          tags: tagIds
+        });
+
+        if (error) {
+          console.error('Erro ao inserir transação:', error);
+          errorCount++;
+        } else {
+          successCount++;
+        }
+
+        setProgress((i + 1) / template.transactions.length * 100);
+      }
+
+      // Atualizar saldo da conta
+      if (successCount > 0) {
+        await updateAccountBalance(selectedAccountId);
+      }
+
+      setResults({
+        success: successCount,
+        errors: errorCount,
+        duplicates: 0
+      });
+
+      toast({
+        title: "Importação Concluída",
+        description: `${successCount} transações importadas com sucesso. ${errorCount > 0 ? `${errorCount} erros.` : ''}`,
+        variant: errorCount > 0 ? "destructive" : "default"
+      });
+
+    } catch (error) {
+      console.error('Erro durante importação:', error);
+      toast({
+        title: "Erro na Importação",
+        description: "Ocorreu um erro durante a importação das transações.",
+        variant: "destructive"
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
 
 
 
@@ -956,6 +1078,25 @@ const XLSXImporter = () => {
                 </Button>
               </div>
             </div>
+          )}
+
+          {/* Modal de mapeamento de categorias e tags */}
+          {showCategoryMappingModal && (
+            <XLSXCategoryMappingModal
+              isOpen={showCategoryMappingModal}
+              onClose={() => setShowCategoryMappingModal(false)}
+              categoryMappings={categoryMappings}
+              tagMappings={tagMappings}
+              transactions={template?.transactions || []}
+              onProceed={(categoryMappings, tagMappings, autoCreate) => {
+                setShowCategoryMappingModal(false);
+                proceedWithImport(categoryMappings, tagMappings, autoCreate);
+              }}
+              onSkipMapping={() => {
+                setShowCategoryMappingModal(false);
+                proceedWithImport(categoryMappings, tagMappings, false);
+              }}
+            />
           )}
         </CardContent>
       </Card>

@@ -30,26 +30,39 @@ export interface XLSXCategory {
   is_default?: boolean;
 }
 
+export interface CategoryMapping {
+  xlsxName: string;
+  systemId?: string;
+  systemName?: string;
+  action: 'create' | 'map' | 'ignore';
+  confidence: number;
+  type: 'income' | 'expense';
+  count: number;
+}
+
+export interface TagMapping {
+  xlsxName: string;
+  systemId?: string;
+  systemName?: string;
+  action: 'create' | 'map' | 'ignore';
+  count: number;
+}
+
 export interface XLSXValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];
   statistics: {
-    total_transactions: number;
-    valid_transactions: number;
-    invalid_transactions: number;
-    total_categories: number;
-    new_categories: number;
-    existing_categories: number;
+    totalTransactions: number;
+    validTransactions: number;
+    invalidTransactions: number;
+    totalCategories: number;
+    mappedCategories: number;
+    unmappedCategories: number;
+    totalTags: number;
+    mappedTags: number;
+    unmappedTags: number;
   };
-}
-
-export interface CategoryMapping {
-  xlsxName: string;
-  systemId?: string;
-  action: 'create' | 'map' | 'ignore';
-  normalizedName: string;
-  confidence: number;
 }
 
 export class XLSXProcessor {
@@ -443,20 +456,23 @@ export class XLSXProcessor {
 
     // Estatísticas
     const statistics = {
-      total_transactions: this.template.transactions.length,
-      valid_transactions: validTransactions,
-      invalid_transactions: invalidTransactions,
-      total_categories: this.template.categories.length,
-      new_categories: this.template.categories.filter(cat => 
+      totalTransactions: this.template.transactions.length,
+      validTransactions: validTransactions,
+      invalidTransactions: invalidTransactions,
+      totalCategories: this.template.categories.length,
+      mappedCategories: this.template.categories.filter(cat => 
         !existingCategories.find(existing => 
           this.normalizeCategoryName(existing.name) === this.normalizeCategoryName(cat.name)
         )
       ).length,
-      existing_categories: this.template.categories.filter(cat => 
+      unmappedCategories: this.template.categories.filter(cat => 
         existingCategories.find(existing => 
           this.normalizeCategoryName(existing.name) === this.normalizeCategoryName(cat.name)
         )
-      ).length
+      ).length,
+      totalTags: 0, // Placeholder, will be updated by detectCategoriesAndTags
+      mappedTags: 0, // Placeholder, will be updated by detectCategoriesAndTags
+      unmappedTags: 0 // Placeholder, will be updated by detectCategoriesAndTags
     };
 
     this.validationResult = {
@@ -478,36 +494,210 @@ export class XLSXProcessor {
   }
 
   /**
-   * Gera mapeamento de categorias
+   * Detecta automaticamente categorias e tags na planilha
    */
-  generateCategoryMapping(existingCategories: any[]): CategoryMapping[] {
-    if (!this.template) {
-      throw new Error('Nenhum template carregado');
-    }
+  detectCategoriesAndTags(transactions: XLSXTransaction[]): {
+    categories: { name: string; type: 'income' | 'expense'; count: number }[];
+    tags: { name: string; count: number }[];
+  } {
+    const categoryMap = new Map<string, { type: 'income' | 'expense'; count: number }>();
+    const tagMap = new Map<string, number>();
 
-    return this.template.categories.map(category => {
-      const normalizedName = this.normalizeCategoryName(category.name);
-      const existingCategory = existingCategories.find(existing => 
-        this.normalizeCategoryName(existing.name) === normalizedName
-      );
+    transactions.forEach(transaction => {
+      // Processar categoria
+      if (transaction.category) {
+        const normalizedName = this.normalizeCategoryName(transaction.category);
+        const existing = categoryMap.get(normalizedName);
+        
+        if (existing) {
+          existing.count++;
+          // Se tipos diferentes, usar o mais comum
+          if (existing.type !== transaction.type) {
+            // Decidir baseado na contagem ou manter o primeiro
+            if (transaction.type === 'expense') {
+              existing.type = 'expense'; // Preferir despesa para categorias ambíguas
+            }
+          }
+        } else {
+          categoryMap.set(normalizedName, {
+            count: 1,
+            type: transaction.type
+          });
+        }
+      }
 
-      if (existingCategory) {
-        return {
-          xlsxName: category.name,
-          systemId: existingCategory.id,
-          action: 'map' as const,
-          normalizedName,
-          confidence: 1.0
-        };
-      } else {
-        return {
-          xlsxName: category.name,
-          action: 'create' as const,
-          normalizedName,
-          confidence: 0.8
-        };
+      // Processar tags
+      if (transaction.tags && transaction.tags.length > 0) {
+        transaction.tags.forEach(tag => {
+          const normalizedTag = tag.trim().toLowerCase();
+          if (normalizedTag) {
+            tagMap.set(normalizedTag, (tagMap.get(normalizedTag) || 0) + 1);
+          }
+        });
       }
     });
+
+    return {
+      categories: Array.from(categoryMap.entries()).map(([name, data]) => ({
+        name,
+        type: data.type,
+        count: data.count
+      })),
+      tags: Array.from(tagMap.entries()).map(([name, count]) => ({
+        name,
+        count
+      }))
+    };
+  }
+
+  /**
+   * Gera mapeamento automático de categorias
+   */
+  generateCategoryMapping(
+    detectedCategories: { name: string; type: 'income' | 'expense'; count: number }[],
+    existingCategories: any[]
+  ): CategoryMapping[] {
+    const mappings: CategoryMapping[] = [];
+
+    detectedCategories.forEach(detected => {
+      // Buscar categoria existente com melhor match
+      let bestMatch: any = null;
+      let bestConfidence = 0;
+
+      existingCategories.forEach(existing => {
+        const confidence = this.calculateCategoryConfidence(detected.name, existing.name);
+        if (confidence > bestConfidence && confidence > 0.7) {
+          bestConfidence = confidence;
+          bestMatch = existing;
+        }
+      });
+
+      if (bestMatch) {
+        mappings.push({
+          xlsxName: detected.name,
+          systemId: bestMatch.id,
+          systemName: bestMatch.name,
+          action: 'map',
+          confidence: bestConfidence,
+          type: detected.type,
+          count: detected.count
+        });
+      } else {
+        mappings.push({
+          xlsxName: detected.name,
+          action: 'create',
+          confidence: 0,
+          type: detected.type,
+          count: detected.count
+        });
+      }
+    });
+
+    return mappings;
+  }
+
+  /**
+   * Gera mapeamento automático de tags
+   */
+  generateTagMapping(
+    detectedTags: { name: string; count: number }[],
+    existingTags: any[]
+  ): TagMapping[] {
+    const mappings: TagMapping[] = [];
+
+    detectedTags.forEach(detected => {
+      // Buscar tag existente com melhor match
+      let bestMatch: any = null;
+      let bestConfidence = 0;
+
+      existingTags.forEach(existing => {
+        const confidence = this.calculateTagConfidence(detected.name, existing.name);
+        if (confidence > bestConfidence && confidence > 0.8) {
+          bestConfidence = confidence;
+          bestMatch = existing;
+        }
+      });
+
+      if (bestMatch) {
+        mappings.push({
+          xlsxName: detected.name,
+          systemId: bestMatch.id,
+          systemName: bestMatch.name,
+          action: 'map',
+          count: detected.count
+        });
+      } else {
+        mappings.push({
+          xlsxName: detected.name,
+          action: 'create',
+          count: detected.count
+        });
+      }
+    });
+
+    return mappings;
+  }
+
+  /**
+   * Calcula confiança entre duas categorias
+   */
+  private calculateCategoryConfidence(name1: string, name2: string): number {
+    const normalized1 = this.normalizeCategoryName(name1);
+    const normalized2 = this.normalizeCategoryName(name2);
+
+    if (normalized1 === normalized2) return 1.0;
+    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) return 0.9;
+    
+    // Calcular similaridade usando algoritmo de Levenshtein
+    const distance = this.levenshteinDistance(normalized1, normalized2);
+    const maxLength = Math.max(normalized1.length, normalized2.length);
+    return 1 - (distance / maxLength);
+  }
+
+  /**
+   * Calcula confiança entre duas tags
+   */
+  private calculateTagConfidence(tag1: string, tag2: string): number {
+    const normalized1 = tag1.toLowerCase().trim();
+    const normalized2 = tag2.toLowerCase().trim();
+
+    if (normalized1 === normalized2) return 1.0;
+    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) return 0.9;
+    
+    const distance = this.levenshteinDistance(normalized1, normalized2);
+    const maxLength = Math.max(normalized1.length, normalized2.length);
+    return 1 - (distance / maxLength);
+  }
+
+  /**
+   * Calcula distância de Levenshtein
+   */
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix = [];
+
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+
+    return matrix[str2.length][str1.length];
   }
 
   /**
