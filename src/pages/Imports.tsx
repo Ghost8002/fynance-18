@@ -41,17 +41,17 @@ const Imports = () => {
     features: ["Suporte a OFX 1.x e 2.x", "Categorização automática", "Validação de dados"],
     to: "/importacoes/transacoes",
     comingSoon: false
-  },     {
-      id: "xlsx",
-      title: "Transações XLSX",
-      description: "Importe dados de planilhas XLSX",
-      icon: Receipt,
-      color: "bg-gradient-to-br from-green-500 to-green-600",
-      status: "Disponível",
-      features: ["Formato Excel", "Mapeamento personalizado", "Validação avançada"],
-      to: "/importacoes/xlsx",
-      comingSoon: false
-    }, {
+  }, {
+    id: "xlsx",
+    title: "Transações XLSX",
+    description: "Importe dados de planilhas XLSX",
+    icon: Receipt,
+    color: "bg-gradient-to-br from-green-500 to-green-600",
+    status: "Disponível",
+    features: ["Formato Excel", "Mapeamento personalizado", "Validação avançada"],
+    to: "/importacoes/xlsx",
+    comingSoon: false
+  }, {
     id: "accounts",
     title: "Contas Bancárias",
     description: "Sincronize suas contas bancárias",
@@ -96,9 +96,7 @@ const Imports = () => {
   return <AppLayout>
       <div className="mb-8 animate-fade-in">
         <div className="flex items-center gap-4 mb-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-            <Upload className="h-8 w-8 text-white" />
-          </div>
+          
           <div>
             <h1 className="text-4xl md:text-5xl font-bold text-finance-text-primary mb-2 text-gradient">
               Importações
