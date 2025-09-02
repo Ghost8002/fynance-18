@@ -12,7 +12,7 @@ interface CacheOptions {
 }
 
 export const useCache = <T>(key: string, options: CacheOptions = {}) => {
-  const { ttl = 5 * 60 * 1000, maxSize = 100 } = options;
+  const { ttl = 5 * 60 * 1000, maxSize = 100 } = options || {};
   const cacheRef = useRef<Map<string, CacheItem<T>>>(new Map());
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +20,7 @@ export const useCache = <T>(key: string, options: CacheOptions = {}) => {
 
   // Função para obter dados do cache
   const getFromCache = (cacheKey: string): T | null => {
+    if (!cacheRef.current) return null;
     const item = cacheRef.current.get(cacheKey);
     if (!item) return null;
 
@@ -35,20 +36,26 @@ export const useCache = <T>(key: string, options: CacheOptions = {}) => {
   // Função para salvar dados no cache
   const setCache = (cacheKey: string, data: T, customTtl?: number) => {
     // Limpar cache se exceder o tamanho máximo
-    if (cacheRef.current.size >= maxSize) {
-      const firstKey = cacheRef.current.keys().next().value;
-      cacheRef.current.delete(firstKey);
+    if (cacheRef.current && cacheRef.current.size >= maxSize) {
+      const iterator = cacheRef.current.keys();
+      const firstResult = iterator.next();
+      if (!firstResult.done) {
+        cacheRef.current.delete(firstResult.value);
+      }
     }
 
-    cacheRef.current.set(cacheKey, {
-      data,
-      timestamp: Date.now(),
-      ttl: customTtl || ttl
-    });
+    if (cacheRef.current) {
+      cacheRef.current.set(cacheKey, {
+        data,
+        timestamp: Date.now(),
+        ttl: customTtl || ttl
+      });
+    }
   };
 
   // Função para limpar cache
   const clearCache = (cacheKey?: string) => {
+    if (!cacheRef.current) return;
     if (cacheKey) {
       cacheRef.current.delete(cacheKey);
     } else {
@@ -121,9 +128,11 @@ export const useCache = <T>(key: string, options: CacheOptions = {}) => {
   useEffect(() => {
     const cleanup = setInterval(() => {
       const now = Date.now();
-      for (const [cacheKey, item] of cacheRef.current.entries()) {
-        if (now - item.timestamp > item.ttl) {
-          cacheRef.current.delete(cacheKey);
+      if (cacheRef.current && cacheRef.current.entries) {
+        for (const [cacheKey, item] of cacheRef.current.entries()) {
+          if (now - item.timestamp > item.ttl) {
+            cacheRef.current.delete(cacheKey);
+          }
         }
       }
     }, 60000); // Verificar a cada minuto
@@ -141,6 +150,6 @@ export const useCache = <T>(key: string, options: CacheOptions = {}) => {
     clearCache,
     invalidateCache,
     preloadData,
-    cacheSize: cacheRef.current.size
+    cacheSize: cacheRef.current?.size || 0
   };
 };
