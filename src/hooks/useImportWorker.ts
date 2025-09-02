@@ -51,7 +51,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
                 setIsProcessing(false);
                 setProgress(null);
                 // Resolver a promise com o resultado
-                resolveCurrentTask(data.transactions);
+                resolveCurrentTask.current(data.transactions);
               }
               break;
 
@@ -60,7 +60,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
                 setIsProcessing(false);
                 setProgress(null);
                 // Rejeitar a promise com o erro
-                rejectCurrentTask(new Error(data.error));
+                rejectCurrentTask.current(new Error(data.error));
               }
               break;
           }
@@ -70,7 +70,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
           console.error('Erro no Import Worker:', error);
           setIsProcessing(false);
           setProgress(null);
-          rejectCurrentTask(error);
+          rejectCurrentTask.current(new Error('Worker error'));
         };
 
         return () => {
@@ -85,8 +85,8 @@ export const useImportWorker = (): UseImportWorkerReturn => {
   }, []);
 
   // Referências para resolver/rejeitar promises
-  const resolveCurrentTask = useRef<(transactions: ImportedTransaction[]) => void>();
-  const rejectCurrentTask = useRef<(error: Error) => void>();
+  const resolveCurrentTask = useRef<(transactions: ImportedTransaction[]) => void>(() => {});
+  const rejectCurrentTask = useRef<(error: Error) => void>(() => {});
 
   // Função para processar XLSX usando worker
   const processXLSX = useCallback(async (file: File): Promise<ImportedTransaction[]> => {

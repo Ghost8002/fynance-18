@@ -16,7 +16,7 @@ export const useCache = <T>(key: string, options: CacheOptions = {}) => {
   const cacheRef = useRef<Map<string, CacheItem<T>>>(new Map());
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = void 0;
+  const [error, setError] = useState<any>(null);
 
   // Função para obter dados do cache
   const getFromCache = (cacheKey: string): T | null => {

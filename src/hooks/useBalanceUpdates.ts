@@ -13,29 +13,41 @@ export const useBalanceUpdates = () => {
   const { update: updateCard } = useSupabaseData('cards', user?.id);
   const { update: updateGoal } = useSupabaseData('goals', user?.id);
 
-  const updateAccountBalance = async (accountId: string, amount: number, type: 'income' | 'expense') => {
+  // Overloaded function for both manual and automatic balance updates
+  const updateAccountBalance = async (
+    accountId: string, 
+    amount?: number, 
+    type?: 'income' | 'expense'
+  ) => {
     try {
-      const account = accounts.find(acc => acc.id === accountId);
-      
-      if (!account) {
-        throw new Error('Conta não encontrada');
+      if (amount !== undefined && type !== undefined) {
+        // Manual balance update
+        const account = accounts?.find(acc => acc.id === accountId);
+        
+        if (!account) {
+          throw new Error('Conta não encontrada');
+        }
+
+        const currentBalance = Number(account.balance) || 0;
+        const newBalance = type === 'income' 
+          ? currentBalance + amount 
+          : currentBalance - amount;
+
+        const { error } = await updateAccount(accountId, { balance: newBalance });
+        
+        if (error) {
+          throw new Error(error);
+        }
+
+        // Refetch accounts to update the local state
+        await refetchAccounts();
+
+        return { success: true, newBalance };
+      } else {
+        // Auto-calculate balance from transactions
+        await refetchAccounts();
+        return { success: true };
       }
-
-      const currentBalance = Number(account.balance) || 0;
-      const newBalance = type === 'income' 
-        ? currentBalance + amount 
-        : currentBalance - amount;
-
-      const { error } = await updateAccount(accountId, { balance: newBalance });
-      
-      if (error) {
-        throw new Error(error);
-      }
-
-      // Refetch accounts to update the local state
-      await refetchAccounts();
-
-      return { success: true, newBalance };
     } catch (error) {
       console.error('Erro ao atualizar saldo da conta:', error);
       toast({

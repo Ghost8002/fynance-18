@@ -481,8 +481,9 @@ const XLSXImporter = () => {
       
       setProgress(80);
       
-      // Gerar mapeamento de categorias
-      const mappings = processor.generateCategoryMapping(existingCategories || []);
+      // Gerar mapeamento de categorias - usar categorias detectadas do template
+      const { categories: detectedCategories } = processor.detectCategoriesAndTags(processedTemplate.transactions);
+      const mappings = processor.generateCategoryMapping(detectedCategories, existingCategories || []);
       setCategoryMappings(mappings);
       
       setProgress(100);

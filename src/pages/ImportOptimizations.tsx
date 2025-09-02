@@ -1,5 +1,5 @@
 import React from 'react';
-import AppLayout from '@/components/layout/AppLayout';
+import AppLayout from '@/components/shared/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,6 @@ import {
   Database, 
   Clock, 
   Cpu, 
-  Memory, 
   Network, 
   CheckCircle, 
   Info,
@@ -58,7 +57,7 @@ const ImportOptimizations: React.FC = () => {
 
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border-purple-200 dark:border-purple-800">
             <CardContent className="p-6 text-center">
-              <Memory className="h-12 w-12 text-purple-600 mx-auto mb-3" />
+              <Database className="h-12 w-12 text-purple-600 mx-auto mb-3" />
               <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 mb-1">90%</div>
               <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">
                 Menos Chamadas ao Banco

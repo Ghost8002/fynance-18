@@ -221,25 +221,25 @@ const XLSXValidationModal = ({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {validationResult.statistics.total_transactions}
+                    {validationResult.statistics.totalTransactions}
                   </div>
                   <div className="text-sm text-blue-600 dark:text-blue-400">Total</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {validationResult.statistics.valid_transactions}
+                    {validationResult.statistics.validTransactions}
                   </div>
                   <div className="text-sm text-green-600 dark:text-green-400">Válidas</div>
                 </div>
                 <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg">
                   <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                    {validationResult.statistics.invalid_transactions}
+                    {validationResult.statistics.invalidTransactions}
                   </div>
                   <div className="text-sm text-red-600 dark:text-red-400">Inválidas</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 dark:bg-purple-950/50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {validationResult.statistics.new_categories}
+                    {validationResult.statistics.totalCategories}
                   </div>
                   <div className="text-sm text-purple-600 dark:text-purple-400">Novas Categorias</div>
                 </div>
