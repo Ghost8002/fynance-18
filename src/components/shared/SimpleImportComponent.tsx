@@ -37,11 +37,12 @@ const SimpleImportComponent: React.FC = () => {
 
     try {
       const arrayBuffer = await selectedFile.arrayBuffer();
-      const workbook = require('xlsx').read(arrayBuffer, { type: 'array' });
+      const XLSX = await import('xlsx');
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = require('xlsx').utils.sheet_to_json(worksheet, { header: 1 });
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       
       if (jsonData.length < 2) return;
       
@@ -148,22 +149,35 @@ const SimpleImportComponent: React.FC = () => {
     reset();
   }, [reset]);
 
-  const downloadTemplate = useCallback(() => {
-    // Template simples em CSV
-    const csvContent = `Data,Descrição,Valor,Tipo,Categoria,Tags
+  const downloadTemplate = useCallback(async () => {
+    try {
+      // Importar XLSXProcessor dinamicamente
+      const { XLSXProcessor } = await import('@/utils/xlsxProcessor');
+      
+      // Criar template XLSX simples
+      const template = XLSXProcessor.createSimpleTemplate();
+      
+      // Gerar arquivo para download
+      XLSXProcessor.generateXLSXFile(template, 'template_transacoes.xlsx');
+      
+    } catch (error) {
+      console.error('Erro ao gerar template XLSX:', error);
+      // Fallback para CSV se houver erro
+      const csvContent = `Data,Descrição,Valor,Tipo,Categoria,Tags
 15/01/2024,Compra no supermercado,-150.50,Despesa,Alimentação,compras;mercado
 16/01/2024,Salário,3000.00,Receita,Salário,trabalho;renda
 17/01/2024,Combustível,-80.00,Despesa,Transporte,carro;posto`;
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'template_transacoes.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'template_transacoes.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   }, []);
 
   if (result) {
@@ -419,8 +433,9 @@ const SimpleImportComponent: React.FC = () => {
         <Alert className="bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-foreground">
-            <strong>Formato Simples:</strong> O arquivo deve ter uma primeira linha com cabeçalhos 
-            (Data, Descrição, Valor, Tipo, Categoria, Tags). Apenas Data, Descrição e Valor são obrigatórios.
+            <strong>Formato XLSX:</strong> O arquivo deve ter uma primeira linha com cabeçalhos 
+            (Data, Descrição, Valor, Tipo, Categoria, Tags). Apenas Data, Descrição e Valor são obrigatórios. 
+            Use o template XLSX para garantir o formato correto.
           </AlertDescription>
         </Alert>
 
@@ -444,7 +459,7 @@ const SimpleImportComponent: React.FC = () => {
             className="flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
-            Baixar Template Simples
+            Baixar Template XLSX
           </Button>
         </div>
 

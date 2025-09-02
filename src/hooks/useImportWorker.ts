@@ -265,7 +265,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
 
           if (!date || !description || !amountStr) continue;
 
-          const amount = parseFloat(amountStr.replace(/[R$\s]/g, '').replace(',', '.'));
+          const amount = parseAmount(amountStr);
           if (isNaN(amount) || amount === 0) continue;
 
           let type: 'income' | 'expense' = 'expense';

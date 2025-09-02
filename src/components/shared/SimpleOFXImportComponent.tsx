@@ -123,10 +123,10 @@ const SimpleOFXImportComponent: React.FC = () => {
     if (!selectedFile) return;
 
     const fileName = selectedFile.name.toLowerCase();
-    const isOFX = fileName.endsWith('.ofx');
+    const isOFX = fileName.endsWith('.ofx') || fileName.endsWith('.ofx.txt');
     
     if (!isOFX) {
-      alert('Por favor, selecione um arquivo OFX válido.');
+      alert('Por favor, selecione um arquivo OFX válido (.ofx ou .ofx.txt).');
       return;
     }
 
@@ -199,6 +199,27 @@ NEWFILEUID:NONE
 <TRNAMT>3000.00
 <FITID>987654321
 <MEMO>Salário
+</STMTTRN>
+<STMTTRN>
+<TRNTYPE>OTHER
+<DTPOST>20240117
+<TRNAMT>-80.00
+<FITID>456789123
+<MEMO>Combustível
+</STMTTRN>
+<STMTTRN>
+<TRNTYPE>OTHER
+<DTPOST>20240118
+<TRNAMT>500.00
+<FITID>789123456
+<MEMO>Freelance
+</STMTTRN>
+<STMTTRN>
+<TRNTYPE>OTHER
+<DTPOST>20240119
+<TRNAMT>-120.00
+<FITID>321654987
+<MEMO>Conta de luz
 </STMTTRN>
 </BANKTRANLIST>
 </STMTRS>
@@ -340,7 +361,7 @@ NEWFILEUID:NONE
         >
           <input
             type="file"
-            accept=".ofx"
+            accept=".ofx,.ofx.txt,.txt"
             onChange={handleFileChange}
             className="hidden"
             id="ofx-file-input"

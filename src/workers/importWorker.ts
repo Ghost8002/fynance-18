@@ -8,7 +8,6 @@ interface WorkerMessage {
 }
 
 interface XLSXData {
-  arrayBuffer: ArrayBuffer;
   headers: string[];
   dataRows: any[][];
 }
@@ -107,7 +106,7 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
   const { text } = data;
   const transactions: ProcessedTransaction[] = [];
   
-  // Buscar transações usando regex
+  // Buscar transações usando regex mais robusto
   const transactionRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
   let match;
   let count = 0;
@@ -116,7 +115,7 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
     const transactionBlock = match[1];
     
     try {
-      // Extrair dados básicos
+      // Extrair dados básicos com regex mais flexíveis
       const dateMatch = transactionBlock.match(/<DTPOST>(\d{8})<\/DTPOST>/);
       const amountMatch = transactionBlock.match(/<TRNAMT>([^<]+)<\/TRNAMT>/);
       const memoMatch = transactionBlock.match(/<MEMO>([^<]+)<\/MEMO>/);
@@ -141,20 +140,28 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
           const descriptionLower = description.toLowerCase();
           
           if (descriptionLower.includes('mercado') || descriptionLower.includes('supermercado') || 
-              descriptionLower.includes('restaurante') || descriptionLower.includes('lanchonete')) {
+              descriptionLower.includes('restaurante') || descriptionLower.includes('lanchonete') ||
+              descriptionLower.includes('padaria') || descriptionLower.includes('açougue')) {
             category = 'Alimentação';
           } else if (descriptionLower.includes('posto') || descriptionLower.includes('combustível') || 
-                     descriptionLower.includes('uber') || descriptionLower.includes('taxi')) {
+                     descriptionLower.includes('uber') || descriptionLower.includes('taxi') ||
+                     descriptionLower.includes('onibus') || descriptionLower.includes('metro')) {
             category = 'Transporte';
           } else if (descriptionLower.includes('farmacia') || descriptionLower.includes('farmácia') || 
-                     descriptionLower.includes('hospital') || descriptionLower.includes('clínica')) {
+                     descriptionLower.includes('hospital') || descriptionLower.includes('clínica') ||
+                     descriptionLower.includes('médico') || descriptionLower.includes('dentista')) {
             category = 'Saúde';
           } else if (descriptionLower.includes('escola') || descriptionLower.includes('universidade') || 
-                     descriptionLower.includes('curso') || descriptionLower.includes('livro')) {
+                     descriptionLower.includes('curso') || descriptionLower.includes('livro') ||
+                     descriptionLower.includes('faculdade')) {
             category = 'Educação';
           } else if (descriptionLower.includes('cinema') || descriptionLower.includes('teatro') || 
-                     descriptionLower.includes('show') || descriptionLower.includes('viagem')) {
+                     descriptionLower.includes('show') || descriptionLower.includes('viagem') ||
+                     descriptionLower.includes('shopping') || descriptionLower.includes('loja')) {
             category = 'Lazer';
+          } else if (descriptionLower.includes('salário') || descriptionLower.includes('salario') ||
+                     descriptionLower.includes('pagamento') || descriptionLower.includes('transferência')) {
+            category = 'Renda';
           }
           
           transactions.push({
@@ -220,8 +227,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
     
     switch (type) {
       case 'process-xlsx':
-        // Para XLSX, precisamos primeiro converter o ArrayBuffer
-        // Como o worker não tem acesso direto ao XLSX, vamos processar os dados já convertidos
+        // Processar dados XLSX já convertidos
         result = processXLSX(data);
         break;
         

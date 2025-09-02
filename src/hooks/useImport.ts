@@ -124,7 +124,6 @@ export const useImport = () => {
             type: transaction.type,
             category_id: categoryId,
             account_id: accountId,
-            reference: `IMPORT-${Date.now()}-${i}`,
             tags: transaction.tags || []
           });
 

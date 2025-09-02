@@ -61,9 +61,83 @@ export const useOFXImport = () => {
       return transactions;
     } catch (error) {
       console.error('Erro ao processar OFX com worker:', error);
-      throw error;
+      // Fallback para processamento síncrono
+      console.warn('Usando processamento síncrono como fallback');
+      return processOFXSync(file);
     }
   }, [workerProcessOFX, workerProgress]);
+
+  // Função de fallback síncrono para OFX
+  const processOFXSync = async (file: File): Promise<ImportedTransaction[]> => {
+    try {
+      const text = await file.text();
+      const transactions: ImportedTransaction[] = [];
+      
+      const transactionRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
+      let match;
+      
+      while ((match = transactionRegex.exec(text)) !== null) {
+        const transactionBlock = match[1];
+        
+        try {
+          const dateMatch = transactionBlock.match(/<DTPOST>(\d{8})<\/DTPOST>/);
+          const amountMatch = transactionBlock.match(/<TRNAMT>([^<]+)<\/TRNAMT>/);
+          const memoMatch = transactionBlock.match(/<MEMO>([^<]+)<\/MEMO>/);
+          
+          if (dateMatch && amountMatch && memoMatch) {
+            const dateStr = dateMatch[1];
+            const amount = parseFloat(amountMatch[1]);
+            const description = memoMatch[1].trim();
+            
+            if (!isNaN(amount) && description) {
+              const year = dateStr.substring(0, 4);
+              const month = dateStr.substring(4, 6);
+              const day = dateStr.substring(6, 8);
+              const date = `${year}-${month}-${day}`;
+              
+              const type: 'income' | 'expense' = amount > 0 ? 'income' : 'expense';
+              
+              let category: string | undefined;
+              const descriptionLower = description.toLowerCase();
+              
+              if (descriptionLower.includes('mercado') || descriptionLower.includes('supermercado') || 
+                  descriptionLower.includes('restaurante') || descriptionLower.includes('lanchonete')) {
+                category = 'Alimentação';
+              } else if (descriptionLower.includes('posto') || descriptionLower.includes('combustível') || 
+                         descriptionLower.includes('uber') || descriptionLower.includes('taxi')) {
+                category = 'Transporte';
+              } else if (descriptionLower.includes('farmacia') || descriptionLower.includes('farmácia') || 
+                         descriptionLower.includes('hospital') || descriptionLower.includes('clínica')) {
+                category = 'Saúde';
+              } else if (descriptionLower.includes('escola') || descriptionLower.includes('universidade') || 
+                         descriptionLower.includes('curso') || descriptionLower.includes('livro')) {
+                category = 'Educação';
+              } else if (descriptionLower.includes('cinema') || descriptionLower.includes('teatro') || 
+                         descriptionLower.includes('show') || descriptionLower.includes('viagem')) {
+                category = 'Lazer';
+              }
+              
+              transactions.push({
+                date,
+                description,
+                amount: Math.abs(amount),
+                type,
+                category,
+                tags: []
+              });
+            }
+          }
+        } catch (error) {
+          console.warn('Erro ao processar transação OFX:', error);
+          continue;
+        }
+      }
+      
+      return transactions;
+    } catch (error) {
+      throw new Error(`Erro ao processar arquivo OFX: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    }
+  };
 
   // Função para importar transações
   const importTransactions = useCallback(async (
@@ -103,7 +177,6 @@ export const useOFXImport = () => {
             type: transaction.type,
             category_id: categoryId,
             account_id: accountId,
-            reference: `OFX-${Date.now()}-${i}`,
             tags: transaction.tags || []
           });
 

@@ -80,7 +80,8 @@ const ImportsXLSX = () => {
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Carregue seu arquivo XLSX e importe todas as suas transações financeiras de forma rápida e confiável. 
-              Suportamos arquivos Excel e Google Sheets.
+              Suportamos arquivos Excel (.xlsx, .xls) e Google Sheets exportados. 
+              Baixe o template XLSX para garantir o formato correto.
             </p>
           </div>
         </div>

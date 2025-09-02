@@ -774,6 +774,83 @@ export class XLSXProcessor {
   }
 
   /**
+   * Cria template XLSX simples para importação básica
+   */
+  static createSimpleTemplate(): XLSX.WorkBook {
+    const workbook = XLSX.utils.book_new();
+
+    // Dados de exemplo para o template
+    const transactionData = [
+      {
+        Data: '15/01/2024',
+        Descrição: 'Compra no supermercado',
+        Valor: -150.50,
+        Tipo: 'Despesa',
+        Categoria: 'Alimentação',
+        Tags: 'compras, mercado'
+      },
+      {
+        Data: '16/01/2024',
+        Descrição: 'Salário',
+        Valor: 3000.00,
+        Tipo: 'Receita',
+        Categoria: 'Salário',
+        Tags: 'trabalho, renda'
+      },
+      {
+        Data: '17/01/2024',
+        Descrição: 'Combustível',
+        Valor: -80.00,
+        Tipo: 'Despesa',
+        Categoria: 'Transporte',
+        Tags: 'carro, posto'
+      },
+      {
+        Data: '18/01/2024',
+        Descrição: 'Freelance',
+        Valor: 500.00,
+        Tipo: 'Receita',
+        Categoria: 'Trabalho Extra',
+        Tags: 'freelance, renda'
+      },
+      {
+        Data: '19/01/2024',
+        Descrição: 'Conta de luz',
+        Valor: -120.00,
+        Tipo: 'Despesa',
+        Categoria: 'Moradia',
+        Tags: 'conta, moradia'
+      }
+    ];
+
+    // Criar planilha com dados
+    const worksheet = XLSX.utils.json_to_sheet(transactionData);
+    
+    // Configurar largura das colunas
+    worksheet['!cols'] = [
+      { wch: 12 }, // Data
+      { wch: 30 }, // Descrição
+      { wch: 12 }, // Valor
+      { wch: 10 }, // Tipo
+      { wch: 15 }, // Categoria
+      { wch: 25 }  // Tags
+    ];
+
+    // Adicionar planilha ao workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Transações');
+
+    return workbook;
+  }
+
+  /**
+   * Gera arquivo XLSX para download
+   */
+  static generateXLSXFile(template: XLSX.WorkBook, filename: string): void {
+    // Gerar arquivo XLSX
+    XLSX.writeFile(template, filename);
+  }
+
+  /**
    * Obtém resultado da validação
    */
   getValidationResult(): XLSXValidationResult | null {
