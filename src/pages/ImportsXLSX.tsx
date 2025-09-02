@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
-import XLSXImporter from "@/components/shared/XLSXImporter";
+import SimpleImportComponent from "@/components/shared/SimpleImportComponent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -85,9 +85,9 @@ const ImportsXLSX = () => {
           </div>
         </div>
 
-        {/* Interface de importação */}
+        {/* Interface de importação simplificada */}
         <div className="max-w-6xl mx-auto">
-          <XLSXImporter />
+          <SimpleImportComponent />
         </div>
       </div>
     </AppLayout>
