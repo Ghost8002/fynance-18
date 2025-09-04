@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useState, useMemo } from "react";
+import { usePeriodFilter } from "@/pages/Reports";
 
 // Colors for the pie chart
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D", "#F87171"];
@@ -21,7 +22,7 @@ const CategoryReport = () => {
   const { user } = useSupabaseAuth();
   const { data: transactions, loading: transactionsLoading } = useSupabaseData('transactions', user?.id);
   const { data: categories, loading: categoriesLoading } = useSupabaseData('categories', user?.id);
-  const [period, setPeriod] = useState("month");
+  const { period, customStartDate, customEndDate } = usePeriodFilter();
   const [type, setType] = useState("expense");
 
   const chartData = useMemo(() => {
@@ -29,22 +30,51 @@ const CategoryReport = () => {
 
     const now = new Date();
     let startDate = new Date();
+    let endDate = new Date();
 
-    switch (period) {
-      case "month":
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      case "quarter":
-        startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-        break;
-      case "year":
-        startDate = new Date(now.getFullYear(), 0, 1);
-        break;
+    // Calcular período baseado no filtro global
+    if (period === "custom" && customStartDate && customEndDate) {
+      startDate = new Date(customStartDate);
+      endDate = new Date(customEndDate);
+    } else {
+      switch (period) {
+        case "current-month":
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          break;
+        case "last-month":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "last-3-months":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "last-6-months":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "last-12-months":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "current-year":
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear(), 11, 31);
+          break;
+        case "last-year":
+          startDate = new Date(now.getFullYear() - 1, 0, 1);
+          endDate = new Date(now.getFullYear() - 1, 11, 31);
+          break;
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      }
     }
 
     const filteredTransactions = transactions.filter(t => {
       const transactionDate = new Date(t.date);
-      return transactionDate >= startDate && t.type === type;
+      return transactionDate >= startDate && transactionDate <= endDate && t.type === type;
     });
 
     const categoryTotals = new Map();
@@ -63,7 +93,7 @@ const CategoryReport = () => {
       name,
       value
     })).sort((a, b) => b.value - a.value);
-  }, [transactions, categories, period, type]);
+  }, [transactions, categories, period, type, customStartDate, customEndDate]);
 
   const loading = transactionsLoading || categoriesLoading;
 
@@ -84,27 +114,15 @@ const CategoryReport = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>{type === 'expense' ? 'Despesas' : 'Receitas'} por Categoria</CardTitle>
-        <div className="flex space-x-2">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="month">Este mês</SelectItem>
-              <SelectItem value="quarter">Trimestre</SelectItem>
-              <SelectItem value="year">Ano</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={type} onValueChange={setType}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="expense">Despesas</SelectItem>
-              <SelectItem value="income">Receitas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="expense">Despesas</SelectItem>
+            <SelectItem value="income">Receitas</SelectItem>
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent className="pt-6">
         {chartData.length === 0 ? (

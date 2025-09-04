@@ -9,6 +9,7 @@ import { Download, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useState, useMemo } from "react";
+import { usePeriodFilter } from "@/pages/Reports";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -24,27 +25,67 @@ const BudgetAnalysisReport = () => {
   const { data: budgets, loading: budgetsLoading } = useSupabaseData('budgets', user?.id);
   const { data: categories, loading: categoriesLoading } = useSupabaseData('categories', user?.id);
   const { data: transactions, loading: transactionsLoading } = useSupabaseData('transactions', user?.id);
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const { period, customStartDate, customEndDate } = usePeriodFilter();
 
   const loading = budgetsLoading || categoriesLoading || transactionsLoading;
 
   const budgetAnalysis = useMemo(() => {
     if (!budgets || !categories || !transactions) return [];
 
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const monthTransactions = transactions.filter(t => {
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = new Date();
+
+    // Calcular período baseado no filtro global
+    if (period === "custom" && customStartDate && customEndDate) {
+      startDate = new Date(customStartDate);
+      endDate = new Date(customEndDate);
+    } else {
+      switch (period) {
+        case "current-month":
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          break;
+        case "last-month":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "last-3-months":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "last-6-months":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "last-12-months":
+          startDate = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+        case "current-year":
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear(), 11, 31);
+          break;
+        case "last-year":
+          startDate = new Date(now.getFullYear() - 1, 0, 1);
+          endDate = new Date(now.getFullYear() - 1, 11, 31);
+          break;
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      }
+    }
+
+    const periodTransactions = transactions.filter(t => {
       const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === month - 1 && 
-             transactionDate.getFullYear() === year &&
+      return transactionDate >= startDate && 
+             transactionDate <= endDate &&
              t.type === 'expense';
     });
 
     return budgets.map(budget => {
       const category = categories.find(c => c.id === budget.category_id);
-      const spent = monthTransactions
+      const spent = periodTransactions
         .filter(t => t.category_id === budget.category_id)
         .reduce((sum, t) => sum + Number(t.amount), 0);
       
@@ -61,7 +102,7 @@ const BudgetAnalysisReport = () => {
         status: percentage > 100 ? 'exceeded' : percentage > 80 ? 'warning' : 'good'
       };
     }).sort((a, b) => b.percentage - a.percentage);
-  }, [budgets, categories, transactions, selectedMonth]);
+  }, [budgets, categories, transactions, period, customStartDate, customEndDate]);
 
   const summary = useMemo(() => {
     const totalBudget = budgetAnalysis.reduce((sum, item) => sum + Number(item.limit_amount), 0);
@@ -74,19 +115,6 @@ const BudgetAnalysisReport = () => {
     return { totalBudget, totalSpent, totalRemaining, overBudgetCount, warningCount, goodCount };
   }, [budgetAnalysis]);
 
-  const generateMonthOptions = () => {
-    const options = [];
-    const now = new Date();
-    
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      options.push({ value, label });
-    }
-    
-    return options;
-  };
 
   if (loading) {
     return (
@@ -102,24 +130,10 @@ const BudgetAnalysisReport = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>Análise de Orçamentos</CardTitle>
-        <div className="flex gap-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Selecione o mês" />
-            </SelectTrigger>
-            <SelectContent>
-              {generateMonthOptions().map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-        </div>
+        <Button variant="outline" size="sm">
+          <Download className="h-4 w-4 mr-2" />
+          Exportar
+        </Button>
       </CardHeader>
       <CardContent className="pt-6">
         {budgetAnalysis.length === 0 ? (

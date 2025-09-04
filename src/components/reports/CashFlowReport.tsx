@@ -1,12 +1,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Download, TrendingUp, TrendingDown } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
+import { usePeriodFilter } from "@/pages/Reports";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -19,49 +19,127 @@ const CashFlowReport = () => {
   const { user } = useSupabaseAuth();
   const { data: transactions, loading } = useSupabaseData('transactions', user?.id);
   const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const [period, setPeriod] = useState("6months");
+  const { period, customStartDate, customEndDate } = usePeriodFilter();
 
   const chartData = useMemo(() => {
     if (!transactions || !accounts) return [];
 
     const now = new Date();
-    const months = period === "3months" ? 3 : period === "6months" ? 6 : 12;
+    let months = 1;
+
+    // Calcular período baseado no filtro global
+    if (period === "custom" && customStartDate && customEndDate) {
+      // Para período personalizado, calcular diferença em meses
+      const diffTime = Math.abs(customEndDate.getTime() - customStartDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      months = Math.max(1, Math.ceil(diffDays / 30)); // Aproximação de meses
+    } else {
+      switch (period) {
+        case "current-month":
+          months = 1;
+          break;
+        case "last-month":
+          months = 1;
+          break;
+        case "last-3-months":
+          months = 3;
+          break;
+        case "last-6-months":
+          months = 6;
+          break;
+        case "last-12-months":
+          months = 12;
+          break;
+        case "current-year":
+          months = 12;
+          break;
+        case "last-year":
+          months = 12;
+          break;
+        default:
+          months = 1;
+      }
+    }
     
     let runningBalance = accounts.reduce((sum, account) => sum + Number(account.balance || 0), 0);
     
     const monthsData = [];
-    for (let i = months - 1; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = date.toISOString().slice(0, 7);
-      const monthName = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+    
+    if (period === "custom" && customStartDate && customEndDate) {
+      // Para período personalizado, agrupar por mês dentro do período
+      const currentDate = new Date(customStartDate);
+      const endDateCopy = new Date(customEndDate);
       
-      const monthTransactions = transactions.filter(t => {
-        const transactionMonth = new Date(t.date).toISOString().slice(0, 7);
-        return transactionMonth === monthKey;
-      });
+      while (currentDate <= endDateCopy) {
+        const monthKey = currentDate.toISOString().slice(0, 7);
+        const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+        
+        const monthTransactions = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          const transactionMonth = transactionDate.toISOString().slice(0, 7);
+          return transactionMonth === monthKey && 
+                 transactionDate >= customStartDate && 
+                 transactionDate <= customEndDate;
+        });
 
-      const entradas = monthTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
-      
-      const saidas = monthTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+        const entradas = monthTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+        
+        const saidas = monthTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + Number(t.amount), 0);
 
-      const saldoLiquido = entradas - saidas;
-      runningBalance += saldoLiquido;
+        const saldoLiquido = entradas - saidas;
+        runningBalance += saldoLiquido;
 
-      monthsData.push({
-        month: monthName,
-        entradas,
-        saidas,
-        saldoLiquido,
-        saldoAcumulado: runningBalance
-      });
+        monthsData.push({
+          month: monthName,
+          entradas,
+          saidas,
+          saldoLiquido,
+          saldoAcumulado: runningBalance
+        });
+
+        // Avançar para o próximo mês
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        currentDate.setDate(1);
+      }
+    } else {
+      // Para períodos predefinidos, usar a lógica original
+      for (let i = months - 1; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = date.toISOString().slice(0, 7);
+        const monthName = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+        
+        const monthTransactions = transactions.filter(t => {
+          const transactionMonth = new Date(t.date).toISOString().slice(0, 7);
+          return transactionMonth === monthKey;
+        });
+
+        const entradas = monthTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+        
+        const saidas = monthTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + Number(t.amount), 0);
+
+        const saldoLiquido = entradas - saidas;
+        runningBalance += saldoLiquido;
+
+        monthsData.push({
+          month: monthName,
+          entradas,
+          saidas,
+          saldoLiquido,
+          saldoAcumulado: runningBalance
+        });
+      }
     }
 
     return monthsData;
-  }, [transactions, accounts, period]);
+  }, [transactions, accounts, period, customStartDate, customEndDate]);
 
   const summary = useMemo(() => {
     const totalEntradas = chartData.reduce((sum, item) => sum + item.entradas, 0);
@@ -87,22 +165,10 @@ const CashFlowReport = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>Fluxo de Caixa</CardTitle>
-        <div className="flex gap-2">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Selecione um período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="3months">Últimos 3 meses</SelectItem>
-              <SelectItem value="6months">Últimos 6 meses</SelectItem>
-              <SelectItem value="1year">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-        </div>
+        <Button variant="outline" size="sm">
+          <Download className="h-4 w-4 mr-2" />
+          Exportar
+        </Button>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="h-[400px] mb-6">
