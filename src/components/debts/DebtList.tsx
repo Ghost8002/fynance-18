@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay, isWithinInterval } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
@@ -30,12 +30,12 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Helper function to get status badge
-const getStatusBadge = (status: string, dueDate: string) => {
-  const today = startOfDay(new Date());
-  const due = startOfDay(new Date(dueDate));
+// Helper function to get status badge  
+const getStatusBadge = (status: string, dueDate: string, periodEnd?: Date) => {
+  const comparisonDate = periodEnd || startOfDay(new Date());
+  const due = startOfDay(parse(dueDate, 'yyyy-MM-dd', new Date()));
   let actualStatus = status;
-  if (status === 'pending' && isBefore(due, today)) {
+  if (status === 'pending' && isBefore(due, comparisonDate)) {
     actualStatus = 'overdue';
   }
   switch (actualStatus) {
@@ -127,7 +127,7 @@ const DebtList: React.FC<DebtListProps> = ({
   const filteredDebts = useMemo(() => {
     return debts.filter(debt => {
       // Period filter
-      const dueDate = startOfDay(new Date(debt.due_date));
+      const dueDate = startOfDay(parse(debt.due_date, 'yyyy-MM-dd', new Date()));
       const withinPeriod = isWithinInterval(dueDate, {
         start: dateRange.startDate,
         end: dateRange.endDate
@@ -140,11 +140,11 @@ const DebtList: React.FC<DebtListProps> = ({
 
   // Calculate totals for filtered debts
   const totals = useMemo(() => {
-    const today = startOfDay(new Date());
+    const periodEnd = startOfDay(new Date(dateRange.endDate));
     return filteredDebts.reduce((acc, debt) => {
-      const due = startOfDay(new Date(debt.due_date));
+      const due = startOfDay(parse(debt.due_date, 'yyyy-MM-dd', new Date()));
       let actualStatus = debt.status;
-      if (debt.status === 'pending' && isBefore(due, today)) {
+      if (debt.status === 'pending' && isBefore(due, periodEnd)) {
         actualStatus = 'overdue';
       }
       const amount = Number(debt.amount);
@@ -461,7 +461,7 @@ const DebtList: React.FC<DebtListProps> = ({
                   {filteredDebts.map(debt => <TableRow key={debt.id}>
                       <TableCell className="font-medium">{debt.description}</TableCell>
                       <TableCell>{formatCurrency(Number(debt.amount))}</TableCell>
-                      <TableCell>{format(new Date(debt.due_date), "dd/MM/yyyy", {
+                      <TableCell>{format(parse(debt.due_date, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy", {
                     locale: ptBR
                   })}</TableCell>
                       <TableCell>
@@ -497,7 +497,7 @@ const DebtList: React.FC<DebtListProps> = ({
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(debt.status, debt.due_date)}</TableCell>
+                      <TableCell>{getStatusBadge(debt.status, debt.due_date, startOfDay(new Date(dateRange.endDate)))}</TableCell>
                       <TableCell>
                         <RecurrenceProgress isRecurring={debt.is_recurring} recurrenceType={debt.recurrence_type} currentCount={debt.current_count || 0} maxOccurrences={debt.max_occurrences} endDate={debt.recurrence_end_date} />
                       </TableCell>

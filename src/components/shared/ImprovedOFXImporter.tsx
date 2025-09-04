@@ -830,9 +830,9 @@ NEWFILEUID:NONE
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {isImporting ? 'Importando transações...' : 'Processando arquivo OFX...'}
               </span>
-              <span className="font-medium text-foreground">{Math.round(progress)}%</span>
+              <span className="font-medium text-foreground">{Math.round(progress?.progress || 0)}%</span>
             </div>
-            <Progress value={progress} className="w-full h-2" />
+            <Progress value={progress?.progress || 0} className="w-full h-2" />
           </div>
         )}
 
