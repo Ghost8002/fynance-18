@@ -1,0 +1,346 @@
+====================================
+CATEGORIAS E PALAVRAS-CHAVE
+====================================
+
+[ALIMENTAÇÃO]
+supermercado
+mercadinho
+mercearia
+hortifruti
+padaria
+panificadora
+açougue
+lanche
+lanchonete
+pastelaria
+salgados
+cachorro quente
+hamburguer
+hamburgueria
+pizza
+pizzaria
+esfiharia
+restaurante
+self-service
+self service
+churrascaria
+buffet
+marmita
+almoço
+jantar
+bar
+boteco
+pub
+cervejaria
+adega
+chopp
+delivery
+ifood
+ubereats
+rappi
+
+[TRANSPORTE]
+posto
+gasolina
+alcool
+etanol
+diesel
+combustivel
+petro
+shell
+ipiranga
+br
+uber
+99
+cabify
+blablacar
+passagem
+onibus
+rodoviaria
+metro
+trem
+bilhete unico
+estacionamento
+parquimetro
+valet
+pedagio
+recarga bilhete
+
+[COMPRAS]
+shopping
+loja
+lojas americanas
+magazine
+extra
+carrefour
+atacadao
+mercado livre
+amazon
+submarino
+shopee
+aliexpress
+roupas
+vestuario
+moda
+calcados
+tenis
+sapato
+boutique
+farmacia
+drogaria
+drogasil
+raia
+panvel
+medicacao
+remedio
+cosmetico
+perfumaria
+maquiagem
+eletronico
+celular
+notebook
+informatica
+eletrodomestico
+moveis
+decoracao
+construcao
+material de construcao
+ferramenta
+
+[SAUDE]
+farmacia
+drogaria
+medicamento
+remedio
+antibiotico
+generico
+hospital
+clinica
+laboratorio
+exame
+consulta
+pronto socorro
+plano de saude
+unimed
+hapvida
+amil
+sulamerica
+odontologia
+dentista
+tratamento
+ortodontia
+aparelho
+fisioterapia
+psicologo
+psiquiatra
+nutricionista
+terapia
+
+[EDUCACAO]
+escola
+colegio
+faculdade
+universidade
+cursinho
+vestibular
+enem
+curso
+treinamento
+capacitação
+ead
+online
+udemy
+alura
+coursera
+senac
+senai
+fundacao
+instituto
+material escolar
+livraria
+papelaria
+caderno
+livro
+apostila
+caneta
+lapis
+mochila
+
+[SERVIÇOS]
+corte
+salao
+cabeleireiro
+barbeiro
+manicure
+pedicure
+estetica
+assinatura
+mensalidade
+fatura
+anuidade
+cobranca
+netflix
+spotify
+amazon prime
+disney
+hbo
+globoplay
+deezer
+tidal
+paramount
+youtube premium
+academia
+crossfit
+pilates
+yoga
+personal trainer
+manutencao
+conserto
+assistencia
+tecnico
+instalacao
+seguro
+seguradora
+cartorio
+consorcio
+
+[MORADIA]
+aluguel
+imobiliaria
+condominio
+sindico
+conta de luz
+energia
+cemig
+enel
+eletropaulo
+copel
+ceee
+equatorial
+conta de agua
+sabesp
+caesb
+sanepar
+copasa
+internet
+vivo
+claro
+oi
+tim
+net
+sky
+gvt
+telefonia
+telefone fixo
+gás
+botijao
+ultragaz
+supergasbras
+nacional gas
+
+[LAZER E ENTRETENIMENTO]
+cinema
+ingresso
+show
+espetaculo
+teatro
+balada
+festa
+evento
+parque
+diversao
+jogos
+fliperama
+viagem
+turismo
+agencia
+hotel
+pousada
+airbnb
+resort
+bar
+pub
+karaoke
+boliche
+paintball
+
+[INVESTIMENTOS]
+rdb
+cdb
+tesouro
+lci
+lca
+acoes
+bolsa
+b3
+fii
+fundos
+aplicacao
+aplicacao rdb
+investimento
+aporte
+resgate
+saque
+retirada
+previdencia
+previdencia privada
+poupanca
+cripto
+bitcoin
+ethereum
+binance
+corretora
+xp
+clear
+modal
+btg
+bradesco investimentos
+
+[TRANSFERENCIAS]
+pix
+pix enviado
+pix recebido
+transferencia enviada
+transferencia recebida
+ted
+doc
+transferencia bancaria
+deposito
+saque
+boleto
+boleto pago
+boleto recebido
+resgate rdb
+aplicacao rdb
+estorno
+pagamento
+pag seguro
+paypal
+mercadopago
+pagarme
+
+[IMPOSTOS E TAXAS]
+ipva
+iptu
+ir
+imposto de renda
+taxa
+multa
+juros
+encargos
+tarifa
+taxa bancaria
+manutencao de conta
+anuidade cartao
+sindicato
+contribuicao
+darf
+gps
+mei
+
+[OUTROS]
+diversos
+outros
+nao identificado
+despesa generica
+sem descricao

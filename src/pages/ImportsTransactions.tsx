@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
-import SimpleOFXImportComponent from "@/components/shared/SimpleOFXImportComponent";
+import ImprovedOFXImporter from "@/components/shared/ImprovedOFXImporter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,9 +77,9 @@ const ImportsTransactions = () => {
           </div>
         </div>
 
-        {/* Interface de importação simplificada */}
+        {/* Interface de importação melhorada */}
         <div className="max-w-6xl mx-auto">
-          <SimpleOFXImportComponent />
+          <ImprovedOFXImporter />
         </div>
       </div>
     </AppLayout>

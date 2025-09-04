@@ -1,6 +1,9 @@
 // Web Worker para processamento assíncrono de importação
 // Este worker processa arquivos XLSX e OFX sem bloquear a thread principal
 
+// Importar o sistema de categorização
+import { CategoryEngine } from '../utils/categorization/CategoryEngine';
+
 interface WorkerMessage {
   type: 'process-xlsx' | 'process-ofx' | 'progress';
   data: any;
@@ -23,6 +26,20 @@ interface ProcessedTransaction {
   type: 'income' | 'expense';
   category?: string;
   tags?: string[];
+}
+
+// Instância global do motor de categorização
+let categoryEngine: CategoryEngine | null = null;
+
+// Inicializar motor de categorização
+function initializeCategoryEngine() {
+  if (!categoryEngine) {
+    categoryEngine = new CategoryEngine({
+      minConfidence: 70,
+      enableLearning: true
+    });
+  }
+  return categoryEngine;
 }
 
 // Função para processar XLSX
@@ -106,63 +123,98 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
   const { text } = data;
   const transactions: ProcessedTransaction[] = [];
   
+  console.log('Iniciando processamento OFX, tamanho do arquivo:', text.length);
+  
   // Buscar transações usando regex mais robusto
   const transactionRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
   let match;
   let count = 0;
+  let processedCount = 0;
   
   while ((match = transactionRegex.exec(text)) !== null) {
     const transactionBlock = match[1];
+    processedCount++;
     
     try {
       // Extrair dados básicos com regex mais flexíveis
-      const dateMatch = transactionBlock.match(/<DTPOST>(\d{8})<\/DTPOST>/);
+      // Suportar tanto DTPOST quanto DTPOSTED - capturar apenas os primeiros 8 dígitos da data
+      const dateMatch = transactionBlock.match(/<DTPOST(?:ED)?>(\d{8})/);
       const amountMatch = transactionBlock.match(/<TRNAMT>([^<]+)<\/TRNAMT>/);
       const memoMatch = transactionBlock.match(/<MEMO>([^<]+)<\/MEMO>/);
       
-      if (dateMatch && amountMatch && memoMatch) {
+      // Tentar também outros campos possíveis
+      const fitIdMatch = transactionBlock.match(/<FITID>([^<]+)<\/FITID>/);
+      const nameMatch = transactionBlock.match(/<NAME>([^<]+)<\/NAME>/);
+      const checkNumMatch = transactionBlock.match(/<CHECKNUM>([^<]+)<\/CHECKNUM>/);
+      
+      // Suportar TRNTYPE para determinar tipo de transação
+      const trnTypeMatch = transactionBlock.match(/<TRNTYPE>([^<]+)<\/TRNTYPE>/);
+      
+      console.log(`Processando transação ${processedCount}:`, {
+        hasDate: !!dateMatch,
+        hasAmount: !!amountMatch,
+        hasMemo: !!memoMatch,
+        hasFitId: !!fitIdMatch,
+        hasName: !!nameMatch,
+        hasCheckNum: !!checkNumMatch,
+        hasTrnType: !!trnTypeMatch,
+        trnType: trnTypeMatch ? trnTypeMatch[1] : 'N/A'
+      });
+      
+      if (dateMatch && amountMatch) {
         const dateStr = dateMatch[1];
         const amount = parseFloat(amountMatch[1]);
-        const description = memoMatch[1].trim();
         
-        if (!isNaN(amount) && description) {
+        // Usar MEMO, NAME ou CHECKNUM como descrição
+        let description = '';
+        if (memoMatch) {
+          description = memoMatch[1].trim();
+        } else if (nameMatch) {
+          description = nameMatch[1].trim();
+        } else if (checkNumMatch) {
+          description = `Cheque ${checkNumMatch[1].trim()}`;
+        } else {
+          description = 'Transação sem descrição';
+        }
+        
+        console.log(`Transação ${processedCount} - Data: ${dateStr}, Valor: ${amount}, Descrição: ${description}`);
+        
+        if (!isNaN(amount) && description && amount !== 0) {
           // Converter data OFX (YYYYMMDD) para formato padrão
           const year = dateStr.substring(0, 4);
           const month = dateStr.substring(4, 6);
           const day = dateStr.substring(6, 8);
           const date = `${year}-${month}-${day}`;
           
-          // Determinar tipo baseado no valor
-          const type: 'income' | 'expense' = amount > 0 ? 'income' : 'expense';
-          
-          // Categorização básica baseada em palavras-chave
-          let category: string | undefined;
-          const descriptionLower = description.toLowerCase();
-          
-          if (descriptionLower.includes('mercado') || descriptionLower.includes('supermercado') || 
-              descriptionLower.includes('restaurante') || descriptionLower.includes('lanchonete') ||
-              descriptionLower.includes('padaria') || descriptionLower.includes('açougue')) {
-            category = 'Alimentação';
-          } else if (descriptionLower.includes('posto') || descriptionLower.includes('combustível') || 
-                     descriptionLower.includes('uber') || descriptionLower.includes('taxi') ||
-                     descriptionLower.includes('onibus') || descriptionLower.includes('metro')) {
-            category = 'Transporte';
-          } else if (descriptionLower.includes('farmacia') || descriptionLower.includes('farmácia') || 
-                     descriptionLower.includes('hospital') || descriptionLower.includes('clínica') ||
-                     descriptionLower.includes('médico') || descriptionLower.includes('dentista')) {
-            category = 'Saúde';
-          } else if (descriptionLower.includes('escola') || descriptionLower.includes('universidade') || 
-                     descriptionLower.includes('curso') || descriptionLower.includes('livro') ||
-                     descriptionLower.includes('faculdade')) {
-            category = 'Educação';
-          } else if (descriptionLower.includes('cinema') || descriptionLower.includes('teatro') || 
-                     descriptionLower.includes('show') || descriptionLower.includes('viagem') ||
-                     descriptionLower.includes('shopping') || descriptionLower.includes('loja')) {
-            category = 'Lazer';
-          } else if (descriptionLower.includes('salário') || descriptionLower.includes('salario') ||
-                     descriptionLower.includes('pagamento') || descriptionLower.includes('transferência')) {
-            category = 'Renda';
+          // Determinar tipo baseado no TRNTYPE ou valor
+          let type: 'income' | 'expense' = 'expense';
+          if (trnTypeMatch) {
+            const trnType = trnTypeMatch[1].toUpperCase();
+            if (trnType === 'CREDIT' || trnType === 'DEP' || trnType === 'DEPOSIT') {
+              type = 'income';
+            } else if (trnType === 'DEBIT' || trnType === 'WITHDRAWAL' || trnType === 'PAYMENT') {
+              type = 'expense';
+            } else {
+              // Fallback para valor
+              type = amount > 0 ? 'income' : 'expense';
+            }
+          } else {
+            // Fallback para valor se não houver TRNTYPE
+            type = amount > 0 ? 'income' : 'expense';
           }
+          
+          // Categorização inteligente usando o novo sistema
+          const engine = initializeCategoryEngine();
+          const categorization = engine.categorize({
+            date,
+            description,
+            amount: Math.abs(amount),
+            type,
+            category: undefined,
+            tags: []
+          });
+          
+          const category = categorization?.category;
           
           transactions.push({
             date,
@@ -174,14 +226,29 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
           });
           
           count++;
+          console.log(`Transação ${count} adicionada: ${description} - R$ ${Math.abs(amount)}`);
+        } else {
+          console.warn(`Transação ${processedCount} ignorada - valor inválido ou descrição vazia:`, {
+            amount,
+            description,
+            isValidAmount: !isNaN(amount) && amount !== 0,
+            hasDescription: !!description
+          });
         }
+      } else {
+        console.warn(`Transação ${processedCount} ignorada - campos obrigatórios ausentes:`, {
+          hasDate: !!dateMatch,
+          hasAmount: !!amountMatch,
+          transactionBlock: transactionBlock.substring(0, 200) + '...'
+        });
       }
     } catch (error) {
-      console.warn('Erro ao processar transação OFX:', error);
+      console.warn(`Erro ao processar transação OFX ${processedCount}:`, error);
       continue;
     }
   }
   
+  console.log(`Processamento OFX concluído: ${count} transações válidas de ${processedCount} processadas`);
   return transactions;
 }
 

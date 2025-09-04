@@ -13,12 +13,21 @@ import CardOverviewWidget from "@/components/dashboard/CardOverviewWidget";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
 import { useDashboardCustomization } from "@/hooks/useDashboardCustomization";
+import { FinancialDebugPanel } from "@/components/dashboard/FinancialDebugPanel";
+import { TransactionDataFixer } from "@/components/dashboard/TransactionDataFixer";
+import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 const Dashboard = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { selectedPeriod, setSelectedPeriod } = usePeriodFilter();
   const { isWidgetVisible } = useDashboardCustomization();
+  const { user } = useSupabaseAuth();
+  const { getFinancialPeriod } = useFinancialPeriod();
+  const { data: transactions } = useSupabaseData('transactions', user?.id);
+  const { data: accounts } = useSupabaseData('accounts', user?.id);
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: undefined,
     to: undefined
@@ -71,6 +80,24 @@ const Dashboard = () => {
           {isWidgetVisible('financial-summary') && (
             <FinancialSummary hiddenWidgets={getHiddenFinancialSummaryWidgets()} selectedPeriod={selectedPeriod} customDateRange={dateRange} />
           )}
+
+        {/* Debug Panel - apenas em desenvolvimento */}
+        {process.env.NODE_ENV === 'development' && (
+          <FinancialDebugPanel
+            transactions={transactions || []}
+            accounts={accounts || []}
+            currentPeriod={selectedPeriod === 'custom' && dateRange.from && dateRange.to 
+              ? { startDate: dateRange.from, endDate: dateRange.to }
+              : getFinancialPeriod(selectedPeriod)
+            }
+            selectedPeriod={selectedPeriod}
+          />
+        )}
+
+        {/* Transaction Data Fixer - apenas em desenvolvimento */}
+        {process.env.NODE_ENV === 'development' && (
+          <TransactionDataFixer />
+        )}
 
         {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2">

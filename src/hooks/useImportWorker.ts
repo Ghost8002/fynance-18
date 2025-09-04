@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ImportedTransaction } from './useImport';
+import { CategoryEngine } from '../utils/categorization/CategoryEngine';
 
 interface WorkerProgress {
   progress: number;
@@ -22,6 +23,20 @@ export const useImportWorker = (): UseImportWorkerReturn => {
   const [workerAvailable, setWorkerAvailable] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const currentTaskId = useRef<string>('');
+  
+  // Instância do motor de categorização para fallback
+  const categoryEngineRef = useRef<CategoryEngine | null>(null);
+  
+  // Inicializar motor de categorização
+  const getCategoryEngine = useCallback(() => {
+    if (!categoryEngineRef.current) {
+      categoryEngineRef.current = new CategoryEngine({
+        minConfidence: 70,
+        enableLearning: true
+      });
+    }
+    return categoryEngineRef.current;
+  }, []);
 
   // Inicializar worker
   useEffect(() => {
@@ -305,49 +320,82 @@ export const useImportWorker = (): UseImportWorkerReturn => {
       const text = await file.text();
       const transactions: ImportedTransaction[] = [];
       
+      console.log('Processamento OFX síncrono iniciado, tamanho do arquivo:', text.length);
+      
       const transactionRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
       let match;
+      let count = 0;
+      let processedCount = 0;
       
       while ((match = transactionRegex.exec(text)) !== null) {
         const transactionBlock = match[1];
+        processedCount++;
         
         try {
-          const dateMatch = transactionBlock.match(/<DTPOST>(\d{8})<\/DTPOST>/);
+          // Suportar tanto DTPOST quanto DTPOSTED - capturar apenas os primeiros 8 dígitos da data
+          const dateMatch = transactionBlock.match(/<DTPOST(?:ED)?>(\d{8})/);
           const amountMatch = transactionBlock.match(/<TRNAMT>([^<]+)<\/TRNAMT>/);
           const memoMatch = transactionBlock.match(/<MEMO>([^<]+)<\/MEMO>/);
           
-          if (dateMatch && amountMatch && memoMatch) {
+          // Tentar também outros campos possíveis
+          const fitIdMatch = transactionBlock.match(/<FITID>([^<]+)<\/FITID>/);
+          const nameMatch = transactionBlock.match(/<NAME>([^<]+)<\/NAME>/);
+          const checkNumMatch = transactionBlock.match(/<CHECKNUM>([^<]+)<\/CHECKNUM>/);
+          
+          // Suportar TRNTYPE para determinar tipo de transação
+          const trnTypeMatch = transactionBlock.match(/<TRNTYPE>([^<]+)<\/TRNTYPE>/);
+          
+          if (dateMatch && amountMatch) {
             const dateStr = dateMatch[1];
             const amount = parseFloat(amountMatch[1]);
-            const description = memoMatch[1].trim();
             
-            if (!isNaN(amount) && description) {
+            // Usar MEMO, NAME ou CHECKNUM como descrição
+            let description = '';
+            if (memoMatch) {
+              description = memoMatch[1].trim();
+            } else if (nameMatch) {
+              description = nameMatch[1].trim();
+            } else if (checkNumMatch) {
+              description = `Cheque ${checkNumMatch[1].trim()}`;
+            } else {
+              description = 'Transação sem descrição';
+            }
+            
+            if (!isNaN(amount) && description && amount !== 0) {
               const year = dateStr.substring(0, 4);
               const month = dateStr.substring(4, 6);
               const day = dateStr.substring(6, 8);
               const date = `${year}-${month}-${day}`;
               
-              const type: 'income' | 'expense' = amount > 0 ? 'income' : 'expense';
-              
-              let category: string | undefined;
-              const descriptionLower = description.toLowerCase();
-              
-              if (descriptionLower.includes('mercado') || descriptionLower.includes('supermercado') || 
-                  descriptionLower.includes('restaurante') || descriptionLower.includes('lanchonete')) {
-                category = 'Alimentação';
-              } else if (descriptionLower.includes('posto') || descriptionLower.includes('combustível') || 
-                         descriptionLower.includes('uber') || descriptionLower.includes('taxi')) {
-                category = 'Transporte';
-              } else if (descriptionLower.includes('farmacia') || descriptionLower.includes('farmácia') || 
-                         descriptionLower.includes('hospital') || descriptionLower.includes('clínica')) {
-                category = 'Saúde';
-              } else if (descriptionLower.includes('escola') || descriptionLower.includes('universidade') || 
-                         descriptionLower.includes('curso') || descriptionLower.includes('livro')) {
-                category = 'Educação';
-              } else if (descriptionLower.includes('cinema') || descriptionLower.includes('teatro') || 
-                         descriptionLower.includes('show') || descriptionLower.includes('viagem')) {
-                category = 'Lazer';
+              // Determinar tipo baseado no TRNTYPE ou valor
+              let type: 'income' | 'expense' = 'expense';
+              if (trnTypeMatch) {
+                const trnType = trnTypeMatch[1].toUpperCase();
+                if (trnType === 'CREDIT' || trnType === 'DEP' || trnType === 'DEPOSIT') {
+                  type = 'income';
+                } else if (trnType === 'DEBIT' || trnType === 'WITHDRAWAL' || trnType === 'PAYMENT') {
+                  type = 'expense';
+                } else {
+                  // Fallback para valor
+                  type = amount > 0 ? 'income' : 'expense';
+                }
+              } else {
+                // Fallback para valor se não houver TRNTYPE
+                type = amount > 0 ? 'income' : 'expense';
               }
+              
+              // Categorização inteligente usando o novo sistema
+              const engine = getCategoryEngine();
+              const categorization = engine.categorize({
+                date,
+                description,
+                amount: Math.abs(amount),
+                type,
+                category: undefined,
+                tags: []
+              });
+              
+              const category = categorization?.category;
               
               transactions.push({
                 date,
@@ -357,14 +405,17 @@ export const useImportWorker = (): UseImportWorkerReturn => {
                 category,
                 tags: []
               });
+              
+              count++;
             }
           }
         } catch (error) {
-          console.warn('Erro ao processar transação OFX:', error);
+          console.warn(`Erro ao processar transação OFX ${processedCount}:`, error);
           continue;
         }
       }
       
+      console.log(`Processamento OFX síncrono concluído: ${count} transações válidas de ${processedCount} processadas`);
       return transactions;
     } catch (error) {
       throw new Error(`Erro ao processar arquivo OFX: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);

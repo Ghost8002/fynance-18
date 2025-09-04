@@ -6,6 +6,12 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { formatFinancialPeriod } from "@/utils/financialPeriod";
 import { PeriodType } from "@/components/dashboard/PeriodFilter";
+import { 
+  calculatePeriodSummary, 
+  calculateAccountBalanceFromTransactions,
+  validateFinancialData,
+  safeToNumber 
+} from "@/utils/financialCalculations";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -36,30 +42,11 @@ const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month'
   const { data: goals } = useSupabaseData('goals', user?.id);
   const { getFinancialPeriod } = useFinancialPeriod();
 
-  // Calculate real account balances based on transactions
-  const calculateTotalAccountBalance = () => {
-    if (!transactions || !accounts) return 0;
-    
-    return accounts.reduce((totalSum, account) => {
-      // Use correct formula: Saldo Inicial + Entradas - Saídas
-      const initialBalance = Number(account.balance) || 0;
-      
-      // Get all transactions for this account
-      const accountTransactions = transactions.filter(t => t.account_id === account.id);
-      
-      // Calculate incomes and expenses separately
-      const incomes = accountTransactions.filter(t => t.type === 'income');
-      const expenses = accountTransactions.filter(t => t.type === 'expense');
-      
-      const totalIncome = incomes.reduce((sum, t) => sum + Number(t.amount) || 0, 0);
-      const totalExpense = expenses.reduce((sum, t) => sum + Number(t.amount) || 0, 0);
-      
-      const accountBalance = initialBalance + totalIncome - totalExpense;
-      console.log(`FinancialSummary - Account ${account.name}: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${accountBalance}`);
-      
-      return totalSum + accountBalance;
-    }, 0);
-  };
+  // Validar dados financeiros
+  const validation = validateFinancialData(transactions || [], accounts || []);
+  if (!validation.isValid) {
+    console.warn('Dados financeiros inválidos:', validation.errors);
+  }
 
   if (loading) {
     return (
@@ -88,29 +75,25 @@ const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month'
     );
   }
 
-// Determinar período atual (predefinido ou personalizado)
-const currentPeriod = (selectedPeriod === 'custom' && customDateRange?.from && customDateRange?.to && customDateRange.from <= customDateRange.to)
-  ? { startDate: customDateRange.from as Date, endDate: customDateRange.to as Date }
-  : getFinancialPeriod(selectedPeriod);
+  // Determinar período atual (predefinido ou personalizado)
+  const currentPeriod = (selectedPeriod === 'custom' && customDateRange?.from && customDateRange?.to && customDateRange.from <= customDateRange.to)
+    ? { startDate: customDateRange.from as Date, endDate: customDateRange.to as Date }
+    : getFinancialPeriod(selectedPeriod);
 
-// Filtrar transações do período selecionado
-const currentPeriodTransactions = transactions.filter(t => {
-  const d = new Date(t.date);
-  return d >= currentPeriod.startDate && d <= currentPeriod.endDate;
-});
+  // Calcular resumo financeiro usando a nova função
+  const financialSummary = calculatePeriodSummary(
+    transactions || [], 
+    currentPeriod, 
+    accounts || []
+  );
 
-  const totalIncome = currentPeriodTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + toNumber(t.amount), 0);
-
-  const totalExpenses = currentPeriodTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + toNumber(t.amount), 0);
-
-  const balance = totalIncome - totalExpenses;
-  
-  // Calculate total account balance based on transactions instead of stored balance
-  const totalAccountBalance = calculateTotalAccountBalance();
+  const { 
+    totalIncome, 
+    totalExpenses, 
+    periodBalance: balance, 
+    totalAccountBalance,
+    transactionCount: thisMonthTransactions 
+  } = financialSummary;
   
   const totalCreditLimit = cards.reduce((sum, card) => sum + toNumber(card.credit_limit), 0);
   const totalUsedCredit = cards.reduce((sum, card) => sum + toNumber(card.used_amount), 0);
@@ -122,7 +105,12 @@ const currentPeriodTransactions = transactions.filter(t => {
   const totalGoalsTarget = goals.reduce((sum, goal) => sum + toNumber(goal.target_amount), 0);
   const totalGoalsCurrent = goals.reduce((sum, goal) => sum + toNumber(goal.current_amount), 0);
   const goalsProgress = totalGoalsTarget > 0 ? (totalGoalsCurrent / totalGoalsTarget) * 100 : 0;
-  const thisMonthTransactions = currentPeriodTransactions.length;
+
+  // Filtrar transações do período para análise de categorias
+  const currentPeriodTransactions = (transactions || []).filter(t => {
+    const d = new Date(t.date);
+    return d >= currentPeriod.startDate && d <= currentPeriod.endDate;
+  });
 
   const expensesByCategory = currentPeriodTransactions
     .filter(t => t.type === 'expense')
