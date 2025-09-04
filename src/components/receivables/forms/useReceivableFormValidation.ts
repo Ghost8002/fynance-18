@@ -1,6 +1,6 @@
 
 import { toast } from "sonner";
-import { isBefore } from "date-fns";
+ 
 
 interface FormData {
   description: string;
@@ -18,11 +18,7 @@ export const useReceivableFormValidation = () => {
       return false;
     }
 
-    // Validação de data de vencimento
-    if (formData.due_date && isBefore(formData.due_date, new Date())) {
-      toast.error("A data de vencimento deve ser futura");
-      return false;
-    }
+    
 
     // Validação de valor
     const amount = parseFloat(formData.amount.toString());

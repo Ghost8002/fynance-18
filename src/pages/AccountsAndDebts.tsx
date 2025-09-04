@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PeriodFilter } from "@/components/dashboard/PeriodFilter";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PeriodSummary } from "@/components/shared/PeriodSummary";
 import { PeriodFilterProvider } from "@/context/PeriodFilterContext";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
@@ -14,7 +16,7 @@ import DebtStats from "@/components/debts/DebtStats";
 import { AdvancedFilters } from "@/components/shared/AdvancedFilters";
 import { useAdvancedFilters } from "@/hooks/useAdvancedFilters";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { isWithinInterval, startOfDay } from "date-fns";
+import { isWithinInterval, startOfDay, parse } from "date-fns";
 
 const AccountsAndDebts = () => {
   const { isAuthenticated, user } = useAuth();
@@ -22,7 +24,7 @@ const AccountsAndDebts = () => {
   const [activeTab, setActiveTab] = useState("receivables");
 
   // Period filter hook
-  const { selectedPeriod, setSelectedPeriod, dateRange } = usePeriodFilter();
+  const { selectedPeriod, setSelectedPeriod, dateRange, goToPreviousMonth, goToNextMonth } = usePeriodFilter();
 
   // Advanced filters hooks
   const receivablesFilters = useAdvancedFilters('receivables');
@@ -35,7 +37,7 @@ const AccountsAndDebts = () => {
 
   // Filter data by period and advanced filters
   const periodFilteredPayments = payments?.filter(payment => {
-    const dueDate = startOfDay(new Date(payment.due_date));
+    const dueDate = startOfDay(parse(payment.due_date, 'yyyy-MM-dd', new Date()));
     return isWithinInterval(dueDate, {
       start: dateRange.startDate,
       end: dateRange.endDate
@@ -43,7 +45,7 @@ const AccountsAndDebts = () => {
   }) || [];
 
   const periodFilteredDebts = debts?.filter(debt => {
-    const dueDate = startOfDay(new Date(debt.due_date));
+    const dueDate = startOfDay(parse(debt.due_date, 'yyyy-MM-dd', new Date()));
     return isWithinInterval(dueDate, {
       start: dateRange.startDate,
       end: dateRange.endDate
@@ -54,15 +56,15 @@ const AccountsAndDebts = () => {
   const filteredPayments = receivablesFilters.applyFilters(periodFilteredPayments);
   const filteredDebts = debtsFilters.applyFilters(periodFilteredDebts);
 
-  // Calculate period totals for receivables
+  // Calculate period totals for receivables (comparando com o fim do período selecionado)
   const receivablesTotals = filteredPayments.reduce((acc, payment) => {
     const amount = Number(payment.amount);
     if (payment.status === 'received') {
       acc.completed += amount;
     } else if (payment.status === 'pending') {
-      const today = startOfDay(new Date());
-      const due = startOfDay(new Date(payment.due_date));
-      if (due < today) {
+      const periodEnd = startOfDay(new Date(dateRange.endDate));
+      const due = startOfDay(parse(payment.due_date, 'yyyy-MM-dd', new Date()));
+      if (due < periodEnd) {
         acc.overdue += amount;
       } else {
         acc.pending += amount;
@@ -71,15 +73,15 @@ const AccountsAndDebts = () => {
     return acc;
   }, { pending: 0, completed: 0, overdue: 0 });
 
-  // Calculate period totals for debts
+  // Calculate period totals for debts (comparando com o fim do período selecionado)
   const debtsTotals = filteredDebts.reduce((acc, debt) => {
     const amount = Number(debt.amount);
     if (debt.status === 'paid') {
       acc.completed += amount;
     } else if (debt.status === 'pending') {
-      const today = startOfDay(new Date());
-      const due = startOfDay(new Date(debt.due_date));
-      if (due < today) {
+      const periodEnd = startOfDay(new Date(dateRange.endDate));
+      const due = startOfDay(parse(debt.due_date, 'yyyy-MM-dd', new Date()));
+      if (due < periodEnd) {
         acc.overdue += amount;
       } else {
         acc.pending += amount;
@@ -109,10 +111,18 @@ const AccountsAndDebts = () => {
             </p>
           </div>
 
-          <PeriodFilter 
-            value={selectedPeriod}
-            onChange={setSelectedPeriod}
-          />
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <PeriodFilter 
+              value={selectedPeriod}
+              onChange={setSelectedPeriod}
+            />
+            <Button variant="outline" size="icon" onClick={goToNextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PeriodSummary

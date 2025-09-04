@@ -297,10 +297,15 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
               <Label htmlFor="total_amount">Valor Total *</Label>
               <Input
                 id="total_amount"
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={formData.total_amount}
-                onChange={(e) => handleInputChange('total_amount', e.target.value)}
+                onChange={(e) => {
+                  const withDot = e.target.value.replace(/,/g, ".");
+                  const cleaned = withDot.replace(/[^\d.]/g, "");
+                  const singleDot = cleaned.replace(/(\..*)\./g, "$1");
+                  handleInputChange('total_amount', singleDot);
+                }}
                 placeholder="0,00"
               />
             </div>

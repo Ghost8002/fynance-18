@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import TagSelector from "@/components/shared/TagSelector";
-import { isBefore } from "date-fns";
+ 
 
 interface Debt {
   id: string;
@@ -122,15 +122,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
       return;
     }
 
-    // Validação de data de vencimento
-    if (formData.due_date && isBefore(formData.due_date, new Date())) {
-      toast({
-        title: "Erro",
-        description: "A data de vencimento deve ser futura",
-        variant: "destructive",
-      });
-      return;
-    }
+    
 
     // Validação de valor
     const amount = parseFloat(formData.amount);

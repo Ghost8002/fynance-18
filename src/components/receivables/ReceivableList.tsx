@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay, isWithinInterval } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
@@ -32,7 +32,7 @@ const formatCurrency = (value: number) => {
 // Helper function to get status badge
 const getStatusBadge = (status: string, dueDate: string) => {
   const today = startOfDay(new Date());
-  const due = startOfDay(new Date(dueDate));
+  const due = startOfDay(parse(dueDate, 'yyyy-MM-dd', new Date()));
   let actualStatus = status;
   if (status === 'pending' && isBefore(due, today)) {
     actualStatus = 'overdue';
@@ -123,7 +123,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
   const filteredReceivables = useMemo(() => {
     return receivables.filter(receivable => {
       // Period filter
-      const dueDate = startOfDay(new Date(receivable.due_date));
+      const dueDate = startOfDay(parse(receivable.due_date, 'yyyy-MM-dd', new Date()));
       const withinPeriod = isWithinInterval(dueDate, {
         start: dateRange.startDate,
         end: dateRange.endDate
@@ -136,11 +136,11 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
 
   // Calculate totals for filtered receivables
   const totals = useMemo(() => {
-    const today = startOfDay(new Date());
+    const periodEnd = startOfDay(new Date(dateRange.endDate));
     return filteredReceivables.reduce((acc, receivable) => {
-      const due = startOfDay(new Date(receivable.due_date));
+      const due = startOfDay(parse(receivable.due_date, 'yyyy-MM-dd', new Date()));
       let actualStatus = receivable.status;
-      if (receivable.status === 'pending' && isBefore(due, today)) {
+      if (receivable.status === 'pending' && isBefore(due, periodEnd)) {
         actualStatus = 'overdue';
       }
       const amount = Number(receivable.amount);
@@ -155,7 +155,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       overdue: 0,
       total: 0
     });
-  }, [filteredReceivables]);
+  }, [filteredReceivables, dateRange.endDate]);
   const handleMarkAsReceived = async (receivable: any) => {
     const operationId = `mark-received-${receivable.id}`;
     try {
@@ -448,7 +448,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                   {filteredReceivables.map(receivable => <TableRow key={receivable.id}>
                       <TableCell className="font-medium">{receivable.description}</TableCell>
                       <TableCell>{formatCurrency(Number(receivable.amount))}</TableCell>
-                      <TableCell>{format(new Date(receivable.due_date), "dd/MM/yyyy", {
+                      <TableCell>{format(parse(receivable.due_date, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy", {
                     locale: ptBR
                   })}</TableCell>
                       <TableCell>

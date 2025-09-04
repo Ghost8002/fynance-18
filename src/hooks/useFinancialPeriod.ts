@@ -7,13 +7,13 @@ import { PeriodType } from '@/components/dashboard/PeriodFilter';
 export const useFinancialPeriod = () => {
   const { generalSettings } = useUserSettings();
 
-  const getFinancialPeriod = (periodType: PeriodType): FinancialPeriod => {
+  const getFinancialPeriod = (periodType: PeriodType, referenceDate?: Date): FinancialPeriod => {
     const monthStartDay = parseInt(generalSettings.month_start_day) || 1;
-    return getFinancialPeriodByType(periodType, monthStartDay);
+    return getFinancialPeriodByType(periodType, monthStartDay, referenceDate);
   };
 
-  const filterTransactionsByPeriod = (transactions: any[], periodType: PeriodType) => {
-    const { startDate, endDate } = getFinancialPeriod(periodType);
+  const filterTransactionsByPeriod = (transactions: any[], periodType: PeriodType, referenceDate?: Date) => {
+    const { startDate, endDate } = getFinancialPeriod(periodType, referenceDate);
     
     return transactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);

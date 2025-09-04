@@ -17,7 +17,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { isBefore } from "date-fns";
+ 
 import TagSelector from "@/components/shared/TagSelector";
 
 interface Receivable {
@@ -103,15 +103,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
       return;
     }
 
-    // Validação de data de vencimento
-    if (formData.due_date && isBefore(formData.due_date, new Date())) {
-      toast({
-        title: "Erro",
-        description: "A data de vencimento deve ser futura",
-        variant: "destructive",
-      });
-      return;
-    }
+    
 
     // Validação de valor
     const amount = parseFloat(formData.amount);
