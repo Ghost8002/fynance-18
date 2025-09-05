@@ -122,8 +122,6 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
       return;
     }
 
-    
-
     // Validação de valor
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || !isFinite(amount) || amount <= 0) {
@@ -133,6 +131,19 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Validação de data (não permitir datas muito antigas)
+    const dueDate = new Date(formData.due_date);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    
+    if (dueDate < oneYearAgo) {
+      toast({
+        title: "Atenção",
+        description: "Data de vencimento muito antiga. Isso pode afetar o histórico financeiro.",
+        variant: "default",
+      });
     }
 
     // Validação de recorrência
@@ -176,31 +187,29 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
 
     setLoading(true);
     try {
-      const debtData = {
-        user_id: user.id,
-        description: formData.description,
-        amount: amount, // Usar o valor validado
-        due_date: format(formData.due_date, 'yyyy-MM-dd'),
-        status: formData.status,
-        notes: formData.notes || null,
-        account_id: formData.account_id || null,
-        category_id: formData.category_id || null,
-        is_recurring: formData.is_recurring,
-        recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
-        max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
-        recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null,
-        card_id: formData.card_id || null,
-        is_card_bill: formData.is_card_bill,
-        bill_month: formData.is_card_bill && formData.bill_month ? parseInt(formData.bill_month) : null,
-        bill_year: formData.is_card_bill && formData.bill_year ? parseInt(formData.bill_year) : null,
-        installment_id: formData.installment_id || null,
-        installment_number: formData.installment_id && formData.installment_number ? parseInt(formData.installment_number) : null
-      };
-
-      console.log('Debt data to be saved:', debtData);
-
       if (debt) {
         // Update existing debt
+        const debtData = {
+          user_id: user.id,
+          description: formData.description,
+          amount: amount,
+          due_date: format(formData.due_date, 'yyyy-MM-dd'),
+          status: formData.status,
+          notes: formData.notes || null,
+          account_id: formData.account_id || null,
+          category_id: formData.category_id || null,
+          is_recurring: formData.is_recurring,
+          recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
+          max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
+          recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null,
+          card_id: formData.card_id || null,
+          is_card_bill: formData.is_card_bill,
+          bill_month: formData.is_card_bill && formData.bill_month ? parseInt(formData.bill_month) : null,
+          bill_year: formData.is_card_bill && formData.bill_year ? parseInt(formData.bill_year) : null,
+          installment_id: formData.installment_id || null,
+          installment_number: formData.installment_id && formData.installment_number ? parseInt(formData.installment_number) : null
+        };
+
         const { error } = await supabase
           .from('debts')
           .update(debtData)
@@ -215,14 +224,36 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
           description: "Dívida atualizada com sucesso",
         });
       } else {
-        // Create new debt
-        const { error } = await supabase
-          .from('debts')
-          .insert(debtData);
+        // Create new debt using validation function
+        const { data, error } = await supabase.rpc('create_debt_with_validation', {
+          p_description: formData.description,
+          p_amount: amount,
+          p_due_date: format(formData.due_date, 'yyyy-MM-dd'),
+          p_account_id: formData.account_id || null,
+          p_category_id: formData.category_id || null,
+          p_notes: formData.notes || null,
+          p_is_recurring: formData.is_recurring,
+          p_recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
+          p_max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
+          p_recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null
+        });
 
         if (error) {
           console.error('Error creating debt:', error);
           throw error;
+        }
+
+        if (!data.success) {
+          if (data.error === 'DUPLICATE') {
+            toast({
+              title: "Erro",
+              description: "Já existe uma dívida com essas características. Verifique os dados e tente novamente.",
+              variant: "destructive",
+            });
+            return;
+          } else {
+            throw new Error(data.message || 'Erro ao criar dívida');
+          }
         }
 
         // If debt is created as paid, create a transaction
@@ -230,9 +261,9 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
           const transactionData = {
             user_id: user.id,
             description: `Pagamento: ${formData.description}`,
-            amount: -Math.abs(amount), // Usar o valor validado
+            amount: -Math.abs(amount),
             type: 'expense',
-            date: format(formData.due_date, 'yyyy-MM-dd'),
+            date: format(formData.due_date, 'yyyy-MM-dd'), // ✅ Usar data de vencimento
             account_id: formData.account_id,
             category_id: formData.category_id || null
           };

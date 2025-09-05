@@ -34,18 +34,35 @@ const formatCurrency = (value: number) => {
 const getStatusBadge = (status: string, dueDate: string, periodEnd?: Date) => {
   const comparisonDate = periodEnd || startOfDay(new Date());
   const due = startOfDay(parse(dueDate, 'yyyy-MM-dd', new Date()));
+  const today = startOfDay(new Date());
+  const daysDiff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  
   let actualStatus = status;
   if (status === 'pending' && isBefore(due, comparisonDate)) {
     actualStatus = 'overdue';
   }
+  
   switch (actualStatus) {
     case 'paid':
       return <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Paga</Badge>;
     case 'overdue':
-      return <Badge variant="destructive">Em Atraso</Badge>;
+      return <Badge variant="destructive" className="flex items-center gap-1">
+        <AlertCircle className="h-3 w-3" />
+        Em Atraso ({Math.abs(daysDiff)} dias)
+      </Badge>;
     case 'pending':
     default:
-      return <Badge variant="secondary">Pendente</Badge>;
+      if (daysDiff <= 3 && daysDiff >= 0) {
+        return <Badge variant="outline" className="text-orange-600 border-orange-200">
+          Vence em {daysDiff} dias
+        </Badge>;
+      } else if (daysDiff < 0) {
+        return <Badge variant="destructive">
+          Em Atraso ({Math.abs(daysDiff)} dias)
+        </Badge>;
+      } else {
+        return <Badge variant="secondary">Pendente</Badge>;
+      }
   }
 };
 
