@@ -4,54 +4,35 @@ import { useState } from "react";
 import { Eye, EyeOff, Calculator } from "lucide-react";
 import { formatFinancialPeriod } from "@/utils/financialPeriod";
 import { calculatePeriodSummary, validateFinancialData } from "@/utils/financialCalculations";
-
 interface FinancialDebugPanelProps {
   transactions: any[];
   accounts: any[];
-  currentPeriod: { startDate: Date; endDate: Date };
+  currentPeriod: {
+    startDate: Date;
+    endDate: Date;
+  };
   selectedPeriod: string;
 }
-
-export const FinancialDebugPanel = ({ 
-  transactions, 
-  accounts, 
-  currentPeriod, 
-  selectedPeriod 
+export const FinancialDebugPanel = ({
+  transactions,
+  accounts,
+  currentPeriod,
+  selectedPeriod
 }: FinancialDebugPanelProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-
   if (!isVisible) {
-    return (
-      <Card className="border-dashed border-2 border-muted-foreground/25">
-        <CardContent className="p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsVisible(true)}
-            className="w-full"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Mostrar Painel de Debug Financeiro
-          </Button>
-        </CardContent>
-      </Card>
-    );
+    return;
   }
-
   const validation = validateFinancialData(transactions || [], accounts || []);
   const summary = calculatePeriodSummary(transactions || [], currentPeriod, accounts || []);
-
   const periodTransactions = (transactions || []).filter(t => {
     const d = new Date(t.date);
     return d >= currentPeriod.startDate && d <= currentPeriod.endDate;
   });
-
   const incomeTransactions = periodTransactions.filter(t => t.type === 'income');
   const expenseTransactions = periodTransactions.filter(t => t.type === 'expense');
-
-  return (
-    <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+  return <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -59,19 +40,11 @@ export const FinancialDebugPanel = ({
             Debug Financeiro
           </CardTitle>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDetails(!showDetails)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowDetails(!showDetails)}>
               {showDetails ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {showDetails ? 'Ocultar' : 'Detalhes'}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsVisible(false)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setIsVisible(false)}>
               <EyeOff className="h-4 w-4" />
               Fechar
             </Button>
@@ -111,27 +84,22 @@ export const FinancialDebugPanel = ({
         <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
           <h4 className="font-semibold mb-2">Período Selecionado:</h4>
           <p className="text-sm">
-            <strong>Tipo:</strong> {selectedPeriod}<br/>
-            <strong>Período:</strong> {formatFinancialPeriod(currentPeriod)}<br/>
+            <strong>Tipo:</strong> {selectedPeriod}<br />
+            <strong>Período:</strong> {formatFinancialPeriod(currentPeriod)}<br />
             <strong>Transações no período:</strong> {summary.transactionCount}
           </p>
         </div>
 
         {/* Validação */}
-        {!validation.isValid && (
-          <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg">
+        {!validation.isValid && <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg">
             <h4 className="font-semibold text-red-700 mb-2">⚠️ Problemas Encontrados:</h4>
             <ul className="text-sm text-red-600 space-y-1">
-              {validation.errors.map((error, index) => (
-                <li key={index}>• {error}</li>
-              ))}
+              {validation.errors.map((error, index) => <li key={index}>• {error}</li>)}
             </ul>
-          </div>
-        )}
+          </div>}
 
         {/* Detalhes das Transações */}
-        {showDetails && (
-          <div className="space-y-4">
+        {showDetails && <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Receitas */}
               <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
@@ -139,15 +107,11 @@ export const FinancialDebugPanel = ({
                   Receitas ({incomeTransactions.length})
                 </h4>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {incomeTransactions.map((t) => (
-                    <div key={t.id} className="text-sm flex justify-between">
+                  {incomeTransactions.map(t => <div key={t.id} className="text-sm flex justify-between">
                       <span className="truncate">{t.description}</span>
                       <span className="font-mono">R$ {Number(t.amount).toFixed(2)}</span>
-                    </div>
-                  ))}
-                  {incomeTransactions.length === 0 && (
-                    <p className="text-sm text-gray-500">Nenhuma receita no período</p>
-                  )}
+                    </div>)}
+                  {incomeTransactions.length === 0 && <p className="text-sm text-gray-500">Nenhuma receita no período</p>}
                 </div>
               </div>
 
@@ -157,15 +121,11 @@ export const FinancialDebugPanel = ({
                   Despesas ({expenseTransactions.length})
                 </h4>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {expenseTransactions.map((t) => (
-                    <div key={t.id} className="text-sm flex justify-between">
+                  {expenseTransactions.map(t => <div key={t.id} className="text-sm flex justify-between">
                       <span className="truncate">{t.description}</span>
                       <span className="font-mono">R$ {Number(t.amount).toFixed(2)}</span>
-                    </div>
-                  ))}
-                  {expenseTransactions.length === 0 && (
-                    <p className="text-sm text-gray-500">Nenhuma despesa no período</p>
-                  )}
+                    </div>)}
+                  {expenseTransactions.length === 0 && <p className="text-sm text-gray-500">Nenhuma despesa no período</p>}
                 </div>
               </div>
             </div>
@@ -176,17 +136,13 @@ export const FinancialDebugPanel = ({
                 Contas ({accounts?.length || 0})
               </h4>
               <div className="space-y-1 max-h-32 overflow-y-auto">
-                {accounts?.map((account) => (
-                  <div key={account.id} className="text-sm flex justify-between">
+                {accounts?.map(account => <div key={account.id} className="text-sm flex justify-between">
                     <span>{account.name}</span>
                     <span className="font-mono">R$ {Number(account.balance).toFixed(2)}</span>
-                  </div>
-                )) || <p className="text-sm text-gray-500">Nenhuma conta encontrada</p>}
+                  </div>) || <p className="text-sm text-gray-500">Nenhuma conta encontrada</p>}
               </div>
             </div>
-          </div>
-        )}
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
