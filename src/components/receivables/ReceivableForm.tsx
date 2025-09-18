@@ -199,36 +199,32 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
           description: "Pagamento atualizado com sucesso",
         });
       } else {
-        // Create new receivable using validation function
-        const { data, error } = await supabase.rpc('create_receivable_with_validation', {
-          p_description: formData.description,
-          p_amount: amount,
-          p_due_date: format(formData.due_date, 'yyyy-MM-dd'),
-          p_account_id: formData.account_id || null,
-          p_category_id: formData.category_id || null,
-          p_notes: formData.notes || null,
-          p_is_recurring: formData.is_recurring,
-          p_recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
-          p_max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
-          p_recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null
-        });
+        // Create new receivable directly using insert
+        const { data, error } = await supabase
+          .from('receivable_payments')
+          .insert({
+            user_id: user.id,
+            description: formData.description,
+            amount: amount,
+            due_date: format(formData.due_date, 'yyyy-MM-dd'),
+            account_id: formData.account_id || null,
+            category_id: formData.category_id || null,
+            notes: formData.notes || null,
+            is_recurring: formData.is_recurring,
+            recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
+            max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
+            recurrence_end_date: formData.is_recurring && formData.recurrence_end_date ? format(formData.recurrence_end_date, 'yyyy-MM-dd') : null,
+            status: 'pending'
+          })
+          .select();
 
         if (error) {
           console.error('Error creating receivable:', error);
           throw error;
         }
 
-        if (!data.success) {
-          if (data.error === 'DUPLICATE') {
-            toast({
-              title: "Erro",
-              description: "Já existe um pagamento com essas características. Verifique os dados e tente novamente.",
-              variant: "destructive",
-            });
-            return;
-          } else {
-            throw new Error(data.message || 'Erro ao criar pagamento');
-          }
+        if (!data || data.length === 0) {
+          throw new Error('Erro ao criar pagamento');
         }
 
         // If receivable is created as received, create a transaction
