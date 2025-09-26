@@ -243,12 +243,8 @@ const Imports = () => {
       {/* Componente de importação unificado */}
       <div className="mb-8">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold mb-2 text-finance-text-primary">
-            Importação Rápida
-          </h2>
-          <p className="text-finance-text-secondary">
-            Use nossa interface simplificada para importar transações de forma direta e eficiente
-          </p>
+          
+          
         </div>
         
         <UnifiedImportComponent />
@@ -256,26 +252,7 @@ const Imports = () => {
 
       {/* Seção de ajuda */}
       <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
-        <CardContent className="p-6">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2 text-finance-text-primary">
-              Precisa de Ajuda?
-            </h3>
-            <p className="text-finance-text-secondary mb-4">
-              Consulte nossa documentação ou entre em contato com o suporte
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Info className="h-4 w-4" />
-                Documentação
-              </Button>
-              <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
-                <Upload className="h-4 w-4 mr-2" />
-                Suporte
-              </Button>
-            </div>
-          </div>
-        </CardContent>
+        
       </Card>
     </AppLayout>;
 };
