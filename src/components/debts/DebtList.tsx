@@ -7,17 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
-import { usePeriodFilterContext } from "@/context/PeriodFilterContext";
 import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
-import { AdvancedFilters, FilterConfig, FilterPreset } from "@/components/shared/AdvancedFilters";
 import { supabase } from "@/integrations/supabase/client";
+import { startOfMonth, endOfMonth } from "date-fns";
 import DebtForm from "./DebtForm";
 import { CardDebtsSection } from "./CardDebtsSection";
 
@@ -80,23 +79,19 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
     </Badge>;
 };
 interface DebtListProps {
-  filters: FilterConfig;
-  onFiltersChange: (filters: FilterConfig) => void;
   categories?: Array<{ id: string; name: string; type: string }>;
   accounts?: Array<{ id: string; name: string; type: string }>;
-  presets?: FilterPreset[];
-  onSavePreset?: (preset: FilterPreset) => void;
-  onLoadPreset?: (presetId: string) => void;
+  currentMonth: Date;
+  onPreviousMonth: () => void;
+  onNextMonth: () => void;
 }
 
 const DebtList: React.FC<DebtListProps> = ({
-  filters,
-  onFiltersChange,
   categories: propCategories = [],
   accounts: propAccounts = [],
-  presets = [],
-  onSavePreset,
-  onLoadPreset
+  currentMonth,
+  onPreviousMonth,
+  onNextMonth
 }) => {
   const {
     user
@@ -122,9 +117,6 @@ const DebtList: React.FC<DebtListProps> = ({
     updateAccountBalance
   } = useBalanceUpdates();
   const {
-    dateRange
-  } = usePeriodFilterContext();
-  const {
     toast
   } = useToast();
   const [selectedDebt, setSelectedDebt] = useState<any>(null);
@@ -140,28 +132,23 @@ const DebtList: React.FC<DebtListProps> = ({
   // Find default expense category
   const defaultExpenseCategory = categories.find(cat => cat.type === 'expense' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('despesa'))) || categories.find(cat => cat.type === 'expense');
 
-  // Filter and search debts
+  // Filter debts by current month only
   const filteredDebts = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    
     return debts.filter(debt => {
-      // Period filter
-      const dueDate = startOfDay(parse(debt.due_date, 'yyyy-MM-dd', new Date()));
-      const withinPeriod = isWithinInterval(dueDate, {
-        start: dateRange.startDate,
-        end: dateRange.endDate
-      });
-      if (!withinPeriod) return false;
-
-      return true; // Advanced filters are now handled at the page level
+      const dueDate = new Date(debt.due_date);
+      return dueDate >= monthStart && dueDate <= monthEnd;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [debts, dateRange]);
+  }, [debts, currentMonth]);
 
   // Calculate totals for filtered debts
   const totals = useMemo(() => {
-    const periodEnd = startOfDay(new Date(dateRange.endDate));
     return filteredDebts.reduce((acc, debt) => {
-      const due = startOfDay(parse(debt.due_date, 'yyyy-MM-dd', new Date()));
+      const due = new Date(debt.due_date);
       let actualStatus = debt.status;
-      if (debt.status === 'pending' && isBefore(due, periodEnd)) {
+      if (debt.status === 'pending' && due < new Date()) {
         actualStatus = 'overdue';
       }
       const amount = Number(debt.amount);
@@ -427,37 +414,35 @@ const DebtList: React.FC<DebtListProps> = ({
               
             </div>
             
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setSelectedDebt(null)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Dívida
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>{selectedDebt ? 'Editar Dívida' : 'Nova Dívida'}</DialogTitle>
-                </DialogHeader>
-                <DebtForm debt={selectedDebt} onClose={handleFormCancel} onSave={handleFormSubmit} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={onPreviousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="text-sm font-medium px-2">
+                {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+              </div>
+              <Button variant="outline" size="sm" onClick={onNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setSelectedDebt(null)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Dívida
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{selectedDebt ? 'Editar Dívida' : 'Nova Dívida'}</DialogTitle>
+                  </DialogHeader>
+                  <DebtForm debt={selectedDebt} onClose={handleFormCancel} onSave={handleFormSubmit} />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           
-          {/* Advanced filters are now handled at the page level */}
         </CardHeader>
-        
-        {/* Advanced Filters - Posicionado após o header e antes da tabela */}
-        <AdvancedFilters
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          categories={propCategories}
-          accounts={propAccounts}
-          presets={presets}
-          onSavePreset={onSavePreset}
-          onLoadPreset={onLoadPreset}
-          type="debts"
-          className="px-6 pb-4"
-        />
         
         <CardContent>
           {filteredDebts.length > 0 ? <div className="rounded-md border">

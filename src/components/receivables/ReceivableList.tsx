@@ -7,17 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
-import { usePeriodFilterContext } from "@/context/PeriodFilterContext";
 import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
-import { AdvancedFilters, FilterConfig, FilterPreset } from "@/components/shared/AdvancedFilters";
 import { supabase } from "@/integrations/supabase/client";
+import { startOfMonth, endOfMonth } from "date-fns";
 import ReceivableForm from "./ReceivableForm";
 
 // Helper function to format Brazilian currency
@@ -78,23 +77,19 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
     </Badge>;
 };
 interface ReceivableListProps {
-  filters: FilterConfig;
-  onFiltersChange: (filters: FilterConfig) => void;
   categories?: Array<{ id: string; name: string; type: string }>;
   accounts?: Array<{ id: string; name: string; type: string }>;
-  presets?: FilterPreset[];
-  onSavePreset?: (preset: FilterPreset) => void;
-  onLoadPreset?: (presetId: string) => void;
+  currentMonth: Date;
+  onPreviousMonth: () => void;
+  onNextMonth: () => void;
 }
 
 const ReceivableList: React.FC<ReceivableListProps> = ({
-  filters,
-  onFiltersChange,
   categories: propCategories = [],
   accounts: propAccounts = [],
-  presets = [],
-  onSavePreset,
-  onLoadPreset
+  currentMonth,
+  onPreviousMonth,
+  onNextMonth
 }) => {
   const {
     user
@@ -117,9 +112,6 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
     updateAccountBalance
   } = useBalanceUpdates();
   const {
-    dateRange
-  } = usePeriodFilterContext();
-  const {
     toast
   } = useToast();
   const [selectedReceivable, setSelectedReceivable] = useState<any>(null);
@@ -135,28 +127,23 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
   // Find default income category
   const defaultIncomeCategory = categories.find(cat => cat.type === 'income' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('receita'))) || categories.find(cat => cat.type === 'income');
 
-  // Filter and search receivables
+  // Filter receivables by current month only
   const filteredReceivables = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    
     return receivables.filter(receivable => {
-      // Period filter
-      const dueDate = startOfDay(parse(receivable.due_date, 'yyyy-MM-dd', new Date()));
-      const withinPeriod = isWithinInterval(dueDate, {
-        start: dateRange.startDate,
-        end: dateRange.endDate
-      });
-      if (!withinPeriod) return false;
-
-      return true; // Advanced filters are now handled at the page level
+      const dueDate = new Date(receivable.due_date);
+      return dueDate >= monthStart && dueDate <= monthEnd;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  }, [receivables, dateRange]);
+  }, [receivables, currentMonth]);
 
   // Calculate totals for filtered receivables
   const totals = useMemo(() => {
-    const periodEnd = startOfDay(new Date(dateRange.endDate));
     return filteredReceivables.reduce((acc, receivable) => {
-      const due = startOfDay(parse(receivable.due_date, 'yyyy-MM-dd', new Date()));
+      const due = new Date(receivable.due_date);
       let actualStatus = receivable.status;
-      if (receivable.status === 'pending' && isBefore(due, periodEnd)) {
+      if (receivable.status === 'pending' && due < new Date()) {
         actualStatus = 'overdue';
       }
       const amount = Number(receivable.amount);
@@ -171,7 +158,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       overdue: 0,
       total: 0
     });
-  }, [filteredReceivables, dateRange.endDate]);
+  }, [filteredReceivables]);
   const handleMarkAsReceived = async (receivable: any) => {
     const operationId = `mark-received-${receivable.id}`;
     try {
@@ -414,37 +401,35 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
               
             </div>
             
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setSelectedReceivable(null)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Pagamento
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>{selectedReceivable ? 'Editar Pagamento' : 'Novo Pagamento'}</DialogTitle>
-                </DialogHeader>
-                <ReceivableForm receivable={selectedReceivable} onClose={handleFormCancel} onSave={handleFormSubmit} />
-              </DialogContent>
-            </Dialog>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={onPreviousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="text-sm font-medium px-2">
+                {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+              </div>
+              <Button variant="outline" size="sm" onClick={onNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setSelectedReceivable(null)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Pagamento
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{selectedReceivable ? 'Editar Pagamento' : 'Novo Pagamento'}</DialogTitle>
+                  </DialogHeader>
+                  <ReceivableForm receivable={selectedReceivable} onClose={handleFormCancel} onSave={handleFormSubmit} />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           
-          {/* Advanced filters are now handled at the page level */}
         </CardHeader>
-        
-        {/* Advanced Filters - Posicionado após o header e antes da tabela */}
-        <AdvancedFilters
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          categories={propCategories}
-          accounts={propAccounts}
-          presets={presets}
-          onSavePreset={onSavePreset}
-          onLoadPreset={onLoadPreset}
-          type="receivables"
-          className="px-6 pb-4"
-        />
         
         <CardContent>
           {filteredReceivables.length > 0 ? <div className="rounded-md border">
