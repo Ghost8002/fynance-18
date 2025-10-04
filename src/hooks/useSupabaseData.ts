@@ -47,23 +47,37 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
 
   const insert = async (newData: any) => {
     try {
+      console.log(`=== INSERT INTO ${table} ===`);
+      console.log('Dados sendo inseridos:', JSON.stringify(newData, null, 2));
+      console.log('Tabela:', table);
+      console.log('User ID:', userId);
+      
       const { data: result, error } = await supabase
         .from(table as any)
         .insert(newData)
         .select();
 
-      if (error) throw error;
+      console.log('Resultado da query:', { data: result, error });
+
+      if (error) {
+        console.error(`❌ Erro na inserção em ${table}:`, error);
+        throw error;
+      }
       
       if (result) {
+        console.log(`✅ Inserção bem-sucedida em ${table}:`, result);
         setData(prev => [...prev, ...result]);
       }
       
       return { data: result, error: null };
     } catch (err) {
-      console.error(`Error inserting into ${table}:`, err);
+      console.error(`❌ Erro ao inserir em ${table}:`, err);
       let errorMessage = 'An error occurred';
       
       if (err instanceof Error) {
+        console.error('Mensagem de erro:', err.message);
+        console.error('Stack trace:', err.stack);
+        
         if (err.message.includes('duplicate key')) {
           errorMessage = 'Dados duplicados';
         } else if (err.message.includes('invalid input')) {

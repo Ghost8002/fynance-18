@@ -6,10 +6,13 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { formatFinancialPeriod } from "@/utils/financialPeriod";
 import { PeriodType } from "@/components/dashboard/PeriodFilter";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { 
   calculatePeriodSummary, 
   calculateAccountBalanceFromTransactions,
   validateFinancialData,
+  validateAndAutoFixFinancialData,
   safeToNumber 
 } from "@/utils/financialCalculations";
 
@@ -35,18 +38,46 @@ interface FinancialSummaryProps {
 
 const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month', customDateRange }: FinancialSummaryProps) => {
   const { user } = useSupabaseAuth();
-  const { data: transactions, loading, error } = useSupabaseData('transactions', user?.id);
+  const { data: transactions, loading, error, refetch: refetchTransactions } = useSupabaseData('transactions', user?.id);
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { data: budgets } = useSupabaseData('budgets', user?.id);
   const { data: goals } = useSupabaseData('goals', user?.id);
   const { getFinancialPeriod } = useFinancialPeriod();
+  const { toast } = useToast();
+  const [hasAutoFixed, setHasAutoFixed] = useState(false);
 
   // Validar dados financeiros
   const validation = validateFinancialData(transactions || [], accounts || []);
   if (!validation.isValid) {
     console.warn('Dados financeiros inválidos:', validation.errors);
   }
+
+  // Executar correção automática quando necessário
+  useEffect(() => {
+    const autoFixData = async () => {
+      if (!user || !transactions || hasAutoFixed) return;
+      
+      try {
+        const result = await validateAndAutoFixFinancialData(transactions, accounts || [], user.id);
+        
+        if (result.fixedCount > 0) {
+          setHasAutoFixed(true);
+          
+          // Recarregar dados após correção
+          setTimeout(() => {
+            refetchTransactions();
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('Erro na correção automática:', error);
+      }
+    };
+
+    if (transactions && transactions.length > 0 && !hasAutoFixed) {
+      autoFixData();
+    }
+  }, [user, transactions, accounts, hasAutoFixed, toast, refetchTransactions]);
 
   if (loading) {
     return (

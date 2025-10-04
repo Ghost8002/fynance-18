@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Eye, EyeOff, Calculator } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Calculator, Wrench } from "lucide-react";
 import { formatFinancialPeriod } from "@/utils/financialPeriod";
-import { calculatePeriodSummary, validateFinancialData } from "@/utils/financialCalculations";
+import { calculatePeriodSummary, validateFinancialData, validateAndAutoFixFinancialData } from "@/utils/financialCalculations";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useToast } from "@/hooks/use-toast";
 interface FinancialDebugPanelProps {
   transactions: any[];
   accounts: any[];
@@ -21,9 +23,39 @@ export const FinancialDebugPanel = ({
 }: FinancialDebugPanelProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [isAutoFixing, setIsAutoFixing] = useState(false);
+  const [autoFixCount, setAutoFixCount] = useState(0);
+  const { user } = useSupabaseAuth();
+  const { toast } = useToast();
+
+  // Executar correção automática quando o painel é aberto
+  useEffect(() => {
+    const autoFixData = async () => {
+      if (!isVisible || !user || !transactions || isAutoFixing) return;
+      
+      setIsAutoFixing(true);
+      try {
+        const result = await validateAndAutoFixFinancialData(transactions, accounts || [], user.id);
+        
+        if (result.fixedCount > 0) {
+          setAutoFixCount(result.fixedCount);
+        }
+      } catch (error) {
+        console.error('Erro na correção automática:', error);
+      } finally {
+        setIsAutoFixing(false);
+      }
+    };
+
+    if (isVisible && transactions && transactions.length > 0) {
+      autoFixData();
+    }
+  }, [isVisible, user, transactions, accounts, isAutoFixing, toast]);
+
   if (!isVisible) {
     return;
   }
+  
   const validation = validateFinancialData(transactions || [], accounts || []);
   const summary = calculatePeriodSummary(transactions || [], currentPeriod, accounts || []);
   const periodTransactions = (transactions || []).filter(t => {
@@ -89,6 +121,28 @@ export const FinancialDebugPanel = ({
             <strong>Transações no período:</strong> {summary.transactionCount}
           </p>
         </div>
+
+        {/* Status da Correção Automática */}
+        {isAutoFixing && (
+          <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Wrench className="h-4 w-4 animate-spin" />
+              <span className="text-sm font-medium text-blue-700">
+                Executando correção automática...
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Resultado da Correção Automática */}
+        {autoFixCount > 0 && !isAutoFixing && (
+          <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg">
+            <h4 className="font-semibold text-green-700 mb-2">✅ Correção Automática Concluída:</h4>
+            <p className="text-sm text-green-600">
+              {autoFixCount} transação(ões) corrigida(s) automaticamente.
+            </p>
+          </div>
+        )}
 
         {/* Validação */}
         {!validation.isValid && <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg">

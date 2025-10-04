@@ -2,15 +2,10 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
-import SimpleImportComponent from "@/components/shared/SimpleImportComponent";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import SimpleXLSXImporter from "@/components/shared/SimpleXLSXImporter";
 import { Button } from "@/components/ui/button";
 import { 
   ArrowLeft, 
-  FileText, 
-  Shield, 
-  CheckCircle, 
   FileSpreadsheet
 } from "lucide-react";
 
@@ -60,14 +55,9 @@ const ImportsXLSX = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                <Shield className="h-3 w-3 mr-1" />
-                Seguro
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Confiável
-              </Badge>
+              <span className="text-sm text-muted-foreground">
+                Formato: Data, Descrição, Valor, Tipo, Categoria, Tags
+              </span>
             </div>
           </div>
           
@@ -79,16 +69,16 @@ const ImportsXLSX = () => {
               Importar Transações XLSX
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Carregue seu arquivo XLSX e importe todas as suas transações financeiras de forma rápida e confiável. 
-              Suportamos arquivos Excel (.xlsx, .xls) e Google Sheets exportados. 
-              Baixe o template XLSX para garantir o formato correto.
+              Carregue seu arquivo XLSX com as colunas obrigatórias (Data, Descrição, Valor, Tipo, Categoria, Tags) 
+              e importe todas as suas transações financeiras de forma simples e rápida. 
+              O sistema valida automaticamente o formato e permite pré-visualizar os dados antes da importação.
             </p>
           </div>
         </div>
 
-        {/* Interface de importação simplificada */}
+        {/* Interface de importação XLSX simplificada */}
         <div className="max-w-6xl mx-auto">
-          <SimpleImportComponent />
+          <SimpleXLSXImporter />
         </div>
       </div>
     </AppLayout>

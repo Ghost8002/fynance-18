@@ -31,17 +31,15 @@ export const TransactionDataFixer = () => {
       const found = await analyzeTransactionInconsistencies(user.id);
       setInconsistencies(found);
       setFixResult(null);
+      
       if (found.length === 0) {
-        toast({
-          title: "Análise concluída",
-          description: "Nenhuma inconsistência encontrada!"
-        });
+        // Nenhuma inconsistência encontrada - sem notificação
       } else {
-        toast({
-          title: "Inconsistências encontradas",
-          description: `${found.length} transações precisam ser corrigidas.`,
-          variant: "destructive"
-        });
+        // Correção automática imediatamente após encontrar inconsistências
+        // Executar correção automática
+        setTimeout(() => {
+          fixData();
+        }, 1000);
       }
     } catch (error) {
       console.error('Erro ao analisar dados:', error);
@@ -54,35 +52,35 @@ export const TransactionDataFixer = () => {
       setIsAnalyzing(false);
     }
   };
-  const fixData = async () => {
-    if (!user || inconsistencies.length === 0) return;
+  const fixData = async (inconsistenciesToFix = inconsistencies) => {
+    if (!user || inconsistenciesToFix.length === 0) return;
     setIsFixing(true);
     setFixProgress(0);
     try {
-      const result = await fixTransactionInconsistencies(user.id, inconsistencies);
+      const result = await fixTransactionInconsistencies(user.id, inconsistenciesToFix);
       setFixResult(result);
+      
       if (result.success > 0) {
-        toast({
-          title: "Correção concluída",
-          description: `${result.success} transações corrigidas com sucesso!`
-        });
-
-        // Re-analisar após correção
+        // Limpar inconsistências após correção bem-sucedida
+        setInconsistencies([]);
+        
+        // Re-analisar após correção para verificar se há mais problemas
         setTimeout(() => {
           analyzeData();
-        }, 1000);
+        }, 2000);
       }
+      
       if (result.errors > 0) {
         toast({
           title: "Alguns erros ocorreram",
-          description: `${result.errors} transações não puderam ser corrigidas.`,
+          description: `${result.errors} transações não puderam ser corrigidas automaticamente.`,
           variant: "destructive"
         });
       }
     } catch (error) {
       console.error('Erro ao corrigir dados:', error);
       toast({
-        title: "Erro na correção",
+        title: "Erro na correção automática",
         description: "Erro ao corrigir inconsistências nos dados.",
         variant: "destructive"
       });
@@ -110,5 +108,134 @@ export const TransactionDataFixer = () => {
       analyzeData();
     }
   }, [user]);
-  return;
+
+  return (
+    <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Wrench className="h-5 w-5" />
+          Correção Automática de Transações
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Status da Análise */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isAnalyzing ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Analisando dados...</span>
+              </>
+            ) : isFixing ? (
+              <>
+                <Wrench className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-blue-600">Corrigindo automaticamente...</span>
+              </>
+            ) : inconsistencies.length === 0 ? (
+              <>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-sm text-green-600">Dados validados e corrigidos automaticamente</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <span className="text-sm text-orange-600">
+                  {inconsistencies.length} inconsistência(s) sendo corrigida(s)...
+                </span>
+              </>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={analyzeData}
+              disabled={isAnalyzing || isFixing}
+            >
+              <RefreshCw className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} />
+              Re-analisar
+            </Button>
+            
+            {inconsistencies.length > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={downloadReport}
+              >
+                <Download className="h-4 w-4" />
+                Relatório
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Lista de Inconsistências */}
+        {inconsistencies.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="font-semibold text-sm">Inconsistências sendo corrigidas automaticamente:</h4>
+            <div className="max-h-40 overflow-y-auto space-y-2">
+              {inconsistencies.map((inconsistency, index) => (
+                <div key={inconsistency.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{inconsistency.description}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Badge variant="outline" className="text-xs">
+                        {inconsistency.currentType === 'income' ? 'Receita' : 'Despesa'}
+                      </Badge>
+                      <span>R$ {inconsistency.currentAmount.toFixed(2)}</span>
+                      <span>→</span>
+                      <span className="text-green-600">R$ {inconsistency.fixedAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Progresso da Correção Automática */}
+        {isFixing && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Wrench className="h-4 w-4 animate-spin" />
+              <span className="text-sm font-medium">Correção automática em andamento...</span>
+            </div>
+            <Progress value={fixProgress} className="w-full" />
+            <p className="text-xs text-center text-gray-500">
+              Corrigindo {inconsistencies.length} transação(ões)...
+            </p>
+          </div>
+        )}
+
+        {/* Resultado da Correção */}
+        {fixResult && (
+          <Alert className={fixResult.errors > 0 ? "border-orange-200 bg-orange-50" : "border-green-200 bg-green-50"}>
+            <AlertDescription>
+              <div className="space-y-1">
+                <p className="font-medium">
+                  {fixResult.success > 0 && `✅ ${fixResult.success} transação(ões) corrigida(s) com sucesso`}
+                </p>
+                {fixResult.errors > 0 && (
+                  <p className="text-orange-600">
+                    ⚠️ {fixResult.errors} transação(ões) não puderam ser corrigidas
+                  </p>
+                )}
+                {fixResult.details.length > 0 && (
+                  <details className="mt-2">
+                    <summary className="text-xs cursor-pointer">Ver detalhes</summary>
+                    <div className="mt-1 text-xs space-y-1">
+                      {fixResult.details.map((detail, index) => (
+                        <p key={index} className="font-mono">{detail}</p>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
 };

@@ -217,3 +217,67 @@ export const validateFinancialData = (
     errors
   };
 };
+
+/**
+ * Valida e corrige automaticamente dados financeiros
+ */
+export const validateAndAutoFixFinancialData = async (
+  transactions: Transaction[],
+  accounts: Account[],
+  userId: string
+): Promise<{ isValid: boolean; errors: string[]; fixedCount: number }> => {
+  const errors: string[] = [];
+  let fixedCount = 0;
+  
+  // Validar e corrigir transações automaticamente
+  if (transactions && Array.isArray(transactions)) {
+    for (const transaction of transactions) {
+      const amount = safeToNumber(transaction.amount);
+      
+      // Corrigir automaticamente inconsistências de tipo/valor
+      if (transaction.type === 'income' && amount < 0) {
+        // Receita com valor negativo - corrigir para positivo
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase
+            .from('transactions')
+            .update({ amount: Math.abs(amount) })
+            .eq('id', transaction.id)
+            .eq('user_id', userId);
+          fixedCount++;
+        } catch (error) {
+          errors.push(`Erro ao corrigir transação ${transaction.id}: ${error}`);
+        }
+      } else if (transaction.type === 'expense' && amount > 0) {
+        // Despesa com valor positivo - corrigir para negativo
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase
+            .from('transactions')
+            .update({ amount: -Math.abs(amount) })
+            .eq('id', transaction.id)
+            .eq('user_id', userId);
+          fixedCount++;
+        } catch (error) {
+          errors.push(`Erro ao corrigir transação ${transaction.id}: ${error}`);
+        }
+      }
+    }
+  }
+  
+  // Validar contas (sem correção automática)
+  if (!accounts || !Array.isArray(accounts)) {
+    errors.push('Contas não são um array válido');
+  } else {
+    accounts.forEach((account, index) => {
+      if (!account.id) errors.push(`Conta ${index} sem ID`);
+      if (!account.name) errors.push(`Conta ${account.id} sem nome`);
+    });
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    fixedCount
+  };
+};
