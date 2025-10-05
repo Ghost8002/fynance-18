@@ -32,6 +32,7 @@ interface XLSXRow {
   valor: number;
   tipo: 'receita' | 'despesa';
   categoria: string;
+  categoria_id?: string;
   tags: string;
 }
 

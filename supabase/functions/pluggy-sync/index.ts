@@ -117,12 +117,12 @@ serve(async (req) => {
 
       let next: string | null = url.toString()
       while (next) {
-        const resp = await fetch(next, { headers: { Authorization: `Bearer ${accessToken}` }})
+        const resp: Response = await fetch(next, { headers: { Authorization: `Bearer ${accessToken}` }})
         if (!resp.ok) {
           skipped++
           break
         }
-        const page = await resp.json()
+        const page: { results?: PluggyTransaction[], items?: PluggyTransaction[], nextPage?: string | null } = await resp.json()
         const results: PluggyTransaction[] = page.results || page.items || []
 
         for (const tx of results) {

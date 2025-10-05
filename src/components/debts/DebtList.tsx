@@ -499,7 +499,7 @@ const DebtList: React.FC<DebtListProps> = ({
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(debt.status, debt.due_date, startOfDay(new Date(dateRange.endDate)))}</TableCell>
+                      <TableCell>{getStatusBadge(debt.status, debt.due_date, endOfMonth(currentMonth))}</TableCell>
                       <TableCell>
                         <RecurrenceProgress isRecurring={debt.is_recurring} recurrenceType={debt.recurrence_type} currentCount={debt.current_count || 0} maxOccurrences={debt.max_occurrences} endDate={debt.recurrence_end_date} />
                       </TableCell>
