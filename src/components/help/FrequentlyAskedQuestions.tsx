@@ -55,7 +55,7 @@ const FrequentlyAskedQuestions = () => {
               <AccordionContent>
                 Atualmente, a sincronização automática com contas bancárias está em desenvolvimento. Por enquanto, 
                 você pode adicionar suas contas manualmente e registrar transações individualmente. Estamos trabalhando 
-                para implementar a integração com Open Finance em breve.
+                para implementar novas funcionalidades de importação em breve.
               </AccordionContent>
             </AccordionItem>
 
