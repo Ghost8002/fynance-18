@@ -31,6 +31,17 @@ const Imports = () => {
       document.head.appendChild(link);
     }
     link.setAttribute("href", window.location.origin + "/importacoes");
+
+    // Carregar SDK do Pluggy Connect
+    const existing = document.querySelector('script[data-pluggy-connect]') as HTMLScriptElement | null;
+    if (!existing) {
+      const s = document.createElement('script');
+      s.src = 'https://connect.pluggy.ai/sdk.js';
+      s.async = true;
+      s.defer = true;
+      s.setAttribute('data-pluggy-connect', 'true');
+      document.body.appendChild(s);
+    }
   }, [isAuthenticated, navigate]);
   const importOptions = [{
     id: "transactions",
@@ -51,6 +62,16 @@ const Imports = () => {
     status: "Disponível",
     features: ["Formato Excel", "Mapeamento personalizado", "Validação avançada"],
     to: "/importacoes/xlsx",
+    comingSoon: false
+  }, {
+    id: "pluggy",
+    title: "Open Finance (Pluggy)",
+    description: "Conecte bancos e sincronize transações automaticamente",
+    icon: Wallet,
+    color: "bg-gradient-to-br from-sky-500 to-sky-600",
+    status: "Disponível",
+    features: ["Conexão segura", "Sincronização automática", "Sem necessidade de OFX/XLSX"],
+    to: "/importacoes/pluggy",
     comingSoon: false
   }, {
     id: "accounts",
@@ -226,13 +247,103 @@ const Imports = () => {
                   </div>
 
                   <div className="pt-3 border-t">
-                    {item.comingSoon ? <Button variant="outline" className="w-full" disabled>
+                    {item.comingSoon ? (
+                      <Button variant="outline" className="w-full" disabled>
                         <Clock className="h-4 w-4 mr-2" />
                         Em Breve
-                      </Button> : <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" onClick={() => navigate(item.to)}>
+                      </Button>
+                    ) : item.id === 'pluggy' ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" onClick={async () => {
+                          try {
+                            const token = localStorage.getItem('sb-access-token') || ''
+                            const ctRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pluggy-connect-token`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                              }
+                            })
+                            const ct = await ctRes.json()
+                            if (!ctRes.ok) throw new Error(ct.error || 'Falha ao gerar token de conexão')
+
+                            // @ts-ignore - global do SDK
+                            const PluggyConnect = (window as any).PluggyConnect
+                            if (!PluggyConnect) throw new Error('Pluggy Connect SDK não carregado ainda')
+
+                            // Abrir widget Pluggy Connect
+                            const connector = new PluggyConnect({
+                              connectToken: ct.connectToken,
+                              onSuccess: async () => {
+                                try {
+                                  // Mapear contas do usuário
+                                  const mapRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pluggy-sync-accounts`, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': `Bearer ${token}`
+                                    }
+                                  })
+                                  const mapData = await mapRes.json()
+                                  if (!mapRes.ok) throw new Error(mapData.error || 'Falha ao sincronizar contas')
+
+                                  // Sincronizar transações iniciais
+                                  const syncRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pluggy-sync`, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({ days: 30 })
+                                  })
+                                  const syncData = await syncRes.json()
+                                  if (!syncRes.ok) throw new Error(syncData.error || 'Falha ao sincronizar transações')
+
+                                  alert(`Contas: +${mapData.created}/${mapData.updated}. Transações: +${syncData.inserted}/~${syncData.updated}`)
+                                } catch (err) {
+                                  alert(`Erro pós-conexão: ${(err as Error).message}`)
+                                }
+                              },
+                              onError: (err: any) => {
+                                alert('Erro no Pluggy Connect: ' + (err?.message || 'desconhecido'))
+                              },
+                            })
+                            connector.open()
+                          } catch (e) {
+                            alert(`Erro: ${(e as Error).message}`)
+                          }
+                        }}>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Conectar (Pluggy)
+                        </Button>
+                        <Button variant="outline" className="w-full" onClick={async () => {
+                          try {
+                            const token = localStorage.getItem('sb-access-token') || ''
+                            const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pluggy-sync`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                              },
+                              body: JSON.stringify({ days: 7 })
+                            })
+                            const data = await res.json()
+                            if (!res.ok) throw new Error(data.error || 'Falha ao sincronizar')
+                            alert(`Sincronização manual concluída: inseridos ${data.inserted}, atualizados ${data.updated}`)
+                          } catch (e) {
+                            alert(`Erro na sincronização: ${(e as Error).message}`)
+                          }
+                        }}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Sincronizar agora
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" onClick={() => navigate(item.to)}>
                         <Upload className="h-4 w-4 mr-2" />
                         Começar Importação
-                      </Button>}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
