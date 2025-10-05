@@ -122,6 +122,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
+      // Create user profile if user was created successfully
+      if (data.user) {
+        try {
+          await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: data.user.id,
+              full_name: name,
+              avatar_url: null,
+            });
+        } catch (profileError) {
+          console.warn('Failed to create user profile:', profileError);
+          // Don't throw error here as user registration was successful
+        }
+      }
+
       toast.success('Cadastro realizado com sucesso! Verifique seu email.');
       
       // If email confirmation is disabled, redirect immediately

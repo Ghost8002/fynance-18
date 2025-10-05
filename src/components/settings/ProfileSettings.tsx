@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Upload } from "lucide-react";
@@ -13,66 +14,30 @@ import { Upload } from "lucide-react";
 export default function ProfileSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState({
+  const { profile, loading, updateProfile, getInitials } = useUserProfile();
+  const [localProfile, setLocalProfile] = useState({
     full_name: '',
     avatar_url: ''
   });
 
   useEffect(() => {
-    if (user) {
-      // Load existing profile data
-      loadProfile();
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data) {
-        setProfile({
-          full_name: data.full_name || '',
-          avatar_url: data.avatar_url || ''
-        });
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar o perfil.",
-        variant: "destructive",
+    if (profile) {
+      setLocalProfile({
+        full_name: profile.full_name || '',
+        avatar_url: profile.avatar_url || ''
       });
     }
-  };
+  }, [profile]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    setLoading(true);
     try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: profile.full_name,
-          avatar_url: profile.avatar_url,
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (error) throw error;
+      await updateProfile({
+        full_name: localProfile.full_name,
+        avatar_url: localProfile.avatar_url,
+      });
 
       toast({
         title: "Sucesso",
@@ -85,8 +50,6 @@ export default function ProfileSettings() {
         description: "Não foi possível atualizar o perfil.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -95,7 +58,6 @@ export default function ProfileSettings() {
       const file = event.target.files?.[0];
       if (!file || !user) return;
 
-      setLoading(true);
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
@@ -111,7 +73,7 @@ export default function ProfileSettings() {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      setLocalProfile(prev => ({ ...prev, avatar_url: publicUrl }));
 
       toast({
         title: "Sucesso",
@@ -125,7 +87,6 @@ export default function ProfileSettings() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
     }
   };
 
@@ -141,9 +102,9 @@ export default function ProfileSettings() {
         <form onSubmit={handleSave} className="space-y-6">
           <div className="flex items-center space-x-4">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={profile.avatar_url} />
+              <AvatarImage src={localProfile.avatar_url} />
               <AvatarFallback>
-                {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
+                {getInitials()}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -167,8 +128,8 @@ export default function ProfileSettings() {
             <Label htmlFor="full_name">Nome completo</Label>
             <Input
               id="full_name"
-              value={profile.full_name}
-              onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
+              value={localProfile.full_name}
+              onChange={(e) => setLocalProfile(prev => ({ ...prev, full_name: e.target.value }))}
               placeholder="Seu nome completo"
             />
           </div>

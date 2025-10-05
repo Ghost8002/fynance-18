@@ -1,37 +1,24 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import { Command, User } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect } from 'react';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
-  const [profileName, setProfileName] = useState<string>('');
+  const { getDisplayName, getInitials, loading: profileLoading, fetchProfile, onProfileUpdated } = useUserProfile();
 
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-
-      try {
-        const { data } = await supabase
-          .from('user_profiles')
-          .select('full_name')
-          .eq('user_id', user.id)
-          .single();
-
-        if (data?.full_name) {
-          setProfileName(data.full_name);
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      }
-    };
-
-    loadProfile();
-  }, [user]);
+    // Listen for profile updates and force refetch to bypass cache
+    const unsubscribe = onProfileUpdated(() => {
+      fetchProfile(true);
+    });
+    return unsubscribe;
+  }, [onProfileUpdated, fetchProfile]);
 
   return (
     <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
@@ -123,7 +110,7 @@ const Navbar = () => {
                 <div className="text-sm">
                   <span className="block text-muted-foreground text-xs">Bem-vindo,</span>
                   <span className="font-semibold text-foreground">
-                    {profileName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário'}
+                    {getDisplayName()}
                   </span>
                 </div>
               </div>

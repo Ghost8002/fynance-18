@@ -14,7 +14,6 @@ import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
 import { useDashboardCustomization } from "@/hooks/useDashboardCustomization";
 import { FinancialDebugPanel } from "@/components/dashboard/FinancialDebugPanel";
-import { TransactionDataFixer } from "@/components/dashboard/TransactionDataFixer";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
@@ -94,10 +93,6 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Transaction Data Fixer - apenas em desenvolvimento */}
-        {process.env.NODE_ENV === 'development' && (
-          <TransactionDataFixer />
-        )}
 
         {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2">
