@@ -34,17 +34,36 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Missing Pluggy credentials' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
     }
 
-    // Obtain a Connect Token for Pluggy Connect widget
-    const resp = await fetch('https://api.pluggy.ai/connect_token', {
+    // 1) Authenticate to get API key (accessToken)
+    const authResp = await fetch('https://api.pluggy.ai/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientId: pluggyClientId, clientSecret: pluggyClientSecret })
     })
-    if (!resp.ok) {
-      const t = await resp.text()
+    if (!authResp.ok) {
+      const t = await authResp.text()
+      return new Response(JSON.stringify({ error: 'Pluggy auth failed', details: t }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+    }
+    const { accessToken } = await authResp.json() as { accessToken: string }
+
+    // 2) Create Connect Token using API key in Authorization header
+    const webhookUrl = Deno.env.get('PLUGGY_WEBHOOK_URL') || undefined
+    const oauthRedirectUrl = Deno.env.get('PLUGGY_OAUTH_REDIRECT_URL') || undefined
+    const ctResp = await fetch('https://api.pluggy.ai/connect_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+      body: JSON.stringify({
+        webhookUrl,
+        clientUserId: user.id,
+        oauthRedirectUrl,
+        avoidDuplicates: true,
+      })
+    })
+    if (!ctResp.ok) {
+      const t = await ctResp.text()
       return new Response(JSON.stringify({ error: 'Failed to create connect token', details: t }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
     }
-    const data = await resp.json() as { connectToken: string }
+    const data = await ctResp.json() as { connectToken: string }
 
     return new Response(JSON.stringify({ connectToken: data.connectToken }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
   } catch (e) {
