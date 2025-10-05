@@ -20,8 +20,13 @@ export type Database = {
           balance: number
           bank: string | null
           created_at: string
+          external_id: string | null
+          external_provider: string | null
           id: string
+          last_sync_at: string | null
           name: string
+          provider: string | null
+          provider_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -31,8 +36,13 @@ export type Database = {
           balance?: number
           bank?: string | null
           created_at?: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
+          last_sync_at?: string | null
           name: string
+          provider?: string | null
+          provider_account_id?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -42,8 +52,13 @@ export type Database = {
           balance?: number
           bank?: string | null
           created_at?: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
+          last_sync_at?: string | null
           name?: string
+          provider?: string | null
+          provider_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -669,6 +684,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pluggy_connections: {
+        Row: {
+          access_token: string | null
+          connector_id: string | null
+          connector_name: string | null
+          created_at: string | null
+          id: string
+          item_id: string
+          last_sync_at: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          connector_id?: string | null
+          connector_name?: string | null
+          created_at?: string | null
+          id?: string
+          item_id: string
+          last_sync_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          connector_id?: string | null
+          connector_name?: string | null
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          last_sync_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       receivable_payments: {
         Row: {
           account_id: string | null
@@ -771,10 +825,13 @@ export type Database = {
           created_at: string
           date: string
           description: string
+          external_id: string | null
+          external_provider: string | null
           id: string
           installment_number: number | null
           installments_count: number | null
           notes: string | null
+          original_description: string | null
           parent_transaction_id: string | null
           tags: Json | null
           type: string
@@ -789,10 +846,13 @@ export type Database = {
           created_at?: string
           date: string
           description: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
           installment_number?: number | null
           installments_count?: number | null
           notes?: string | null
+          original_description?: string | null
           parent_transaction_id?: string | null
           tags?: Json | null
           type: string
@@ -807,10 +867,13 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
           installment_number?: number | null
           installments_count?: number | null
           notes?: string | null
+          original_description?: string | null
           parent_transaction_id?: string | null
           tags?: Json | null
           type?: string
@@ -972,7 +1035,7 @@ export type Database = {
               p_payment_date?: string
             }
           | { p_installment_id: string; p_installment_number: number }
-        Returns: boolean
+        Returns: Json
       }
       sync_existing_installments: {
         Args: Record<PropertyKey, never>
