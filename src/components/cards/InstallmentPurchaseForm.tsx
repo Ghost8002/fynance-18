@@ -10,6 +10,8 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ShoppingBag, Calendar, CreditCard } from "lucide-react";
+import CategorySelector from "@/components/shared/CategorySelector";
+import TagSelector from "@/components/shared/TagSelector";
 
 interface InstallmentPurchaseFormProps {
   onPurchaseAdded?: () => void;
@@ -23,6 +25,7 @@ interface FormData {
   card_id: string;
   category_id: string;
   notes: string;
+  selectedTags: string[];
 }
 
 export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchaseFormProps) => {
@@ -40,11 +43,16 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
     first_installment_date: "",
     card_id: "",
     category_id: "",
-    notes: ""
+    notes: "",
+    selectedTags: []
   });
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    setFormData(prev => ({ ...prev, selectedTags: tags }));
   };
 
   const formatCurrency = (value: number) => {
@@ -147,6 +155,7 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
         installments_count: parseInt(formData.installments_count),
         first_installment_date: formData.first_installment_date,
         notes: formData.notes.trim() || null,
+        tags: formData.selectedTags,
         status: 'active'
       };
       
@@ -244,7 +253,8 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
         first_installment_date: "",
         card_id: "",
         category_id: "",
-        notes: ""
+        notes: "",
+        selectedTags: []
       });
 
       setOpen(false);
@@ -362,24 +372,13 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
 
             <div className="space-y-2">
               <Label htmlFor="category_id">Categoria *</Label>
-              <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories?.filter(cat => cat.type === 'expense').map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CategorySelector
+                value={formData.category_id}
+                onChange={(value) => handleInputChange('category_id', value)}
+                categories={categories || []}
+                type="expense"
+                placeholder="Selecione uma categoria"
+              />
             </div>
           </div>
 
@@ -393,6 +392,11 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
               rows={3}
             />
           </div>
+
+          <TagSelector
+            selectedTags={formData.selectedTags}
+            onTagsChange={handleTagsChange}
+          />
 
           {/* Preview */}
           {formData.total_amount && formData.installments_count && (

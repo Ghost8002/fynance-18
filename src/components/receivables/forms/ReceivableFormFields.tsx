@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import CategorySelector from "@/components/shared/CategorySelector";
 
 interface ReceivableFormFieldsProps {
   formData: any;
@@ -114,27 +115,13 @@ const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
       {incomeCategories && incomeCategories.length > 0 && (
         <div className="space-y-2">
           <Label htmlFor="category_id">Categoria</Label>
-          <Select
+          <CategorySelector
             value={formData.category_id}
-            onValueChange={(value) => handleSelectChange("category_id", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {incomeCategories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span>{category.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(value) => handleSelectChange("category_id", value)}
+            categories={incomeCategories}
+            type="income"
+            placeholder="Selecione uma categoria"
+          />
         </div>
       )}
 

@@ -120,7 +120,7 @@ const MonthlyReport = () => {
       </CardHeader>
       <CardContent className="pt-6">
         {chartData.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             Nenhum dado encontrado para o mês selecionado
           </div>
         ) : (
@@ -162,25 +162,25 @@ const MonthlyReport = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <Card className="bg-gray-50">
+              <Card className="bg-gray-50 dark:bg-gray-800">
                 <CardContent className="p-4 flex flex-col items-center">
-                  <p className="text-sm text-gray-500">Saldo Inicial</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Saldo Inicial</p>
                   <p className="text-2xl font-bold">{formatCurrency(initialBalance)}</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-50">
+              <Card className="bg-gray-50 dark:bg-gray-800">
                 <CardContent className="p-4 flex flex-col items-center">
-                  <p className="text-sm text-gray-500">Saldo Final</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Saldo Final</p>
                   <p className="text-2xl font-bold">{formatCurrency(finalBalance)}</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-50">
+              <Card className="bg-gray-50 dark:bg-gray-800">
                 <CardContent className="p-4 flex flex-col items-center">
-                  <p className="text-sm text-gray-500">Variação</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Variação</p>
                   <p className={`text-2xl font-bold ${
-                    variation >= 0 ? "text-green-500" : "text-red-500"
+                    variation >= 0 ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
                   }`}>
                     {formatCurrency(variation)}
                     <span className="text-sm ml-1">

@@ -1,5 +1,5 @@
 -- =====================================================
--- MELHORIAS COMPLETAS: Contas e Dívidas
+-- MELHORIAS COMPLETAS: A Receber e Pagar
 -- =====================================================
 -- Este arquivo aplica todas as melhorias identificadas na análise crítica
 
@@ -332,12 +332,12 @@ END;
 $$;
 
 -- Comentários das funções
-COMMENT ON FUNCTION public.cleanup_accounts_debts_system IS 'Aplica limpeza geral e correções no sistema de contas e dívidas';
+COMMENT ON FUNCTION public.cleanup_accounts_debts_system IS 'Aplica limpeza geral e correções no sistema de valores a receber e pagar';
 COMMENT ON FUNCTION public.get_accounts_debts_statistics IS 'Obtém estatísticas completas do sistema';
 COMMENT ON FUNCTION public.validate_system_integrity IS 'Valida integridade do sistema e identifica problemas';
 COMMENT ON FUNCTION public.apply_all_fixes IS 'Aplica todas as correções automaticamente';
 
--- 7. Criar view para relatório de contas e dívidas
+-- 7. Criar view para relatório de valores a receber e pagar
 CREATE OR REPLACE VIEW public.accounts_debts_summary AS
 SELECT 
     u.id as user_id,
@@ -364,5 +364,5 @@ LEFT JOIN public.receivable_payments r ON u.id = r.user_id
 LEFT JOIN public.accounts a ON u.id = a.user_id
 GROUP BY u.id, u.email;
 
-COMMENT ON VIEW public.accounts_debts_summary IS 'Resumo consolidado de contas e dívidas por usuário';
+COMMENT ON VIEW public.accounts_debts_summary IS 'Resumo consolidado de valores a receber e pagar por usuário';
 

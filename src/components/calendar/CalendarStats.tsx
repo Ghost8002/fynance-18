@@ -111,39 +111,39 @@ const CalendarStats = ({ events, selectedMonth }: CalendarStatsProps) => {
         </CardHeader>
         <CardContent className="space-y-3">
           {overdueCount > 0 && (
-            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+            <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-red-600" />
-                <span className="text-sm text-red-800">Vencidos</span>
+                <Clock className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <span className="text-sm text-red-800 dark:text-red-300">Vencidos</span>
               </div>
-              <span className="font-bold text-red-700">{overdueCount}</span>
+              <span className="font-bold text-red-700 dark:text-red-300">{overdueCount}</span>
             </div>
           )}
           
           {pendingReceivables > 0 && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-800">A Receber</span>
+                <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-blue-800 dark:text-blue-300">A Receber</span>
               </div>
-              <span className="font-bold text-blue-700">{pendingReceivables}</span>
+              <span className="font-bold text-blue-700 dark:text-blue-300">{pendingReceivables}</span>
             </div>
           )}
 
           {pendingDebts > 0 && (
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+            <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-orange-600" />
-                <span className="text-sm text-orange-800">A Pagar</span>
+                <Target className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                <span className="text-sm text-orange-800 dark:text-orange-300">A Pagar</span>
               </div>
-              <span className="font-bold text-orange-700">{pendingDebts}</span>
+              <span className="font-bold text-orange-700 dark:text-orange-300">{pendingDebts}</span>
             </div>
           )}
 
           {overdueCount === 0 && pendingReceivables === 0 && pendingDebts === 0 && (
             <div className="text-center py-4">
-              <Target className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="text-sm text-green-700 font-medium">Tudo em dia!</p>
+              <Target className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
+              <p className="text-sm text-green-700 dark:text-green-300 font-medium">Tudo em dia!</p>
               <p className="text-xs text-muted-foreground">Nenhuma pendência para este mês</p>
             </div>
           )}

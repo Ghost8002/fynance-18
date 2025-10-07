@@ -83,7 +83,7 @@ const CalendarEventCard = ({ event }: CalendarEventCardProps) => {
 
   return (
     <Card className={`transition-all hover:shadow-md ${
-      event.status === 'overdue' ? 'border-red-200 bg-red-50/50' : ''
+      event.status === 'overdue' ? 'border-red-200 bg-red-50/50 dark:border-red-700 dark:bg-red-900/20' : ''
     }`}>
       <CardContent className="p-4">
         <div className="space-y-3">

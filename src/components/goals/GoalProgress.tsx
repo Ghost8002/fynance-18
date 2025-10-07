@@ -3,9 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Target, Calendar, TrendingUp, Plus } from "lucide-react";
+import { Target, Calendar, TrendingUp, Plus, Edit, Trash2 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface Goal {
   id: string;
@@ -20,9 +34,36 @@ interface Goal {
 interface GoalProgressProps {
   goals: Goal[];
   onAddProgress?: (goalId: string) => void;
+  onEdit?: (goalId: string) => void;
+  onDelete?: (goalId: string) => void;
 }
 
-const GoalProgress = ({ goals, onAddProgress }: GoalProgressProps) => {
+const GoalProgress = ({ goals, onAddProgress, onEdit, onDelete }: GoalProgressProps) => {
+  const { user } = useSupabaseAuth();
+  const { remove } = useSupabaseData('goals', user?.id);
+  const { toast } = useToast();
+
+  const handleDelete = async (id: string, title: string) => {
+    try {
+      const { error } = await remove(id);
+      
+      if (error) {
+        throw new Error(error);
+      }
+
+      toast({
+        title: "Sucesso",
+        description: `Meta "${title}" removida com sucesso!`,
+      });
+    } catch (error) {
+      console.error('Erro ao remover meta:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a meta. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -98,7 +139,38 @@ const GoalProgress = ({ goals, onAddProgress }: GoalProgressProps) => {
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-base line-clamp-2">{goal.title}</CardTitle>
-                    {getStatusBadge(goal)}
+                    <div className="flex items-center space-x-1">
+                      {getStatusBadge(goal)}
+                      <div className="flex space-x-1 ml-2">
+                        <Button variant="ghost" size="sm" onClick={() => onEdit?.(goal.id)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remover meta</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja remover a meta "{goal.title}"? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(goal.id, goal.title)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Remover
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
                   </div>
                   {goal.category && (
                     <p className="text-sm text-muted-foreground">{goal.category}</p>
@@ -171,9 +243,40 @@ const GoalProgress = ({ goals, onAddProgress }: GoalProgressProps) => {
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-base line-clamp-2">{goal.title}</CardTitle>
-                    <Badge className="bg-green-100 text-green-800 border-green-200">
-                      🎉 Concluída
-                    </Badge>
+                    <div className="flex items-center space-x-1">
+                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                        🎉 Concluída
+                      </Badge>
+                      <div className="flex space-x-1 ml-2">
+                        <Button variant="ghost" size="sm" onClick={() => onEdit?.(goal.id)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remover meta</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja remover a meta "{goal.title}"? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(goal.id, goal.title)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Remover
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
                   </div>
                 </CardHeader>
                 

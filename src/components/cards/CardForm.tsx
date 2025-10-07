@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Plus } from "lucide-react";
+import TagSelector from "@/components/shared/TagSelector";
 
 interface CardFormProps {
   onCardAdded?: () => void;
@@ -23,6 +24,7 @@ interface CardFormData {
   due_day: string;
   last_four_digits: string;
   color: string;
+  selectedTags: string[];
 }
 
 export const CardForm = ({ onCardAdded }: CardFormProps) => {
@@ -39,7 +41,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
     closing_day: "1",
     due_day: "10",
     last_four_digits: "",
-    color: "#3B82F6"
+    color: "#3B82F6",
+    selectedTags: []
   });
 
   const cardTypes = [
@@ -61,6 +64,10 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
 
   const handleInputChange = (field: keyof CardFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    setFormData(prev => ({ ...prev, selectedTags: tags }));
   };
 
   const validateForm = () => {
@@ -145,7 +152,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
         closing_day: formData.type === "credit" ? parseInt(formData.closing_day) : 1,
         due_day: formData.type === "credit" ? parseInt(formData.due_day) : 10,
         last_four_digits: formData.last_four_digits.trim(),
-        color: formData.color
+        color: formData.color,
+        tags: formData.selectedTags
       };
 
       const { error } = await insert(cardData);
@@ -355,6 +363,11 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
               </Select>
             </div>
           </div>
+
+          <TagSelector
+            selectedTags={formData.selectedTags}
+            onTagsChange={handleTagsChange}
+          />
 
           {/* Preview */}
           <Card className="border-2" style={{ borderColor: formData.color }}>

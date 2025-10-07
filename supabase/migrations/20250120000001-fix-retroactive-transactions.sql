@@ -2,7 +2,7 @@
 -- CORREÇÃO: Transações Retroativas
 -- =====================================================
 -- Este arquivo corrige o problema de transações criadas com data atual
--- em vez da data de vencimento das dívidas/contas
+-- em vez da data de vencimento dos valores a receber/pagar
 
 -- 1. Corrigir função para marcar dívida como paga
 CREATE OR REPLACE FUNCTION public.mark_debt_as_paid_with_rollback(

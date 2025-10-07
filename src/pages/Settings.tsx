@@ -89,71 +89,77 @@ const Settings = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto max-w-6xl p-6 space-y-8">
-        {/* Header Section */}
-        <div className="text-left space-y-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-xl bg-primary/10 text-primary">
-              <SettingsIcon className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                Configurações
-              </h1>
-              <p className="text-lg text-muted-foreground mt-2">
-                Personalize sua experiência no sistema
-              </p>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+        <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
+          {/* Header Section */}
+          <div className="text-center space-y-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary shadow-lg">
+                <SettingsIcon className="h-10 w-10" />
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-5xl font-bold tracking-tight text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                  Configurações
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                  Personalize sua experiência e configure o sistema conforme suas necessidades
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Settings Tabs */}
-        <div className="bg-card rounded-lg border shadow-sm">
-          <Tabs defaultValue="profile" className="w-full">
-            {/* Tabs List */}
-            <div className="border-b px-6 pt-6">
-              <TabsList className="grid grid-cols-8 w-full max-w-5xl bg-muted/50 p-1 rounded-lg h-auto">
-                {settingsTabs.map((tab) => (
-                  <TabsTrigger 
-                    key={tab.id}
-                    value={tab.id}
-                    className="flex flex-col items-center gap-2 px-3 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm hover:bg-background/50"
-                  >
-                    <tab.icon className="h-5 w-5" />
-                    <span className="text-xs">{tab.label}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            {/* Tab Contents */}
-            <div className="p-6">
-              {settingsTabs.map((tab) => (
-                <TabsContent 
-                  key={tab.id}
-                  value={tab.id}
-                  className="mt-0 space-y-6"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 pb-4 border-b">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          
+          {/* Settings Tabs */}
+          <div className="bg-card/80 backdrop-blur-sm rounded-2xl border shadow-xl overflow-hidden">
+            <Tabs defaultValue="profile" className="w-full">
+              {/* Tabs List */}
+              <div className="border-b bg-muted/30 px-8 py-6">
+                <TabsList className="grid grid-cols-4 md:grid-cols-8 w-full bg-transparent p-0 h-auto gap-2">
+                  {settingsTabs.map((tab) => (
+                    <TabsTrigger 
+                      key={tab.id}
+                      value={tab.id}
+                      className="flex flex-col items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium transition-all duration-300 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:scale-105 hover:bg-background/60 hover:scale-105 group"
+                    >
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground transition-all duration-300">
                         <tab.icon className="h-5 w-5" />
                       </div>
-                      <div>
-                        <h2 className="text-2xl font-semibold text-foreground">
-                          {tab.label}
-                        </h2>
-                        <p className="text-muted-foreground text-sm">
-                          Configure as opções de {tab.label.toLowerCase()} do sistema
-                        </p>
+                      <span className="text-xs font-medium">{tab.label}</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+
+              {/* Tab Contents */}
+              <div className="p-8">
+                {settingsTabs.map((tab) => (
+                  <TabsContent 
+                    key={tab.id}
+                    value={tab.id}
+                    className="mt-0 space-y-8"
+                  >
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4 pb-6 border-b border-border/50">
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary shadow-md">
+                          <tab.icon className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <h2 className="text-3xl font-bold text-foreground">
+                            {tab.label}
+                          </h2>
+                          <p className="text-muted-foreground text-base">
+                            Configure as opções de {tab.label.toLowerCase()} do sistema
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-6">
+                        <tab.component />
                       </div>
                     </div>
-                    <tab.component />
-                  </div>
-                </TabsContent>
-              ))}
-            </div>
-          </Tabs>
+                  </TabsContent>
+                ))}
+              </div>
+            </Tabs>
+          </div>
         </div>
       </div>
     </AppLayout>

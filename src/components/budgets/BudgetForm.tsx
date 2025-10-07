@@ -17,6 +17,8 @@ import { PiggyBank } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
+import CategorySelector from "@/components/shared/CategorySelector";
+import TagSelector from "@/components/shared/TagSelector";
 
 const BudgetForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +27,8 @@ const BudgetForm = () => {
     category_id: '',
     limit_amount: '',
     period: 'monthly',
-    description: ''
+    description: '',
+    selectedTags: [] as string[]
   });
 
   const { user } = useSupabaseAuth();
@@ -73,6 +76,7 @@ const BudgetForm = () => {
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
         spent_amount: 0,
+        tags: formData.selectedTags,
       };
 
       const { error } = await insert(budgetData);
@@ -91,7 +95,8 @@ const BudgetForm = () => {
         category_id: '',
         limit_amount: '',
         period: 'monthly',
-        description: ''
+        description: '',
+        selectedTags: []
       });
       
       setIsOpen(false);
@@ -114,6 +119,13 @@ const BudgetForm = () => {
     }));
   };
 
+  const handleTagsChange = (tags: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedTags: tags
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -131,18 +143,13 @@ const BudgetForm = () => {
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="category">Categoria *</Label>
-            <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria..." />
-              </SelectTrigger>
-              <SelectContent>
-                {expenseCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CategorySelector
+              value={formData.category_id}
+              onChange={(value) => handleInputChange('category_id', value)}
+              categories={expenseCategories}
+              type="expense"
+              placeholder="Selecione uma categoria..."
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="limit">Valor Limite *</Label>
@@ -178,6 +185,11 @@ const BudgetForm = () => {
               onChange={(e) => handleInputChange('description', e.target.value)}
             />
           </div>
+
+          <TagSelector
+            selectedTags={formData.selectedTags}
+            onTagsChange={handleTagsChange}
+          />
         </form>
         <DialogFooter>
           <Button 

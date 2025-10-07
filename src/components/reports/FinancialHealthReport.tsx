@@ -171,11 +171,11 @@ const FinancialHealthReport = () => {
 
   // Classificação da Saúde Financeira
   const getHealthLevel = (score: number) => {
-    if (score >= 90) return { level: 'Excelente', color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200' };
-    if (score >= 75) return { level: 'Muito Boa', color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' };
-    if (score >= 60) return { level: 'Boa', color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' };
-    if (score >= 40) return { level: 'Regular', color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' };
-    return { level: 'Precisa Melhorar', color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' };
+    if (score >= 90) return { level: 'Excelente', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-200 dark:border-green-700' };
+    if (score >= 75) return { level: 'Muito Boa', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20', borderColor: 'border-blue-200 dark:border-blue-700' };
+    if (score >= 60) return { level: 'Boa', color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-700' };
+    if (score >= 40) return { level: 'Regular', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/20', borderColor: 'border-orange-200 dark:border-orange-700' };
+    return { level: 'Precisa Melhorar', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-700' };
   };
 
   // Recomendações baseadas no score
@@ -305,7 +305,7 @@ const FinancialHealthReport = () => {
       <CardContent className="pt-6">
         {/* Score Principal */}
         <div className="mb-8">
-          <Card className={`${healthLevel.bgColor} ${healthLevel.borderColor} border-2`}>
+          <Card className={`${healthLevel.bgColor} ${healthLevel.borderColor} border-2 dark:border-opacity-50`}>
             <CardContent className="p-6 text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Heart className={`h-8 w-8 ${healthLevel.color}`} />
@@ -317,7 +317,7 @@ const FinancialHealthReport = () => {
                 </div>
               </div>
               <Progress value={financialHealthScore.score} className="h-3 mb-4" />
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 Baseado em análise de margem de lucro, liquidez, estabilidade, diversificação e controle de orçamento
               </p>
             </CardContent>
@@ -338,7 +338,7 @@ const FinancialHealthReport = () => {
                   <Badge variant="outline">{Math.round(financialHealthScore.details.margemLucro.score)}/25</Badge>
                 </div>
                 <Progress value={financialHealthScore.details.margemLucro.score} className="h-2 mb-2" />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {formatPercentage(financialHealthScore.details.margemLucro.value)}
                 </p>
               </CardContent>
@@ -408,18 +408,18 @@ const FinancialHealthReport = () => {
             <div className="space-y-4">
               {recommendations.map((rec, index) => (
                 <Card key={index} className={`border-l-4 ${
-                  rec.type === 'positive' ? 'border-l-green-500 bg-green-50' :
-                  rec.type === 'critical' ? 'border-l-red-500 bg-red-50' :
-                  rec.type === 'warning' ? 'border-l-yellow-500 bg-yellow-50' :
-                  'border-l-blue-500 bg-blue-50'
+                  rec.type === 'positive' ? 'border-l-green-500 bg-green-50 dark:bg-green-900/20' :
+                  rec.type === 'critical' ? 'border-l-red-500 bg-red-50 dark:bg-red-900/20' :
+                  rec.type === 'warning' ? 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
+                  'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 }`}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <rec.icon className={`h-5 w-5 mt-0.5 ${
-                        rec.type === 'positive' ? 'text-green-600' :
-                        rec.type === 'critical' ? 'text-red-600' :
-                        rec.type === 'warning' ? 'text-yellow-600' :
-                        'text-blue-600'
+                        rec.type === 'positive' ? 'text-green-600 dark:text-green-400' :
+                        rec.type === 'critical' ? 'text-red-600 dark:text-red-400' :
+                        rec.type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
+                        'text-blue-600 dark:text-blue-400'
                       }`} />
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
@@ -428,8 +428,8 @@ const FinancialHealthReport = () => {
                             {rec.priority === 'high' ? 'Alta' : rec.priority === 'medium' ? 'Média' : 'Baixa'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
-                        <p className="text-xs text-gray-500 font-medium">💡 {rec.action}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{rec.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">💡 {rec.action}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -453,7 +453,7 @@ const FinancialHealthReport = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="font-semibold">{goal.name}</h4>
-                        <p className="text-sm text-gray-600">{goal.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{goal.description}</p>
                       </div>
                       <Badge variant={goal.progress >= 100 ? 'default' : 'secondary'}>
                         {goal.progress.toFixed(1)}%
@@ -463,10 +463,10 @@ const FinancialHealthReport = () => {
                     <Progress value={goal.progress} className="h-2 mb-3" />
                     
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">
+                      <span className="text-gray-600 dark:text-gray-400">
                         {formatCurrency(Number(goal.current_amount))} / {formatCurrency(Number(goal.target_amount))}
                       </span>
-                      <span className="text-gray-600">
+                      <span className="text-gray-600 dark:text-gray-400">
                         Restam: {formatCurrency(goal.remaining)}
                       </span>
                     </div>

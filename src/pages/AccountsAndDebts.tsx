@@ -97,9 +97,9 @@ const AccountsAndDebts = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex flex-col space-y-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Contas e Dívidas</h1>
+            <h1 className="text-3xl font-bold tracking-tight">A Receber e Pagar</h1>
             <p className="text-muted-foreground">
-              Gerencie suas contas a receber e dívidas a pagar
+              Gerencie seus valores a receber e compromissos a pagar
             </p>
           </div>
 

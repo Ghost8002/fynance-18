@@ -1,13 +1,11 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
   DialogDescription, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogTitle 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,21 +16,26 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import TagSelector from "@/components/shared/TagSelector";
 
-const GoalForm = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface GoalEditFormProps {
+  goal: any;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+const GoalEditForm = ({ goal, onSuccess, onCancel }: GoalEditFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    target_amount: '',
-    current_amount: '',
-    deadline: '',
-    description: '',
-    category: '',
-    selectedTags: [] as string[]
+    title: goal.title || '',
+    target_amount: goal.target_amount?.toString() || '',
+    current_amount: goal.current_amount?.toString() || '',
+    deadline: goal.deadline || '',
+    description: goal.description || '',
+    category: goal.category || '',
+    selectedTags: goal.tags || []
   });
 
   const { user } = useSupabaseAuth();
-  const { insert } = useSupabaseData('goals', user?.id);
+  const { update } = useSupabaseData('goals', user?.id);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +63,6 @@ const GoalForm = () => {
 
     try {
       const goalData = {
-        user_id: user.id,
         title: formData.title,
         target_amount: Number(formData.target_amount),
         current_amount: formData.current_amount ? Number(formData.current_amount) : 0,
@@ -68,10 +70,9 @@ const GoalForm = () => {
         description: formData.description || null,
         category: formData.category || null,
         tags: formData.selectedTags,
-        status: 'active'
       };
 
-      const { error } = await insert(goalData);
+      const { error } = await update(goal.id, goalData);
 
       if (error) {
         throw new Error(error);
@@ -79,26 +80,15 @@ const GoalForm = () => {
 
       toast({
         title: "Sucesso",
-        description: "Meta criada com sucesso!",
+        description: "Meta atualizada com sucesso!",
       });
 
-      // Reset form
-      setFormData({
-        title: '',
-        target_amount: '',
-        current_amount: '',
-        deadline: '',
-        description: '',
-        category: '',
-        selectedTags: []
-      });
-      
-      setIsOpen(false);
+      onSuccess();
     } catch (error) {
-      console.error('Error adding goal:', error);
+      console.error('Error updating goal:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar a meta. Tente novamente.",
+        description: "Não foi possível atualizar a meta. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -121,17 +111,12 @@ const GoalForm = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-                        <Button className="bg-finance-blue hover:bg-finance-blue/90">
-          <Target className="mr-2 h-4 w-4" /> Criar Nova Meta
-        </Button>
-      </DialogTrigger>
+    <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Criar Nova Meta</DialogTitle>
+          <DialogTitle>Editar Meta</DialogTitle>
           <DialogDescription>
-            Defina metas financeiras e acompanhe seu progresso
+            Atualize os dados da sua meta financeira
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
@@ -158,7 +143,7 @@ const GoalForm = () => {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="initialAmount">Valor Inicial (se já tem guardado)</Label>
+            <Label htmlFor="initialAmount">Valor Atual</Label>
             <Input 
               id="initialAmount" 
               type="number" 
@@ -205,7 +190,7 @@ const GoalForm = () => {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={() => setIsOpen(false)}
+            onClick={onCancel}
             disabled={isLoading}
           >
             Cancelar
@@ -223,4 +208,4 @@ const GoalForm = () => {
   );
 };
 
-export default GoalForm;
+export default GoalEditForm;

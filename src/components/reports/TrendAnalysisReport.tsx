@@ -231,9 +231,9 @@ const TrendAnalysisReport = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {insights.map((insight, index) => (
                 <Card key={index} className={`border-l-4 ${
-                  insight.type === 'positive' ? 'border-l-green-500 bg-green-50' :
-                  insight.type === 'negative' ? 'border-l-red-500 bg-red-50' :
-                  'border-l-yellow-500 bg-yellow-50'
+                  insight.type === 'positive' ? 'border-l-green-500 bg-green-50 dark:bg-green-900/20' :
+                  insight.type === 'negative' ? 'border-l-red-500 bg-red-50 dark:bg-red-900/20' :
+                  'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
                 }`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
@@ -242,7 +242,7 @@ const TrendAnalysisReport = () => {
                         {insight.impact === 'high' ? 'Alto' : 'Médio'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600">{insight.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{insight.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -252,43 +252,43 @@ const TrendAnalysisReport = () => {
 
         {/* Estatísticas Resumidas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
             <CardContent className="p-4 flex items-center gap-3">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
+              <TrendingUp className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <div>
-                <p className="text-sm font-medium text-blue-700">Receita Média</p>
-                <p className="text-lg font-bold text-blue-600">{formatCurrency(statistics.mediaReceitas || 0)}</p>
-                <p className={`text-xs ${statistics.crescimentoReceitas >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Receita Média</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(statistics.mediaReceitas || 0)}</p>
+                <p className={`text-xs ${statistics.crescimentoReceitas >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {statistics.crescimentoReceitas >= 0 ? '+' : ''}{statistics.crescimentoReceitas?.toFixed(1)}%
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-red-50 border-red-200">
+          <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700">
             <CardContent className="p-4 flex items-center gap-3">
-              <TrendingDown className="h-8 w-8 text-red-600" />
+              <TrendingDown className="h-8 w-8 text-red-600 dark:text-red-400" />
               <div>
-                <p className="text-sm font-medium text-red-700">Despesa Média</p>
-                <p className="text-lg font-bold text-red-600">{formatCurrency(statistics.mediaDespesas || 0)}</p>
-                <p className={`text-xs ${statistics.crescimentoDespesas <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">Despesa Média</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400">{formatCurrency(statistics.mediaDespesas || 0)}</p>
+                <p className={`text-xs ${statistics.crescimentoDespesas <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {statistics.crescimentoDespesas >= 0 ? '+' : ''}{statistics.crescimentoDespesas?.toFixed(1)}%
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-green-700">Total Receitas</p>
-              <p className="text-lg font-bold text-green-600">{formatCurrency(statistics.totalReceitas || 0)}</p>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">Total Receitas</p>
+              <p className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(statistics.totalReceitas || 0)}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-purple-50 border-purple-200">
+          <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-purple-700">Total Despesas</p>
-              <p className="text-lg font-bold text-purple-600">{formatCurrency(statistics.totalDespesas || 0)}</p>
+              <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Total Despesas</p>
+              <p className="text-lg font-bold text-purple-600 dark:text-purple-400">{formatCurrency(statistics.totalDespesas || 0)}</p>
             </CardContent>
           </Card>
         </div>
@@ -325,7 +325,7 @@ const TrendAnalysisReport = () => {
                       <Badge variant={Math.abs(category.trend) > 25 ? 'destructive' : 'secondary'}>
                         {category.trend >= 0 ? '+' : ''}{category.trend.toFixed(1)}%
                       </Badge>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         Média: {formatCurrency(category.average)}
                       </span>
                     </div>

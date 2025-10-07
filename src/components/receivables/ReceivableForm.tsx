@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
  
 import TagSelector from "@/components/shared/TagSelector";
+import CategorySelector from "@/components/shared/CategorySelector";
 
 interface Receivable {
   id: string;
@@ -366,22 +367,13 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
 
             <div className="space-y-2">
               <Label htmlFor="category">Categoria</Label>
-              <Select 
-                value={formData.category_id || "none"} 
-                onValueChange={(value) => setFormData({...formData, category_id: value === "none" ? "" : value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma categoria</SelectItem>
-                  {categories?.filter(cat => cat.type === 'income').map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CategorySelector
+                value={formData.category_id || ""}
+                onChange={(value) => setFormData({...formData, category_id: value})}
+                categories={categories || []}
+                type="income"
+                placeholder="Selecione uma categoria"
+              />
             </div>
 
             <TagSelector

@@ -71,7 +71,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
   };
 
   const getItemColor = (type: 'category' | 'tag') => {
-    return type === 'category' ? 'text-blue-600' : 'text-green-600';
+    return type === 'category' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400';
   };
 
   const getActionBadge = (action: 'create' | 'ignore') => {
@@ -81,7 +81,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
         Criar
       </Badge>
     ) : (
-      <Badge variant="outline" className="text-gray-600">
+      <Badge variant="outline" className="text-gray-600 dark:text-gray-400">
         <X className="h-3 w-3 mr-1" />
         Ignorar
       </Badge>
@@ -95,10 +95,10 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
   const ignoreCount = validationItems.filter(item => item.action === 'ignore').length;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-2 text-orange-600">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-background border-border">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
             <AlertTriangle className="h-6 w-6" />
             Validação de Categorias e Tags
           </CardTitle>
@@ -106,7 +106,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
         <CardContent className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Alerta informativo */}
           <Alert className="bg-orange-50 dark:bg-orange-950/50 border-orange-200 dark:border-orange-800">
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
             <AlertDescription className="text-orange-700 dark:text-orange-300">
               <strong>Encontradas {totalItems} categorias e tags que não existem no sistema.</strong><br />
               Escolha como deseja proceder para cada item antes de continuar a importação.
@@ -119,7 +119,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => handleSelectAll('create')}
-              className="text-green-600 border-green-200 hover:bg-green-50"
+              className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/50"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Criar Todos
@@ -128,7 +128,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => handleSelectAll('ignore')}
-              className="text-gray-600 border-gray-200 hover:bg-gray-50"
+              className="text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
               <X className="h-4 w-4 mr-2" />
               Ignorar Todos
@@ -137,7 +137,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => setShowDetails(!showDetails)}
-              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50"
             >
               {showDetails ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
               {showDetails ? 'Ocultar Detalhes' : 'Mostrar Detalhes'}
@@ -165,7 +165,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
             <h4 className="font-semibold text-foreground">Itens Encontrados:</h4>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {validationItems.map((item, index) => (
-                <div key={`${item.type}-${item.name}`} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                <div key={`${item.type}-${item.name}`} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50">
                   <div className="flex items-center gap-3">
                     <div className={`${getItemColor(item.type)}`}>
                       {getItemIcon(item.type)}
@@ -186,7 +186,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
                         variant={item.action === 'create' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleItemActionChange(index, 'create')}
-                        className="text-green-600 border-green-200 hover:bg-green-50"
+                        className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/50"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Criar
@@ -195,7 +195,7 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
                         variant={item.action === 'ignore' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleItemActionChange(index, 'ignore')}
-                        className="text-gray-600 border-gray-200 hover:bg-gray-50"
+                        className="text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       >
                         <X className="h-3 w-3 mr-1" />
                         Ignorar
@@ -222,13 +222,13 @@ const CategoryTagValidationModal: React.FC<CategoryTagValidationModalProps> = ({
         </CardContent>
         
         {/* Botões de ação */}
-        <div className="border-t p-6 flex justify-end gap-3">
+        <div className="border-t border-border p-6 flex justify-end gap-3">
           <Button variant="outline" onClick={onClose}>
             Cancelar Importação
           </Button>
           <Button 
             onClick={handleConfirm}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
           >
             <CheckCircle className="h-4 w-4 mr-2" />
             Confirmar e Continuar

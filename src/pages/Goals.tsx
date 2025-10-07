@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
-import GoalList from "@/components/goals/GoalList";
 import GoalForm from "@/components/goals/GoalForm";
 import GoalProgress from "@/components/goals/GoalProgress";
+import GoalEditForm from "@/components/goals/GoalEditForm";
 import TransactionForm from "@/components/shared/TransactionForm";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Goals = () => {
   const { isAuthenticated, user } = useAuth();
@@ -16,6 +15,8 @@ const Goals = () => {
   const { data: goals, refetch } = useSupabaseData('goals', user?.id);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<any>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -40,6 +41,25 @@ const Goals = () => {
     setSelectedGoalId(null);
   };
 
+  const handleEditGoal = (goalId: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      setEditingGoal(goal);
+      setShowEditForm(true);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setShowEditForm(false);
+    setEditingGoal(null);
+  };
+
+  const handleEditSuccess = () => {
+    setShowEditForm(false);
+    setEditingGoal(null);
+    refetch();
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -52,25 +72,33 @@ const Goals = () => {
           <GoalForm />
         </div>
         
-        <GoalProgress goals={goals} onAddProgress={handleAddProgress} />
-        
-        <div className="mt-8">
-          <GoalList />
-        </div>
+        <GoalProgress 
+          goals={goals} 
+          onAddProgress={handleAddProgress}
+          onEdit={handleEditGoal}
+          onDelete={(goalId) => {
+            // TODO: Implementar exclusão de meta
+            console.log('Excluir meta:', goalId);
+          }}
+        />
       </div>
 
-      <Dialog open={showTransactionForm} onOpenChange={setShowTransactionForm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Progresso à Meta</DialogTitle>
-          </DialogHeader>
-          <TransactionForm 
-            defaultGoalId={selectedGoalId}
-            onTransactionAdded={handleTransactionAdded}
-            onCancel={handleFormCancel}
-          />
-        </DialogContent>
-      </Dialog>
+      {showTransactionForm && selectedGoalId && (
+        <TransactionForm 
+          defaultGoalId={selectedGoalId}
+          onTransactionAdded={handleTransactionAdded}
+          onCancel={handleFormCancel}
+          forceOpen={true}
+        />
+      )}
+
+      {showEditForm && editingGoal && (
+        <GoalEditForm 
+          goal={editingGoal}
+          onSuccess={handleEditSuccess}
+          onCancel={handleEditCancel}
+        />
+      )}
     </AppLayout>
   );
 };

@@ -461,16 +461,16 @@ const ExecutiveDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {alerts.map((alert, index) => (
                 <Card key={index} className={`border-l-4 ${
-                  alert.type === 'critical' ? 'border-l-red-500 bg-red-50' :
-                  alert.type === 'warning' ? 'border-l-yellow-500 bg-yellow-50' :
-                  'border-l-blue-500 bg-blue-50'
+                  alert.type === 'critical' ? 'border-l-red-500 bg-red-50 dark:bg-red-900/20' :
+                  alert.type === 'warning' ? 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
+                  'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 }`}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <alert.icon className={`h-5 w-5 ${
-                        alert.type === 'critical' ? 'text-red-600' :
-                        alert.type === 'warning' ? 'text-yellow-600' :
-                        'text-blue-600'
+                        alert.type === 'critical' ? 'text-red-600 dark:text-red-400' :
+                        alert.type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
+                        'text-blue-600 dark:text-blue-400'
                       }`} />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
@@ -479,7 +479,7 @@ const ExecutiveDashboard = () => {
                             {alert.priority === 'high' ? 'Alta' : 'Média'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600">{alert.message}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{alert.message}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -496,23 +496,23 @@ const ExecutiveDashboard = () => {
             KPIs Principais
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <p className="text-sm font-medium text-green-700">Total Receitas</p>
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">Total Receitas</p>
                 </div>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(kpis.totalReceitas)}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   {kpis.variacaoReceitas >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <TrendingUp className="h-3 w-3 text-green-500 dark:text-green-400" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <TrendingDown className="h-3 w-3 text-red-500 dark:text-red-400" />
                   )}
                   <span className={`text-xs ${
-                    kpis.variacaoReceitas >= 0 ? 'text-green-600' : 'text-red-600'
+                    kpis.variacaoReceitas >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {formatPercentage(Math.abs(kpis.variacaoReceitas))}
                   </span>
@@ -520,23 +520,23 @@ const ExecutiveDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-red-50 border-red-200">
+            <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <p className="text-sm font-medium text-red-700">Total Despesas</p>
+                  <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300">Total Despesas</p>
                 </div>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                   {formatCurrency(kpis.totalDespesas)}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   {kpis.variacaoDespesas <= 0 ? (
-                    <TrendingDown className="h-3 w-3 text-green-500" />
+                    <TrendingDown className="h-3 w-3 text-green-500 dark:text-green-400" />
                   ) : (
-                    <TrendingUp className="h-3 w-3 text-red-500" />
+                    <TrendingUp className="h-3 w-3 text-red-500 dark:text-red-400" />
                   )}
                   <span className={`text-xs ${
-                    kpis.variacaoDespesas <= 0 ? 'text-green-600' : 'text-red-600'
+                    kpis.variacaoDespesas <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {formatPercentage(Math.abs(kpis.variacaoDespesas))}
                   </span>
@@ -544,33 +544,33 @@ const ExecutiveDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
-                  <p className="text-sm font-medium text-blue-700">Saldo Líquido</p>
+                  <DollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Saldo Líquido</p>
                 </div>
                 <p className={`text-2xl font-bold ${
-                  kpis.saldoLiquido >= 0 ? 'text-green-600' : 'text-red-600'
+                  kpis.saldoLiquido >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {formatCurrency(kpis.saldoLiquido)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Margem: {formatPercentage(kpis.margemLucro)}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-purple-50 border-purple-200">
+            <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="h-4 w-4 text-purple-600" />
-                  <p className="text-sm font-medium text-purple-700">Saldo Total</p>
+                  <CreditCard className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Saldo Total</p>
                 </div>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {formatCurrency(kpis.totalAccountBalance)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Liquidez: {kpis.mesesLiquidez.toFixed(1)} meses
                 </p>
               </CardContent>
@@ -594,6 +594,12 @@ const ExecutiveDashboard = () => {
                     <Tooltip 
                       formatter={(value: number) => formatCurrency(value)}
                       labelFormatter={(label) => `Mês: ${label}`}
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        color: 'var(--foreground)'
+                      }}
                     />
                     <Legend />
                     <Area type="monotone" dataKey="receitas" name="Receitas" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
@@ -615,7 +621,15 @@ const ExecutiveDashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(value) => `R$ ${value/1000}K`} />
                     <YAxis dataKey="name" type="category" width={80} />
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip 
+                      formatter={(value: number) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        color: 'var(--foreground)'
+                      }}
+                    />
                     <Bar dataKey="value" fill="#0c6291" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -636,23 +650,23 @@ const ExecutiveDashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Utilização Geral</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Utilização Geral</span>
                   <span className="font-semibold">{formatPercentage(budgetAnalysis.budgetUtilization || 0)}</span>
                 </div>
                 <Progress value={budgetAnalysis.budgetUtilization || 0} className="h-2" />
                 
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="p-2 bg-green-50 rounded">
-                    <p className="text-lg font-bold text-green-600">{budgetAnalysis.budgetStatus?.filter(b => b.status === 'good').length || 0}</p>
-                    <p className="text-xs text-gray-600">Dentro do Orçamento</p>
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">{budgetAnalysis.budgetStatus?.filter(b => b.status === 'good').length || 0}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Dentro do Orçamento</p>
                   </div>
-                  <div className="p-2 bg-yellow-50 rounded">
-                    <p className="text-lg font-bold text-yellow-600">{budgetAnalysis.warningCount || 0}</p>
-                    <p className="text-xs text-gray-600">Atenção</p>
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                    <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{budgetAnalysis.warningCount || 0}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Atenção</p>
                   </div>
-                  <div className="p-2 bg-red-50 rounded">
-                    <p className="text-lg font-bold text-red-600">{budgetAnalysis.overBudgetCount || 0}</p>
-                    <p className="text-xs text-gray-600">Excedido</p>
+                  <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
+                    <p className="text-lg font-bold text-red-600 dark:text-red-400">{budgetAnalysis.overBudgetCount || 0}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Excedido</p>
                   </div>
                 </div>
               </div>
@@ -672,17 +686,17 @@ const ExecutiveDashboard = () => {
                   <div key={goal.id} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{goal.name}</span>
-                      <span className="text-xs text-gray-500">{goal.progress.toFixed(1)}%</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{goal.progress.toFixed(1)}%</span>
                     </div>
                     <Progress value={goal.progress} className="h-2" />
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span>{formatCurrency(Number(goal.current_amount))}</span>
                       <span>{formatCurrency(Number(goal.target_amount))}</span>
                     </div>
                   </div>
                 ))}
                 {goalsProgress.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                     Nenhuma meta definida
                   </p>
                 )}

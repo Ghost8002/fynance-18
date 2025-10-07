@@ -137,47 +137,47 @@ const BudgetAnalysisReport = () => {
       </CardHeader>
       <CardContent className="pt-6">
         {budgetAnalysis.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             Nenhum orçamento encontrado para análise
           </div>
         ) : (
           <>
             {/* Resumo Executivo */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
                 <CardContent className="p-4">
-                  <p className="text-sm font-medium text-blue-700">Orçamento Total</p>
-                  <p className="text-2xl font-bold text-blue-600">{formatCurrency(summary.totalBudget)}</p>
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Orçamento Total</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(summary.totalBudget)}</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-red-50 border-red-200">
+              <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700">
                 <CardContent className="p-4">
-                  <p className="text-sm font-medium text-red-700">Total Gasto</p>
-                  <p className="text-2xl font-bold text-red-600">{formatCurrency(summary.totalSpent)}</p>
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300">Total Gasto</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(summary.totalSpent)}</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-green-50 border-green-200">
+              <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
                 <CardContent className="p-4">
-                  <p className="text-sm font-medium text-green-700">Disponível</p>
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(summary.totalRemaining)}</p>
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">Disponível</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(summary.totalRemaining)}</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-50 border-gray-200">
+              <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardContent className="p-4">
-                  <p className="text-sm font-medium text-gray-700">Status Geral</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Status Geral</p>
                   <div className="flex gap-1 mt-2">
-                    <Badge variant="outline" className="text-green-600 border-green-600">
+                    <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       {summary.goodCount}
                     </Badge>
-                    <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                    <Badge variant="outline" className="text-yellow-600 dark:text-yellow-400 border-yellow-600 dark:border-yellow-400">
                       <AlertTriangle className="h-3 w-3 mr-1" />
                       {summary.warningCount}
                     </Badge>
-                    <Badge variant="outline" className="text-red-600 border-red-600">
+                    <Badge variant="outline" className="text-red-600 dark:text-red-400 border-red-600 dark:border-red-400">
                       <XCircle className="h-3 w-3 mr-1" />
                       {summary.overBudgetCount}
                     </Badge>
@@ -200,7 +200,16 @@ const BudgetAnalysisReport = () => {
                       height={80}
                     />
                     <YAxis tickFormatter={(value) => `R$ ${value/1000}K`} />
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip 
+                      formatter={(value: number) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        color: 'var(--foreground)'
+                      }}
+                      cursor={{ fill: 'transparent' }}
+                    />
                     <Legend />
                     <Bar dataKey="limit_amount" name="Orçamento" fill="#94a3b8" />
                     <Bar dataKey="spent" name="Gasto" fill="#0c6291" />
@@ -231,7 +240,7 @@ const BudgetAnalysisReport = () => {
                         </Badge>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {formatCurrency(budget.spent)} / {formatCurrency(Number(budget.limit_amount))}
                         </p>
                         <p className="font-semibold">{budget.percentage}%</p>
@@ -243,10 +252,10 @@ const BudgetAnalysisReport = () => {
                       className="h-2 mb-2"
                     />
                     
-                    <div className="flex justify-between text-sm text-gray-600">
+                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                       <span>
                         {budget.remaining >= 0 ? 'Restante' : 'Excesso'}: 
-                        <span className={budget.remaining >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        <span className={budget.remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                           {formatCurrency(Math.abs(budget.remaining))}
                         </span>
                       </span>

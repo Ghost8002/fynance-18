@@ -3,7 +3,7 @@
 -- =====================================================
 -- Este arquivo melhora as funções de filtro de período para maior precisão
 
--- 1. Função para obter dados de contas e dívidas por período com precisão
+-- 1. Função para obter dados de valores a receber e pagar por período com precisão
 CREATE OR REPLACE FUNCTION public.get_accounts_debts_by_period(
     p_start_date DATE,
     p_end_date DATE,
@@ -415,7 +415,7 @@ END;
 $$;
 
 -- Comentários das funções
-COMMENT ON FUNCTION public.get_accounts_debts_by_period IS 'Obtém contas e dívidas por período com precisão';
+COMMENT ON FUNCTION public.get_accounts_debts_by_period IS 'Obtém valores a receber e pagar por período com precisão';
 COMMENT ON FUNCTION public.calculate_period_totals IS 'Calcula totais por período com status correto';
 COMMENT ON FUNCTION public.get_financial_period_summary IS 'Obtém resumo financeiro completo do período';
 COMMENT ON FUNCTION public.check_period_inconsistencies IS 'Verifica inconsistências de status por período';

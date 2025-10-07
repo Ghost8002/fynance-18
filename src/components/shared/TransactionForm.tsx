@@ -27,14 +27,16 @@ interface TransactionFormProps {
   defaultGoalId?: string;
   onTransactionAdded?: () => void;
   onCancel?: () => void;
+  forceOpen?: boolean;
 }
 
 const TransactionForm = ({ 
   defaultAccountId, 
-  defaultCardId, 
+  defaultCardId,
   defaultGoalId,
   onTransactionAdded,
-  onCancel
+  onCancel,
+  forceOpen = false
 }: TransactionFormProps) => {
   const { user } = useAuth();
   const { data: categories } = useSupabaseData('categories', user?.id);
@@ -59,6 +61,13 @@ const TransactionForm = ({
   useEffect(() => {
     checkBalance();
   }, [formData.amount, formData.type, formData.account_id, formData.card_id, accounts, cards]);
+
+  // Open modal when forceOpen is true
+  useEffect(() => {
+    if (forceOpen) {
+      setOpen(true);
+    }
+  }, [forceOpen]);
 
   const checkBalance = () => {
     setBalanceError("");
@@ -187,13 +196,15 @@ const TransactionForm = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-finance-blue hover:bg-finance-blue/90 flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          <span>{defaultGoalId ? 'Adicionar à Meta' : 'Nova Transação'}</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh]">
+      {!forceOpen && (
+        <DialogTrigger asChild>
+          <Button className="bg-finance-blue hover:bg-finance-blue/90 flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            <span>{defaultGoalId ? 'Adicionar à Meta' : 'Nova Transação'}</span>
+          </Button>
+        </DialogTrigger>
+      )}
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
             {defaultGoalId ? 'Adicionar Valor à Meta' : 'Adicionar Transação'}

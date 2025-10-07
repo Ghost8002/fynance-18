@@ -392,16 +392,16 @@ const AdvancedAnalyticsReport = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {insights.map((insight, index) => (
                 <Card key={index} className={`border-l-4 ${
-                  insight.type === 'positive' ? 'border-l-green-500 bg-green-50' :
-                  insight.type === 'negative' ? 'border-l-red-500 bg-red-50' :
-                  'border-l-yellow-500 bg-yellow-50'
+                  insight.type === 'positive' ? 'border-l-green-500 bg-green-50 dark:bg-green-900/20' :
+                  insight.type === 'negative' ? 'border-l-red-500 bg-red-50 dark:bg-red-900/20' :
+                  'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
                 }`}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <insight.icon className={`h-5 w-5 mt-0.5 ${
-                        insight.type === 'positive' ? 'text-green-600' :
-                        insight.type === 'negative' ? 'text-red-600' :
-                        'text-yellow-600'
+                        insight.type === 'positive' ? 'text-green-600 dark:text-green-400' :
+                        insight.type === 'negative' ? 'text-red-600 dark:text-red-400' :
+                        'text-yellow-600 dark:text-yellow-400'
                       }`} />
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
@@ -410,7 +410,7 @@ const AdvancedAnalyticsReport = () => {
                             {insight.impact === 'high' ? 'Alto' : 'Médio'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600">{insight.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{insight.description}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -424,53 +424,53 @@ const AdvancedAnalyticsReport = () => {
         {analysisType === 'financial-metrics' && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Calculator className="h-4 w-4 text-blue-600" />
-                    <p className="text-sm font-medium text-blue-700">Margem de Lucro</p>
+                    <Calculator className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Margem de Lucro</p>
                   </div>
                   <p className={`text-2xl font-bold ${
-                    financialMetrics.margemLucro >= 0 ? 'text-green-600' : 'text-red-600'
+                    financialMetrics.margemLucro >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {formatPercentage(financialMetrics.margemLucro)}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-green-50 border-green-200">
+              <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="h-4 w-4 text-green-600" />
-                    <p className="text-sm font-medium text-green-700">Taxa de Poupança</p>
+                    <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300">Taxa de Poupança</p>
                   </div>
                   <p className={`text-2xl font-bold ${
-                    financialMetrics.taxaPoupanca >= 0 ? 'text-green-600' : 'text-red-600'
+                    financialMetrics.taxaPoupanca >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {formatPercentage(financialMetrics.taxaPoupanca)}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-purple-50 border-purple-200">
+              <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-4 w-4 text-purple-600" />
-                    <p className="text-sm font-medium text-purple-700">Liquidez (meses)</p>
+                    <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Liquidez (meses)</p>
                   </div>
-                  <p className="text-2xl font-bold text-purple-600">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                     {financialMetrics.liquidez.toFixed(1)}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-orange-50 border-orange-200">
+              <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
-                    <p className="text-sm font-medium text-orange-700">Variabilidade</p>
+                    <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Variabilidade</p>
                   </div>
-                  <p className="text-2xl font-bold text-orange-600">
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                     {formatPercentage(financialMetrics.coeficienteVariacao)}
                   </p>
                 </CardContent>

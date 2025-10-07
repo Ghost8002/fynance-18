@@ -16,6 +16,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import TagSelector from "@/components/shared/TagSelector";
+import CategorySelector from "@/components/shared/CategorySelector";
 
 interface TransactionEditFormProps {
   transaction: {
@@ -227,20 +228,13 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
 
           <div className="grid gap-2">
             <Label htmlFor="category">Categoria</Label>
-            <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria..." />
-              </SelectTrigger>
-              <SelectContent>
-                {categories
-                  .filter(cat => cat.type === formData.type)
-                  .map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            <CategorySelector
+              value={formData.category_id}
+              onChange={(value) => handleInputChange('category_id', value)}
+              categories={categories}
+              type={formData.type}
+              placeholder="Selecione uma categoria..."
+            />
           </div>
 
           <div className="grid gap-2">

@@ -130,69 +130,70 @@ const FinancialCalendar = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header com estatísticas do mês */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600 font-medium">Receitas</p>
-                <p className="text-2xl font-bold text-green-700">{formatCurrency(monthStats.income)}</p>
+      {/* Header com estatísticas do mês e filtros */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Primeira coluna: Receitas */}
+        <div className="space-y-4">
+          <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 dark:from-green-900/20 dark:to-green-800/20 dark:border-green-700">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">Receitas</p>
+                  <p className="text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(monthStats.income)}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-red-600 font-medium">Despesas</p>
-                <p className="text-2xl font-bold text-red-700">{formatCurrency(monthStats.expenses)}</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 dark:border-blue-700">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">A Receber</p>
+                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{formatCurrency(monthStats.receivables)}</p>
+                </div>
+                <CalendarIcon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <TrendingDown className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 font-medium">A Receber</p>
-                <p className="text-2xl font-bold text-blue-700">{formatCurrency(monthStats.receivables)}</p>
-              </div>
-              <CalendarIcon className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-orange-600 font-medium">Dívidas</p>
-                <p className="text-2xl font-bold text-orange-700">{formatCurrency(monthStats.debts)}</p>
-                {monthStats.overdue > 0 && (
-                  <div className="flex items-center mt-1">
-                    <Clock className="h-4 w-4 text-red-500 mr-1" />
-                    <span className="text-xs text-red-600">{monthStats.overdue} vencidas</span>
-                  </div>
-                )}
-              </div>
-              <Clock className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Legenda e Filtros */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <div className="xl:col-span-2">
-          <CalendarLegend />
+            </CardContent>
+          </Card>
         </div>
-        <div className="xl:col-span-2">
+
+        {/* Segunda coluna: Despesas */}
+        <div className="space-y-4">
+          <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200 dark:from-red-900/20 dark:to-red-800/20 dark:border-red-700">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">Despesas</p>
+                  <p className="text-2xl font-bold text-red-700 dark:text-red-300">{formatCurrency(monthStats.expenses)}</p>
+                </div>
+                <TrendingDown className="h-8 w-8 text-red-600 dark:text-red-400" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 dark:border-orange-700">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">Dívidas</p>
+                  <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(monthStats.debts)}</p>
+                  {monthStats.overdue > 0 && (
+                    <div className="flex items-center mt-1">
+                      <Clock className="h-4 w-4 text-red-500 dark:text-red-400 mr-1" />
+                      <span className="text-xs text-red-600 dark:text-red-400">{monthStats.overdue} vencidas</span>
+                    </div>
+                  )}
+                </div>
+                <Clock className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Terceira e quarta colunas: Filtros */}
+        <div className="lg:col-span-2">
           <CalendarFilters
             eventTypes={filters.eventTypes}
             showOverdue={filters.showOverdue}

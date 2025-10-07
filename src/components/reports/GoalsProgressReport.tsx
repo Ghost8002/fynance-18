@@ -73,46 +73,46 @@ const GoalsProgressReport = () => {
       </CardHeader>
       <CardContent className="pt-6">
         {goalsAnalysis.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             Nenhuma meta encontrada
           </div>
         ) : (
           <>
             {/* Resumo das Metas */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <Target className="h-8 w-8 text-blue-600" />
+                  <Target className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   <div>
-                    <p className="text-sm font-medium text-blue-700">Total de Metas</p>
-                    <p className="text-2xl font-bold text-blue-600">{summary.totalGoals}</p>
+                    <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total de Metas</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{summary.totalGoals}</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-green-50 border-green-200">
+              <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <DollarSign className="h-8 w-8 text-green-600" />
+                  <DollarSign className="h-8 w-8 text-green-600 dark:text-green-400" />
                   <div>
-                    <p className="text-sm font-medium text-green-700">Progresso Total</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(summary.totalProgress)}</p>
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300">Progresso Total</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(summary.totalProgress)}</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-purple-50 border-purple-200">
+              <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <Calendar className="h-8 w-8 text-purple-600" />
+                  <Calendar className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                   <div>
-                    <p className="text-sm font-medium text-purple-700">Meta Total</p>
-                    <p className="text-2xl font-bold text-purple-600">{formatCurrency(summary.totalTarget)}</p>
+                    <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Meta Total</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{formatCurrency(summary.totalTarget)}</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-50 border-gray-200">
+              <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardContent className="p-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Status das Metas</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status das Metas</p>
                   <div className="grid grid-cols-2 gap-1 text-xs">
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -158,15 +158,15 @@ const GoalsProgressReport = () => {
                           </Badge>
                         </div>
                         {goal.description && (
-                          <p className="text-sm text-gray-600 mb-2">{goal.description}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{goal.description}</p>
                         )}
                         {goal.category && (
-                          <p className="text-sm text-gray-500">Categoria: {goal.category}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Categoria: {goal.category}</p>
                         )}
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold">{goal.percentage}%</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {formatCurrency(Number(goal.current_amount))} / {formatCurrency(Number(goal.target_amount))}
                         </p>
                       </div>
@@ -179,16 +179,16 @@ const GoalsProgressReport = () => {
                     
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex gap-4">
-                        <span className="text-gray-600">
-                          Faltam: <span className="font-medium text-blue-600">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Faltam: <span className="font-medium text-blue-600 dark:text-blue-400">
                             {formatCurrency(goal.remaining)}
                           </span>
                         </span>
                         {goal.deadline && (
-                          <span className="text-gray-600">
+                          <span className="text-gray-600 dark:text-gray-400">
                             Prazo: <span className={`font-medium ${
-                              goal.daysRemaining && goal.daysRemaining < 0 ? 'text-red-600' :
-                              goal.daysRemaining && goal.daysRemaining < 30 ? 'text-yellow-600' : 'text-green-600'
+                              goal.daysRemaining && goal.daysRemaining < 0 ? 'text-red-600 dark:text-red-400' :
+                              goal.daysRemaining && goal.daysRemaining < 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'
                             }`}>
                               {goal.daysRemaining !== null ? 
                                 goal.daysRemaining < 0 ? 
@@ -201,7 +201,7 @@ const GoalsProgressReport = () => {
                         )}
                       </div>
                       {goal.deadline && (
-                        <span className="text-gray-500">
+                        <span className="text-gray-500 dark:text-gray-400">
                           {new Date(goal.deadline).toLocaleDateString('pt-BR')}
                         </span>
                       )}

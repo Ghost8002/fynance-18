@@ -1,7 +1,7 @@
 -- =====================================================
 -- CORREÇÃO: Validação de Duplicidade
 -- =====================================================
--- Este arquivo adiciona validações para evitar criação de dívidas/contas duplicadas
+-- Este arquivo adiciona validações para evitar criação de valores duplicados a receber/pagar
 
 -- 1. Função para validar duplicidade de dívidas
 CREATE OR REPLACE FUNCTION public.validate_debt_duplicate(

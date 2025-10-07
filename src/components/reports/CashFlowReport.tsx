@@ -189,46 +189,46 @@ const CashFlowReport = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
             <CardContent className="p-4 flex flex-col items-center">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <p className="text-sm font-medium text-green-700">Total de Entradas</p>
+                <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">Total de Entradas</p>
               </div>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(summary.totalEntradas)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-red-50 border-red-200">
+          <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700">
             <CardContent className="p-4 flex flex-col items-center">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingDown className="h-4 w-4 text-red-600" />
-                <p className="text-sm font-medium text-red-700">Total de Saídas</p>
+                <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">Total de Saídas</p>
               </div>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {formatCurrency(summary.totalSaidas)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm font-medium text-blue-700 mb-2">Saldo Atual</p>
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Saldo Atual</p>
               <p className={`text-2xl font-bold ${
-                summary.saldoFinal >= 0 ? "text-blue-600" : "text-red-600"
+                summary.saldoFinal >= 0 ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"
               }`}>
                 {formatCurrency(summary.saldoFinal)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 border-gray-200">
+          <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm font-medium text-gray-700 mb-2">Variação no Período</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Variação no Período</p>
               <p className={`text-2xl font-bold ${
-                summary.variacaoTotal >= 0 ? "text-green-600" : "text-red-600"
+                summary.variacaoTotal >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
               }`}>
                 {formatCurrency(summary.variacaoTotal)}
               </p>
@@ -241,7 +241,7 @@ const CashFlowReport = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b dark:border-gray-700">
                   <th className="text-left p-2">Mês</th>
                   <th className="text-right p-2">Entradas</th>
                   <th className="text-right p-2">Saídas</th>
@@ -251,17 +251,17 @@ const CashFlowReport = () => {
               </thead>
               <tbody>
                 {chartData.map((item, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
+                  <tr key={index} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                     <td className="p-2 font-medium">{item.month}</td>
-                    <td className="p-2 text-right text-green-600">{formatCurrency(item.entradas)}</td>
-                    <td className="p-2 text-right text-red-600">{formatCurrency(item.saidas)}</td>
+                    <td className="p-2 text-right text-green-600 dark:text-green-400">{formatCurrency(item.entradas)}</td>
+                    <td className="p-2 text-right text-red-600 dark:text-red-400">{formatCurrency(item.saidas)}</td>
                     <td className={`p-2 text-right font-medium ${
-                      item.saldoLiquido >= 0 ? 'text-green-600' : 'text-red-600'
+                      item.saldoLiquido >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {formatCurrency(item.saldoLiquido)}
                     </td>
                     <td className={`p-2 text-right font-medium ${
-                      item.saldoAcumulado >= 0 ? 'text-blue-600' : 'text-red-600'
+                      item.saldoAcumulado >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {formatCurrency(item.saldoAcumulado)}
                     </td>

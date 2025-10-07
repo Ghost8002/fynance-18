@@ -93,17 +93,8 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
     return <div className="text-sm text-muted-foreground">Carregando tags...</div>;
   }
 
-  // Se não há tags, mostrar mensagem informativa
-  if (!safeTags.length) {
-    return (
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <div className="text-sm text-muted-foreground">
-          Nenhuma tag disponível. Crie tags nas configurações primeiro.
-        </div>
-      </div>
-    );
-  }
+  // Se não há tags, ainda permitir criação dinâmica
+  // Removido o bloqueio que impedia a criação de tags quando não há tags existentes
 
   return (
     <div className="space-y-2">

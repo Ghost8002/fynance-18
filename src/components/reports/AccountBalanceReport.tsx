@@ -91,42 +91,42 @@ const AccountBalanceReport = () => {
       <CardContent className="pt-6">
         {/* Resumo Executivo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
             <CardContent className="p-4 flex items-center gap-3">
-              <Wallet className="h-8 w-8 text-blue-600" />
+              <Wallet className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <div>
-                <p className="text-sm font-medium text-blue-700">Saldo Total</p>
-                <p className="text-2xl font-bold text-blue-600">{formatCurrency(summary.totalBalance)}</p>
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Saldo Total</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(summary.totalBalance)}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
             <CardContent className="p-4 flex items-center gap-3">
-              <CreditCard className="h-8 w-8 text-green-600" />
+              <CreditCard className="h-8 w-8 text-green-600 dark:text-green-400" />
               <div>
-                <p className="text-sm font-medium text-green-700">Crédito Disponível</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(summary.totalCreditAvailable)}</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">Crédito Disponível</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(summary.totalCreditAvailable)}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-red-50 border-red-200">
+          <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700">
             <CardContent className="p-4 flex items-center gap-3">
-              <CreditCard className="h-8 w-8 text-red-600" />
+              <CreditCard className="h-8 w-8 text-red-600 dark:text-red-400" />
               <div>
-                <p className="text-sm font-medium text-red-700">Crédito Utilizado</p>
-                <p className="text-2xl font-bold text-red-600">{formatCurrency(summary.totalCreditUsed)}</p>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">Crédito Utilizado</p>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(summary.totalCreditUsed)}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-purple-50 border-purple-200">
+          <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
             <CardContent className="p-4 flex items-center gap-3">
-              <PiggyBank className="h-8 w-8 text-purple-600" />
+              <PiggyBank className="h-8 w-8 text-purple-600 dark:text-purple-400" />
               <div>
-                <p className="text-sm font-medium text-purple-700">Patrimônio Líquido</p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Patrimônio Líquido</p>
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {formatCurrency(summary.totalBalance - summary.totalCreditUsed)}
                 </p>
               </div>
@@ -164,7 +164,7 @@ const AccountBalanceReport = () => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   Nenhuma conta com saldo positivo
                 </div>
               )}
@@ -192,7 +192,7 @@ const AccountBalanceReport = () => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   Nenhum cartão cadastrado
                 </div>
               )}
@@ -207,7 +207,7 @@ const AccountBalanceReport = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
+                  <tr className="border-b dark:border-gray-700">
                     <th className="text-left p-3">Conta</th>
                     <th className="text-left p-3">Tipo</th>
                     <th className="text-left p-3">Banco</th>
@@ -217,18 +217,18 @@ const AccountBalanceReport = () => {
                 </thead>
                 <tbody>
                   {accountsData.map((account) => (
-                    <tr key={account.id} className="border-b hover:bg-gray-50">
+                    <tr key={account.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="p-3 font-medium">{account.name}</td>
                       <td className="p-3 capitalize">{account.type}</td>
                       <td className="p-3">{account.bank || '-'}</td>
                       <td className={`p-3 text-right font-medium ${
-                        account.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                        account.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         {formatCurrency(account.balance)}
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          account.balance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          account.balance >= 0 ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
                         }`}>
                           {account.balance >= 0 ? 'Positivo' : 'Negativo'}
                         </span>
@@ -247,7 +247,7 @@ const AccountBalanceReport = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b">
+                    <tr className="border-b dark:border-gray-700">
                       <th className="text-left p-3">Cartão</th>
                       <th className="text-left p-3">Tipo</th>
                       <th className="text-right p-3">Limite</th>
@@ -260,17 +260,17 @@ const AccountBalanceReport = () => {
                     {cardsData.map((card) => {
                       const utilizationPercent = (card.used / card.limit) * 100;
                       return (
-                        <tr key={card.id} className="border-b hover:bg-gray-50">
+                        <tr key={card.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                           <td className="p-3 font-medium">{card.name}</td>
                           <td className="p-3 capitalize">{card.type}</td>
                           <td className="p-3 text-right">{formatCurrency(card.limit)}</td>
-                          <td className="p-3 text-right text-red-600">{formatCurrency(card.used)}</td>
-                          <td className="p-3 text-right text-green-600">{formatCurrency(card.available)}</td>
+                          <td className="p-3 text-right text-red-600 dark:text-red-400">{formatCurrency(card.used)}</td>
+                          <td className="p-3 text-right text-green-600 dark:text-green-400">{formatCurrency(card.available)}</td>
                           <td className="p-3 text-center">
                             <span className={`px-2 py-1 rounded-full text-xs ${
-                              utilizationPercent > 80 ? 'bg-red-100 text-red-800' :
-                              utilizationPercent > 50 ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-green-100 text-green-800'
+                              utilizationPercent > 80 ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300' :
+                              utilizationPercent > 50 ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300' :
+                              'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
                             }`}>
                               {utilizationPercent.toFixed(1)}%
                             </span>

@@ -171,7 +171,7 @@ const Reports = () => {
           </div>
           
           {/* Filter Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-finance-primary/10 rounded-lg">
@@ -214,7 +214,7 @@ const Reports = () => {
 
             {/* Custom Date Pickers */}
             {globalPeriod === "custom" && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -297,8 +297,8 @@ const Reports = () => {
           {/* Relatórios Principais */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Star className="h-6 w-6 text-yellow-600" />
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-finance-text-primary">Relatórios Principais</h3>
@@ -312,7 +312,7 @@ const Reports = () => {
                   className={`group cursor-pointer transition-all duration-300 border-2 hover:border-finance-primary/30
                     ${activeTab === report.id 
                       ? 'border-finance-primary shadow-xl scale-105 bg-finance-primary/5' 
-                      : 'border-gray-200 hover:shadow-lg hover:scale-102'}`}
+                      : 'border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-102'}`}
                   onClick={() => setActiveTab(report.id)}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -342,8 +342,8 @@ const Reports = () => {
           {/* Outros Relatórios */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-finance-text-primary">Relatórios Detalhados</h3>
@@ -357,7 +357,7 @@ const Reports = () => {
                   className={`group cursor-pointer transition-all duration-300 border-2 hover:border-finance-primary/30
                     ${activeTab === report.id 
                       ? 'border-finance-primary shadow-xl scale-105 bg-finance-primary/5' 
-                      : 'border-gray-200 hover:shadow-lg hover:scale-102'}`}
+                      : 'border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-102'}`}
                   onClick={() => setActiveTab(report.id)}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -418,7 +418,7 @@ const Reports = () => {
           setCustomEndDate
         }}>
           <div className="animate-fade-in">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden min-h-[400px]">
               <TabsContent value="executive-dashboard" className="p-0">
                 <div className="p-6">
                   <ExecutiveDashboard />

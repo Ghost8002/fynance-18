@@ -190,6 +190,13 @@ const IncomeExpenseReport = () => {
               <Tooltip 
                 formatter={(value: number) => formatCurrency(value)}
                 labelFormatter={(label) => `Mês: ${label}`}
+                contentStyle={{
+                  backgroundColor: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                  color: 'var(--foreground)'
+                }}
+                cursor={{ fill: 'transparent' }}
               />
               <Legend />
               <Bar dataKey="receitas" name="Receitas" fill="#4ade80" radius={[4, 4, 0, 0]} />
@@ -199,29 +206,29 @@ const IncomeExpenseReport = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <Card className="bg-gray-50">
+          <Card className="bg-gray-50 dark:bg-gray-800">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm text-gray-500">Total Receitas</p>
-              <p className="text-2xl font-bold text-green-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Receitas</p>
+              <p className="text-2xl font-bold text-green-500 dark:text-green-400">
                 {formatCurrency(totals.totalReceitas)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50">
+          <Card className="bg-gray-50 dark:bg-gray-800">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm text-gray-500">Total Despesas</p>
-              <p className="text-2xl font-bold text-red-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Despesas</p>
+              <p className="text-2xl font-bold text-red-500 dark:text-red-400">
                 {formatCurrency(totals.totalDespesas)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50">
+          <Card className="bg-gray-50 dark:bg-gray-800">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm text-gray-500">Saldo</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Saldo</p>
               <p className={`text-2xl font-bold ${
-                totals.saldo >= 0 ? "text-green-500" : "text-red-500"
+                totals.saldo >= 0 ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
               }`}>
                 {formatCurrency(totals.saldo)}
               </p>
