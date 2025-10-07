@@ -181,7 +181,8 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
         closing_day: "1",
         due_day: "10",
         last_four_digits: "",
-        color: "#3B82F6"
+        color: "#3B82F6",
+        selectedTags: []
       });
 
       setOpen(false);
