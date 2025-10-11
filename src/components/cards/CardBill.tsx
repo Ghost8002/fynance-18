@@ -6,8 +6,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Calendar, CreditCard, Package, FileText, DollarSign, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, CreditCard, Package, FileText, DollarSign, Clock, XCircle, CheckCircle, AlertCircle } from "lucide-react";
 import { BillPaymentDialog } from "./BillPaymentDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CardBillProps {
   cardId: string;
@@ -60,6 +70,8 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
   const [loading, setLoading] = useState(true);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentType, setPaymentType] = useState<'full' | 'partial' | 'installment'>('full');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [paymentTransactions, setPaymentTransactions] = useState<any[]>([]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -197,6 +209,21 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
         setTransactions(transactionsWithCategory);
       }
 
+      // Buscar transações de pagamento da fatura
+      const { data: paymentTxns } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('card_id', cardId)
+        .eq('user_id', user.id)
+        .eq('description', 'Pagamento de fatura - Cartão')
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0])
+        .order('date', { ascending: false });
+
+      if (paymentTxns) {
+        setPaymentTransactions(paymentTxns);
+      }
+
     } catch (error) {
       console.error('Error fetching bill data:', error);
       toast({
@@ -265,6 +292,84 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
     setPaymentDialogOpen(true);
   };
 
+  const handleCancelPayment = async () => {
+    if (!billData || !user?.id) return;
+
+    try {
+      // 1. Excluir transações de pagamento e restaurar contas
+      for (const txn of paymentTransactions) {
+        await supabase
+          .from('transactions')
+          .delete()
+          .eq('id', txn.id);
+
+        // 2. Restaurar saldo da conta se houver
+        if (txn.account_id) {
+          const { data: account } = await supabase
+            .from('accounts')
+            .select('balance')
+            .eq('id', txn.account_id)
+            .single();
+
+          if (account) {
+            await supabase
+              .from('accounts')
+              .update({
+                balance: account.balance + Math.abs(txn.amount),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', txn.account_id)
+              .eq('user_id', user.id);
+          }
+        }
+      }
+
+      // 3. Restaurar limite do cartão
+      const { data: card } = await supabase
+        .from('cards')
+        .select('used_amount')
+        .eq('id', cardId)
+        .single();
+
+      if (card) {
+        await supabase
+          .from('cards')
+          .update({
+            used_amount: card.used_amount + billData.paid_amount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', cardId)
+          .eq('user_id', user.id);
+      }
+
+      // 4. Resetar fatura
+      await supabase
+        .from('card_bills')
+        .update({
+          paid_amount: 0,
+          remaining_amount: billData.total_amount,
+          status: billData.due_date < new Date().toISOString().split('T')[0] ? 'overdue' : 'open',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', billData.id);
+
+      toast({
+        title: "Pagamento cancelado",
+        description: "A fatura foi restaurada ao estado anterior."
+      });
+
+      setCancelDialogOpen(false);
+      fetchBillData();
+      if (onBillUpdate) onBillUpdate();
+    } catch (error) {
+      console.error('Error canceling payment:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao cancelar pagamento"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -279,6 +384,59 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Card de Status do Pagamento */}
+      {billData && billData.paid_amount > 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                {billData.status === 'paid' && (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                )}
+                {billData.status === 'partial' && (
+                  <AlertCircle className="w-5 h-5 text-yellow-600" />
+                )}
+                <CardTitle className="text-lg">
+                  {billData.status === 'paid' && 'Fatura Paga Completamente'}
+                  {billData.status === 'partial' && 'Fatura Paga Parcialmente'}
+                </CardTitle>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCancelDialogOpen(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Cancelar Pagamento
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Valor pago:</span>
+                <span className="font-medium">{formatCurrency(billData.paid_amount)}</span>
+              </div>
+              {billData.status === 'partial' && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Valor restante:</span>
+                  <span className="font-medium">{formatCurrency(billData.remaining_amount)}</span>
+                </div>
+              )}
+              {paymentTransactions.length > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Forma de pagamento:</span>
+                  <span className="font-medium">
+                    {paymentTransactions.length > 1 ? 'Parcelado' : 'À vista'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header com navegação */}
       <Card>
         <CardHeader>
@@ -527,6 +685,25 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
           onPaymentSuccess={fetchBillData}
         />
       )}
+
+      {/* Dialog de Cancelamento */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar o pagamento desta fatura? 
+              Todas as transações de pagamento serão excluídas e a fatura retornará ao estado anterior.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não, manter</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelPayment}>
+              Sim, cancelar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
