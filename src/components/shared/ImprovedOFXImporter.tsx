@@ -13,6 +13,7 @@ import { ImportedTransaction } from '@/hooks/useImport';
 import { CategoryEngine } from '@/utils/categorization/CategoryEngine';
 import { CategoryManager, CategoryCreationPlan } from '@/utils/categorization/CategoryManager';
 import { supabase } from '@/integrations/supabase/client';
+import { AccountSelector } from './AccountSelector';
 const ImprovedOFXImporter: React.FC = () => {
   const {
     user
@@ -650,18 +651,13 @@ NEWFILEUID:NONE
           </div>}
 
         {/* Seleção de conta */}
-        <div className="space-y-3">
-          <label htmlFor="account-select" className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Conta de Destino
-          </label>
-          <select id="account-select" value={selectedAccountId} onChange={e => setSelectedAccountId(e.target.value)} disabled={isImporting || isProcessing} className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-background text-foreground">
-            <option value="">Selecione uma conta para importar as transações</option>
-            {accounts?.map(account => <option key={account.id} value={account.id}>
-                {account.name} - {account.bank || 'Conta'}
-              </option>)}
-          </select>
-        </div>
+        <AccountSelector
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={setSelectedAccountId}
+          disabled={isImporting || isProcessing}
+          colorScheme="blue"
+        />
 
         {/* Informações sobre o formato */}
         
