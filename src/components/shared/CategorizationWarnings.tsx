@@ -132,7 +132,7 @@ export function CategorizationWarnings({
                       </div>
                     )}
                     <Badge variant="outline" className="text-xs">
-                      {result.category}
+                      {(result as any).category || 'Sem categoria'}
                     </Badge>
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export function CategorizationWarnings({
 
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>Confiança: {result.confidence}%</span>
-                    <span>Método: {result.method}</span>
+                    <span>Método: {(result as any).method || 'automático'}</span>
                   </div>
                 </div>
               </CardContent>

@@ -4,6 +4,8 @@
  */
 
 import { CategoryMatcher, CategorizationResult } from './CategoryMatcher';
+
+export type { CategorizationResult };
 import { KEYWORD_DATABASE } from './KeywordDatabase';
 
 export interface ImportedTransaction {

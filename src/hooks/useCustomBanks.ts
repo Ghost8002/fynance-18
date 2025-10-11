@@ -38,7 +38,7 @@ export const useCustomBanks = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('custom_banks')
         .select('*')
         .eq('user_id', user.id)
@@ -49,7 +49,7 @@ export const useCustomBanks = () => {
         throw error;
       }
 
-      setCustomBanks(data || []);
+      setCustomBanks((data as any) || []);
     } catch (err) {
       console.error('Erro ao buscar bancos customizados:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -71,7 +71,7 @@ export const useCustomBanks = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('custom_banks')
         .insert([{
           user_id: user.id,
@@ -86,9 +86,9 @@ export const useCustomBanks = () => {
       }
 
       // Atualizar lista local
-      setCustomBanks(prev => [data, ...prev]);
+      setCustomBanks(prev => [(data as any), ...prev]);
       
-      return data;
+      return (data as any);
     } catch (err) {
       console.error('Erro ao criar banco customizado:', err);
       throw err;
@@ -109,7 +109,7 @@ export const useCustomBanks = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('custom_banks')
         .update(updates)
         .eq('id', bankId)
@@ -123,10 +123,10 @@ export const useCustomBanks = () => {
 
       // Atualizar lista local
       setCustomBanks(prev => 
-        prev.map(bank => bank.id === bankId ? data : bank)
+        prev.map(bank => bank.id === bankId ? (data as any) : bank)
       );
       
-      return data;
+      return (data as any);
     } catch (err) {
       console.error('Erro ao atualizar banco customizado:', err);
       throw err;
@@ -139,7 +139,7 @@ export const useCustomBanks = () => {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('custom_banks')
         .update({ is_active: false })
         .eq('id', bankId)
