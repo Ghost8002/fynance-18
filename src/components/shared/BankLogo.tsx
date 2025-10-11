@@ -12,31 +12,17 @@ interface BankLogoProps {
 }
 
 /**
- * Função para obter a URL pública do logo no Supabase Storage
+ * Função para obter a URL do logo
  */
-function getBankLogoUrl(logoPath?: string, bankName?: string): string | null {
+function getBankLogoUrl(logoPath?: string): string | null {
   if (!logoPath) return null;
   
-  // Se já é uma URL completa do Supabase Storage, retornar como está
+  // Se já é uma URL completa, retornar como está
   if (logoPath.startsWith('http://') || logoPath.startsWith('https://')) {
     return logoPath;
   }
   
-  // Se é um caminho antigo, tentar gerar URL do Supabase Storage baseado no nome do banco
-  const bankId = bankName?.toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-    .replace(/[^a-z0-9]+/g, '-') // Substitui espaços e caracteres especiais por hífen
-    .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
-  
-  if (bankId) {
-    const { data } = supabase.storage
-      .from('bank-logos')
-      .getPublicUrl(`${bankId}.svg`);
-    
-    return data.publicUrl;
-  }
-  
+  // Retornar o caminho como está (para caminhos locais)
   return logoPath;
 }
 
@@ -51,7 +37,7 @@ export const BankLogo = ({
   const [imageLoading, setImageLoading] = useState(true);
 
   // Obter URL correta do logo
-  const logoUrl = getBankLogoUrl(logoPath, bankName);
+  const logoUrl = getBankLogoUrl(logoPath);
 
   const sizeClasses = {
     sm: 'w-4 h-4',
