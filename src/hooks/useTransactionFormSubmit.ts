@@ -128,6 +128,10 @@ export const useTransactionFormSubmit = (
             }))
         : [];
 
+      // Garantir que a data está no formato correto YYYY-MM-DD
+      console.log('📅 Data recebida do formulário:', formData.date);
+      console.log('📅 Tipo da data:', typeof formData.date);
+      
       const transactionData = {
         user_id: user.id,
         type: formData.type as 'income' | 'expense',
@@ -141,7 +145,8 @@ export const useTransactionFormSubmit = (
         tags: transactionTags, // Store tags directly in the JSONB column
       };
 
-      console.log('Creating transaction with data:', transactionData);
+      console.log('📤 Dados da transação sendo enviados ao banco:', transactionData);
+      console.log('📤 Data que será salva:', transactionData.date);
       const { data: transactionResult, error } = await insert(transactionData);
 
       if (error) {
