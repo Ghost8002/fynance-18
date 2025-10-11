@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
-import UnifiedImportComponent from "@/components/shared/UnifiedImportComponent";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Receipt, FileText, Database, Upload, Download, Settings, TrendingUp, Users, Calendar, CreditCard, Wallet, BarChart3, Clock, Info } from "lucide-react";
@@ -179,21 +178,6 @@ const Imports = () => {
             </Card>)}
         </div>
       </div>
-
-      {/* Componente de importação unificado */}
-      <div className="mb-8">
-        <div className="text-center mb-6">
-          
-          
-        </div>
-        
-        <UnifiedImportComponent />
-      </div>
-
-      {/* Seção de ajuda */}
-      <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
-        
-      </Card>
     </AppLayout>;
 };
 export default Imports;
