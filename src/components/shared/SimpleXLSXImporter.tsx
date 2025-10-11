@@ -13,6 +13,7 @@ import { useCategoryTagValidation } from '@/hooks/useCategoryTagValidation';
 import { XLSXTemplateGenerator } from '@/utils/xlsxTemplateGenerator';
 import { testTransactionInsert } from '@/utils/testTransactionInsert';
 import CategoryTagValidationModal from './CategoryTagValidationModal';
+import { AccountSelector } from './AccountSelector';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
 interface XLSXRow {
@@ -566,13 +567,22 @@ const SimpleXLSXImporter: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Seleção da conta */}
+        <AccountSelector
+          accounts={accounts || []}
+          selectedAccountId={selectedAccountId}
+          onSelect={setSelectedAccountId}
+          disabled={isProcessing}
+          colorScheme="blue"
+        />
+
         {/* Upload do arquivo */}
-        <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${isDragOver ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' : 'border-border hover:border-green-500/50'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => document.getElementById('file-input')?.click()}>
+        <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${isDragOver ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' : 'border-border hover:border-blue-500/50'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => document.getElementById('file-input')?.click()}>
           <input type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" id="file-input" />
           
           {file ? <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
-                <CheckCircle className="h-12 w-12 text-green-500" />
+                <CheckCircle className="h-12 w-12 text-blue-500" />
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{file.name}</p>
                   <p className="text-sm text-muted-foreground">
@@ -581,39 +591,25 @@ const SimpleXLSXImporter: React.FC = () => {
                 </div>
               </div>
               <Button variant="outline" onClick={() => setFile(null)} className="flex items-center gap-2">
-                
+                <X className="h-4 w-4" />
                 Remover Arquivo
               </Button>
             </div> : <div className="space-y-4">
               <div className="flex justify-center">
-                <div className={`p-4 rounded-full transition-colors duration-300 ${isDragOver ? 'bg-green-500/10 dark:bg-green-500/20' : 'bg-muted/50 dark:bg-muted'}`}>
-                  <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${isDragOver ? 'text-green-600' : 'text-muted-foreground'}`} />
+                <div className={`p-4 rounded-full transition-colors duration-300 ${isDragOver ? 'bg-blue-500/10 dark:bg-blue-500/20' : 'bg-muted/50 dark:bg-muted'}`}>
+                  <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${isDragOver ? 'text-blue-600' : 'text-muted-foreground'}`} />
                 </div>
               </div>
               <div>
-                <h3 className={`text-lg font-semibold transition-colors duration-300 ${isDragOver ? 'text-green-600' : 'text-foreground'}`}>
+                <h3 className={`text-lg font-semibold transition-colors duration-300 ${isDragOver ? 'text-blue-600' : 'text-foreground'}`}>
                   {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo XLSX'}
                 </h3>
-                <p className={`text-sm mt-2 transition-colors duration-300 ${isDragOver ? 'text-green-600/80' : 'text-muted-foreground'}`}>
+                <p className={`text-sm mt-2 transition-colors duration-300 ${isDragOver ? 'text-blue-600/80' : 'text-muted-foreground'}`}>
                   {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
                 </p>
               </div>
             </div>}
         </div>
-
-        {/* Seleção da conta */}
-        {file && <div className="space-y-3">
-            <label htmlFor="account-select" className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Conta de Destino *
-            </label>
-            <select id="account-select" value={selectedAccountId} onChange={e => setSelectedAccountId(e.target.value)} disabled={isProcessing} className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 bg-background text-foreground">
-              <option value="">Selecione uma conta para importar as transações</option>
-              {accounts?.map(account => <option key={account.id} value={account.id}>
-                  {account.name} - {account.bank || 'Conta'}
-                </option>)}
-            </select>
-          </div>}
 
         {/* Pré-visualização */}
         {showPreview && previewData.length > 0 && <div className="space-y-3">
