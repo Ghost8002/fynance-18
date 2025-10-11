@@ -13,37 +13,28 @@ interface BankLogoProps {
 
 /**
  * Função para obter a URL pública do logo no Supabase Storage
- * Se o logoPath começar com '/', assume que é um caminho local e converte para Storage
  */
 function getBankLogoUrl(logoPath?: string, bankName?: string): string | null {
   if (!logoPath) return null;
   
-  // Se já é uma URL completa, retornar como está
+  // Se já é uma URL completa do Supabase Storage, retornar como está
   if (logoPath.startsWith('http://') || logoPath.startsWith('https://')) {
     return logoPath;
   }
   
-  // Se é um caminho do banco de dados antigo, extrair o ID do banco
-  if (logoPath.includes('Bancos-em-SVG-main/')) {
-    // Tentar extrair o ID do banco do nome do arquivo ou pasta
-    const parts = logoPath.split('/');
-    const fileName = parts[parts.length - 1]; // Nome do arquivo SVG
+  // Se é um caminho antigo, tentar gerar URL do Supabase Storage baseado no nome do banco
+  const bankId = bankName?.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^a-z0-9]+/g, '-') // Substitui espaços e caracteres especiais por hífen
+    .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+  
+  if (bankId) {
+    const { data } = supabase.storage
+      .from('bank-logos')
+      .getPublicUrl(`${bankId}.svg`);
     
-    // Tentar gerar um ID baseado no nome do banco
-    const bankId = bankName?.toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^a-z0-9]+/g, '-') // Substitui espaços e caracteres especiais por hífen
-      .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
-    
-    if (bankId) {
-      // Gerar URL do Supabase Storage
-      const { data } = supabase.storage
-        .from('bank-logos')
-        .getPublicUrl(`${bankId}.svg`);
-      
-      return data.publicUrl;
-    }
+    return data.publicUrl;
   }
   
   return logoPath;
