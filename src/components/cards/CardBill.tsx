@@ -439,7 +439,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
 
       {/* Card de Status do Pagamento */}
       {billData && billData.paid_amount > 0 && (
-        <Card className="border-primary/20 bg-primary/5 max-w-3xl mx-auto">
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
