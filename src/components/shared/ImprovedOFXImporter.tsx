@@ -636,321 +636,235 @@ NEWFILEUID:NONE
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Process Steps */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="relative">
-          <div className={`bg-gradient-to-br from-background to-muted/30 rounded-2xl p-8 border-2 transition-all duration-300 ${file ? 'border-blue-500 shadow-xl shadow-blue-500/20 scale-105' : 'border-border/50'}`}>
-            <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg">
-              1
-            </div>
-            <FileText className={`h-12 w-12 mb-4 transition-colors ${file ? 'text-blue-600' : 'text-muted-foreground'}`} />
-            <h3 className="text-xl font-bold mb-2">Upload do OFX</h3>
-            <p className="text-sm text-muted-foreground mb-4">Arquivo do seu banco</p>
-            {file && (
-              <div className="flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 animate-scale-in">
-                <CheckCircle className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-600">Arquivo carregado!</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="relative">
-          <div className={`bg-gradient-to-br from-background to-muted/30 rounded-2xl p-8 border-2 transition-all duration-300 ${selectedAccountId ? 'border-green-500 shadow-xl shadow-green-500/20 scale-105' : 'border-border/50'}`}>
-            <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-black text-xl shadow-lg">
-              2
-            </div>
-            <Database className={`h-12 w-12 mb-4 transition-colors ${selectedAccountId ? 'text-green-600' : 'text-muted-foreground'}`} />
-            <h3 className="text-xl font-bold mb-2">Conta de Destino</h3>
-            <p className="text-sm text-muted-foreground mb-4">Escolha onde importar</p>
-            {selectedAccountId && (
-              <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20 animate-scale-in">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-600">Conta selecionada!</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="relative">
-          <div className={`bg-gradient-to-br from-background to-muted/30 rounded-2xl p-8 border-2 transition-all duration-300 ${(isImporting || isProcessing) ? 'border-purple-500 shadow-xl shadow-purple-500/20 animate-pulse' : 'border-border/50'}`}>
-            <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-black text-xl shadow-lg">
-              3
-            </div>
-            <Upload className={`h-12 w-12 mb-4 transition-colors ${(isImporting || isProcessing) ? 'text-purple-600' : 'text-muted-foreground'}`} />
-            <h3 className="text-xl font-bold mb-2">Processar</h3>
-            <p className="text-sm text-muted-foreground mb-4">Importar transações</p>
-            {(isImporting || isProcessing) && (
-              <div className="space-y-2 animate-scale-in">
-                <Progress value={progress?.progress || 0} className="w-full h-2" />
-                <span className="text-sm font-medium text-purple-600">{Math.round(progress?.progress || 0)}%</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Upload Area */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="border-0 shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <Upload className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold">Área de Upload</h3>
-                  <p className="text-sm text-blue-50">Solte seu arquivo OFX aqui</p>
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="h-6 w-6" />
+          Importar Transações OFX
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Área de upload */}
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+            isDragOver 
+              ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' 
+              : 'border-border hover:border-blue-500/50'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".ofx,.ofx.txt,.txt"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          
+          {file ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-3">
+                <CheckCircle className="h-12 w-12 text-blue-500" />
+                <div className="text-left">
+                  <p className="font-semibold text-foreground">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </p>
                 </div>
               </div>
-            </div>
-            
-            <CardContent className="p-8">
-              <div
-                className={`relative border-3 border-dashed rounded-3xl p-16 text-center transition-all duration-500 cursor-pointer group ${
-                  isDragOver 
-                    ? 'border-blue-500 bg-gradient-to-br from-blue-500/20 via-blue-400/10 to-transparent scale-105 shadow-2xl' 
-                    : 'border-muted-foreground/30 hover:border-blue-500/60 hover:scale-[1.02]'
-                }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
+              <Button
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFile(null);
+                  setShowPreview(false);
+                  setPreviewData([]);
+                }}
+                className="flex items-center gap-2"
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".ofx,.ofx.txt,.txt"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                
-                {file ? (
-                  <div className="space-y-6 animate-scale-in">
-                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-2xl">
-                      <CheckCircle className="h-14 w-14 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-black text-foreground mb-2">{file.name}</p>
-                      <p className="text-lg text-muted-foreground">
-                        {(file.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFile(null);
-                        setShowPreview(false);
-                        setPreviewData([]);
-                      }}
-                      className="gap-2"
-                    >
-                      <X className="h-5 w-5" />
-                      Remover e escolher outro
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    <div className={`inline-flex items-center justify-center w-32 h-32 rounded-full transition-all duration-500 ${
-                      isDragOver 
-                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 scale-125 rotate-12' 
-                        : 'bg-gradient-to-br from-muted via-muted/60 to-muted/30 group-hover:scale-110'
-                    }`}>
-                      <FileText className={`h-16 w-16 transition-all duration-500 ${
-                        isDragOver ? 'text-white' : 'text-muted-foreground group-hover:text-foreground'
-                      }`} />
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <h3 className={`text-3xl font-black transition-all duration-300 ${
-                        isDragOver ? 'text-blue-600 scale-105' : 'text-foreground'
-                      }`}>
-                        {isDragOver ? '🎉 Solte agora!' : 'Clique ou Arraste'}
-                      </h3>
-                      <p className={`text-lg font-medium transition-colors ${
-                        isDragOver ? 'text-blue-600' : 'text-muted-foreground'
-                      }`}>
-                        {isDragOver ? 'Vamos processar seu extrato' : 'Arquivos .ofx ou .txt até 10MB'}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center justify-center gap-8 pt-4">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${isDragOver ? 'bg-blue-500 animate-bounce' : 'bg-blue-500/50'}`} />
-                        <span className="text-xs text-muted-foreground">Compatível</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${isDragOver ? 'bg-green-500 animate-bounce' : 'bg-green-500/50'}`} style={{ animationDelay: '75ms' }} />
-                        <span className="text-xs text-muted-foreground">Seguro</span>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${isDragOver ? 'bg-purple-500 animate-bounce' : 'bg-purple-500/50'}`} style={{ animationDelay: '150ms' }} />
-                        <span className="text-xs text-muted-foreground">Rápido</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="mt-6 text-center">
-                <Button
-                  variant="ghost"
-                  onClick={downloadTemplate}
-                  className="gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                >
-                  <Download className="h-4 w-4" />
-                  Baixar exemplo de arquivo OFX
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-
-          {/* Preview */}
-          {showPreview && previewData.length > 0 && (
-            <Card className="border-0 shadow-xl overflow-hidden animate-fade-in">
-              <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                      <Eye className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold">Preview dos Dados</h3>
-                      <p className="text-sm text-purple-50">Primeiras transações encontradas</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPreview(false)}
-                    className="text-white hover:bg-white/20"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
+                <X className="h-4 w-4" />
+                Remover Arquivo
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <div className={`p-4 rounded-full transition-colors duration-300 ${
+                  isDragOver 
+                    ? 'bg-blue-500/10 dark:bg-blue-500/20' 
+                    : 'bg-muted/50 dark:bg-muted'
+                }`}>
+                  <FileText className={`h-12 w-12 transition-colors duration-300 ${
+                    isDragOver ? 'text-blue-600' : 'text-muted-foreground'
+                  }`} />
                 </div>
               </div>
-              
-              <CardContent className="p-6">
-                <div className="overflow-x-auto rounded-xl border">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gradient-to-r from-muted to-muted/50">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold">Data</th>
-                        <th className="px-4 py-3 text-left font-semibold">Descrição</th>
-                        <th className="px-4 py-3 text-left font-semibold">Valor</th>
-                        <th className="px-4 py-3 text-left font-semibold">Tipo</th>
-                        <th className="px-4 py-3 text-left font-semibold">Categoria</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewData.map((row, index) => (
-                        <tr key={index} className="border-t hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3">{row.date}</td>
-                          <td className="px-4 py-3 font-medium">{row.description}</td>
-                          <td className="px-4 py-3">
-                            <span className={`font-semibold ${row.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
-                              R$ {row.amount.toFixed(2)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={row.type === 'expense' ? 'destructive' : 'default'}>
-                              {row.type === 'expense' ? 'Despesa' : 'Receita'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">{row.category || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+              <div>
+                <h3 className={`text-lg font-semibold transition-colors duration-300 ${
+                  isDragOver ? 'text-blue-600' : 'text-foreground'
+                }`}>
+                  {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo OFX'}
+                </h3>
+                <p className={`text-sm mt-2 transition-colors duration-300 ${
+                  isDragOver ? 'text-blue-600/80' : 'text-muted-foreground'
+                }`}>
+                  {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
+                </p>
+              </div>
+            </div>
           )}
         </div>
-        
-        {/* Settings - Right Column */}
-        <div className="space-y-6">
-          <Card className="border-0 shadow-xl">
-            <div className="bg-gradient-to-r from-green-600 to-green-500 p-6 text-white">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <Database className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold">Configurações</h3>
-                  <p className="text-sm text-green-50">Escolha a conta</p>
-                </div>
-              </div>
+
+        {/* Preview dos dados */}
+        {showPreview && previewData.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(false)}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Ocultar
+              </Button>
             </div>
-            
-            <CardContent className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-semibold mb-3 text-foreground">
-                  Conta de Destino
-                </label>
-                <select
-                  value={selectedAccountId}
-                  onChange={(e) => setSelectedAccountId(e.target.value)}
-                  disabled={isImporting || isProcessing}
-                  className="w-full p-4 text-base border-2 border-border rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all bg-background text-foreground font-medium disabled:opacity-50"
-                >
-                  <option value="">Selecione uma conta</option>
-                  {accounts?.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} - {account.bank || 'Conta'}
-                    </option>
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Data</th>
+                    <th className="px-3 py-2 text-left font-medium">Descrição</th>
+                    <th className="px-3 py-2 text-left font-medium">Valor</th>
+                    <th className="px-3 py-2 text-left font-medium">Tipo</th>
+                    <th className="px-3 py-2 text-left font-medium">Categoria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewData.map((row, index) => (
+                    <tr key={index} className="border-t">
+                      <td className="px-3 py-2">{row.date}</td>
+                      <td className="px-3 py-2">{row.description}</td>
+                      <td className="px-3 py-2">
+                        <span className={row.type === 'expense' ? 'text-red-600' : 'text-green-600'}>
+                          R$ {row.amount.toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge variant={row.type === 'expense' ? 'destructive' : 'default'}>
+                          {row.type === 'expense' ? 'Despesa' : 'Receita'}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2">{row.category || '-'}</td>
+                    </tr>
                   ))}
-                </select>
-              </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
-              <div className="pt-4 border-t">
-                <Button
-                  onClick={handleImport}
-                  disabled={!file || !selectedAccountId || isImporting || isProcessing}
-                  className="w-full gap-2 h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
-                >
-                  {(isImporting || isProcessing) ? (
-                    <>
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                      Processando... {Math.round(progress?.progress || 0)}%
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-6 w-6" />
-                      Importar Transações
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {(isImporting || isProcessing) && (
-                <Button
-                  variant="outline"
-                  onClick={handleReset}
-                  className="w-full gap-2"
-                >
-                  <X className="h-5 w-5" />
-                  Cancelar
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          <Alert className="bg-blue-500/10 border-blue-500/20">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription>
-              <strong>Dica:</strong> Baixe o arquivo OFX diretamente do site do seu banco na área de extratos.
-            </AlertDescription>
-          </Alert>
+        {/* Seleção de conta */}
+        <div className="space-y-3">
+          <label htmlFor="account-select" className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Database className="h-4 w-4" />
+            Conta de Destino
+          </label>
+          <select
+            id="account-select"
+            value={selectedAccountId}
+            onChange={(e) => setSelectedAccountId(e.target.value)}
+            disabled={isImporting || isProcessing}
+            className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-background text-foreground"
+          >
+            <option value="">Selecione uma conta para importar as transações</option>
+            {accounts?.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name} - {account.bank || 'Conta'}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
-    </div>
+
+        {/* Informações sobre o formato */}
+        <Alert className="bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-foreground">
+            <strong>Formato OFX:</strong> Arquivo de extrato bancário no formato OFX (Open Financial Exchange). 
+            O sistema detecta automaticamente transações e aplica categorização inteligente baseada na descrição.
+          </AlertDescription>
+        </Alert>
+
+        {/* Status do Web Worker */}
+        <Alert className={workerAvailable ? "bg-green-500/5 dark:bg-green-500/10 border-green-500/20" : "bg-yellow-500/5 dark:bg-yellow-500/10 border-yellow-500/20"}>
+          {workerAvailable ? (
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          ) : (
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          )}
+          <AlertDescription className="text-foreground">
+            <strong>Processamento:</strong> {workerAvailable ? 'Web Worker ativo (processamento assíncrono)' : 'Modo fallback (processamento síncrono)'}
+          </AlertDescription>
+        </Alert>
+
+        {/* Botão para download do template */}
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={downloadTemplate}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Baixar Template OFX
+          </Button>
+        </div>
+
+        {/* Progresso do processamento */}
+        {(isImporting || isProcessing) && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 text-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {isImporting ? 'Importando transações...' : 'Processando arquivo OFX...'}
+              </span>
+              <span className="font-medium text-foreground">{Math.round(progress?.progress || 0)}%</span>
+            </div>
+            <Progress value={progress?.progress || 0} className="w-full h-2" />
+          </div>
+        )}
+
+        {/* Botões de ação */}
+        <div className="flex gap-3 justify-center">
+          <Button
+            onClick={handleImport}
+            disabled={!file || !selectedAccountId || isImporting || isProcessing}
+            className="flex items-center gap-2 px-8 py-3 text-lg font-medium"
+            size="lg"
+          >
+            {(isImporting || isProcessing) ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
+            {(isImporting || isProcessing) ? 'Processando...' : 'Importar Transações OFX'}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleReset} 
+            disabled={isImporting || isProcessing}
+            size="lg"
+            className="px-8 py-3"
+          >
+            <X className="h-5 w-5 mr-2" />
+            Limpar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
