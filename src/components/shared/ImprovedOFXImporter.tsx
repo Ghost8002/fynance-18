@@ -613,10 +613,6 @@ NEWFILEUID:NONE
         {showPreview && previewData.length > 0 && <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
-              <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
-                <X className="h-4 w-4 mr-2" />
-                Ocultar
-              </Button>
             </div>
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full text-sm">
@@ -630,7 +626,7 @@ NEWFILEUID:NONE
                   </tr>
                 </thead>
                 <tbody>
-                  {previewData.map((row, index) => <tr key={index} className="border-t">
+                  {previewData.slice(0, 5).map((row, index) => <tr key={index} className="border-t">
                       <td className="px-3 py-2">{row.date}</td>
                       <td className="px-3 py-2">{row.description}</td>
                       <td className="px-3 py-2">
@@ -647,6 +643,11 @@ NEWFILEUID:NONE
                     </tr>)}
                 </tbody>
               </table>
+              {previewData.length > 5 && (
+                <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
+                  Mostrando 5 de {previewData.length} transações
+                </div>
+              )}
             </div>
           </div>}
 
