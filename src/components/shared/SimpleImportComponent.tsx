@@ -294,8 +294,8 @@ const SimpleImportComponent: React.FC = () => {
         <div
           className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
             isDragOver 
-              ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' 
-              : 'border-border hover:border-green-500/50'
+              ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' 
+              : 'border-border hover:border-blue-500/50'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -313,7 +313,7 @@ const SimpleImportComponent: React.FC = () => {
           {file ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
-                <CheckCircle className="h-12 w-12 text-green-500" />
+                <CheckCircle className="h-12 w-12 text-blue-500" />
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{file.name}</p>
                   <p className="text-sm text-muted-foreground">
@@ -335,22 +335,22 @@ const SimpleImportComponent: React.FC = () => {
               <div className="flex justify-center">
                 <div className={`p-4 rounded-full transition-colors duration-300 ${
                   isDragOver 
-                    ? 'bg-green-500/10 dark:bg-green-500/20' 
+                    ? 'bg-blue-500/10 dark:bg-blue-500/20' 
                     : 'bg-muted/50 dark:bg-muted'
                 }`}>
                   <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${
-                    isDragOver ? 'text-green-600' : 'text-muted-foreground'
+                    isDragOver ? 'text-blue-600' : 'text-muted-foreground'
                   }`} />
                 </div>
               </div>
               <div>
                 <h3 className={`text-lg font-semibold transition-colors duration-300 ${
-                  isDragOver ? 'text-green-600' : 'text-foreground'
+                  isDragOver ? 'text-blue-600' : 'text-foreground'
                 }`}>
                   {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo XLSX'}
                 </h3>
                 <p className={`text-sm mt-2 transition-colors duration-300 ${
-                  isDragOver ? 'text-green-600/80' : 'text-muted-foreground'
+                  isDragOver ? 'text-blue-600/80' : 'text-muted-foreground'
                 }`}>
                   {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
                 </p>
