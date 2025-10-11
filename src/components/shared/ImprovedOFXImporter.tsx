@@ -4,19 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, 
-  FileText, 
-  CheckCircle, 
-  AlertTriangle, 
-  Loader2, 
-  X, 
-  Download,
-  Info,
-  Database,
-  Eye,
-  FileX
-} from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertTriangle, Loader2, X, Download, Info, Database, Eye, FileX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
@@ -25,14 +13,25 @@ import { ImportedTransaction } from '@/hooks/useImport';
 import { CategoryEngine } from '@/utils/categorization/CategoryEngine';
 import { CategoryManager, CategoryCreationPlan } from '@/utils/categorization/CategoryManager';
 import { supabase } from '@/integrations/supabase/client';
-
 const ImprovedOFXImporter: React.FC = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { insert: insertTransaction } = useSupabaseData('transactions', user?.id);
-  const { processOFX, isProcessing, progress, workerAvailable } = useImportWorker();
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    data: accounts
+  } = useSupabaseData('accounts', user?.id);
+  const {
+    insert: insertTransaction
+  } = useSupabaseData('transactions', user?.id);
+  const {
+    processOFX,
+    isProcessing,
+    progress,
+    workerAvailable
+  } = useImportWorker();
   const [file, setFile] = useState<File | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
@@ -47,12 +46,11 @@ const ImprovedOFXImporter: React.FC = () => {
   const [categoryPlan, setCategoryPlan] = useState<CategoryCreationPlan | null>(null);
   const [showCategoryPreview, setShowCategoryPreview] = useState(false);
   const [processedTransactions, setProcessedTransactions] = useState<ImportedTransaction[]>([]);
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Instância do motor de categorização para preview
   const categoryEngineRef = useRef<CategoryEngine | null>(null);
-  
+
   // Inicializar motor de categorização
   const getCategoryEngine = useCallback(() => {
     if (!categoryEngineRef.current) {
@@ -67,19 +65,16 @@ const ImprovedOFXImporter: React.FC = () => {
   // Função para processar preview do arquivo OFX
   const handleFilePreview = useCallback(async (selectedFile: File) => {
     if (!selectedFile) return;
-
     try {
       const text = await selectedFile.text();
-      
+
       // Parse básico de OFX para preview
       const transactions: ImportedTransaction[] = [];
       const transactionRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
       let match;
       let count = 0;
-      
       while ((match = transactionRegex.exec(text)) !== null && count < 10) {
         const transactionBlock = match[1];
-        
         try {
           // Suportar tanto DTPOST quanto DTPOSTED - capturar apenas os primeiros 8 dígitos da data
           const dateMatch = transactionBlock.match(/<DTPOST(?:ED)?>(\d{8})/);
@@ -87,14 +82,13 @@ const ImprovedOFXImporter: React.FC = () => {
           const memoMatch = transactionBlock.match(/<MEMO>([^<]+)<\/MEMO>/);
           const nameMatch = transactionBlock.match(/<NAME>([^<]+)<\/NAME>/);
           const checkNumMatch = transactionBlock.match(/<CHECKNUM>([^<]+)<\/CHECKNUM>/);
-          
+
           // Suportar TRNTYPE para determinar tipo de transação
           const trnTypeMatch = transactionBlock.match(/<TRNTYPE>([^<]+)<\/TRNTYPE>/);
-          
           if (dateMatch && amountMatch) {
             const dateStr = dateMatch[1];
             const amount = parseFloat(amountMatch[1]);
-            
+
             // Usar MEMO, NAME ou CHECKNUM como descrição
             let description = '';
             if (memoMatch) {
@@ -106,13 +100,12 @@ const ImprovedOFXImporter: React.FC = () => {
             } else {
               description = 'Transação sem descrição';
             }
-            
             if (!isNaN(amount) && description && amount !== 0) {
               const year = dateStr.substring(0, 4);
               const month = dateStr.substring(4, 6);
               const day = dateStr.substring(6, 8);
               const date = `${year}-${month}-${day}`;
-              
+
               // Determinar tipo baseado no TRNTYPE ou valor
               let type: 'income' | 'expense' = 'expense';
               if (trnTypeMatch) {
@@ -129,7 +122,7 @@ const ImprovedOFXImporter: React.FC = () => {
                 // Fallback para valor se não houver TRNTYPE
                 type = amount > 0 ? 'income' : 'expense';
               }
-              
+
               // Categorização inteligente usando o novo sistema
               const engine = getCategoryEngine();
               const categorization = engine.categorize({
@@ -140,9 +133,7 @@ const ImprovedOFXImporter: React.FC = () => {
                 category: undefined,
                 tags: []
               });
-              
               const category = categorization?.category;
-              
               transactions.push({
                 date,
                 description,
@@ -151,7 +142,6 @@ const ImprovedOFXImporter: React.FC = () => {
                 category,
                 tags: []
               });
-              
               count++;
             }
           }
@@ -160,10 +150,8 @@ const ImprovedOFXImporter: React.FC = () => {
           continue;
         }
       }
-      
       setPreviewData(transactions);
       setShowPreview(true);
-      
       if (transactions.length === 0) {
         toast({
           title: "Nenhuma transação encontrada",
@@ -173,7 +161,7 @@ const ImprovedOFXImporter: React.FC = () => {
       } else {
         toast({
           title: "Preview gerado",
-          description: `${transactions.length} transações encontradas no preview.`,
+          description: `${transactions.length} transações encontradas no preview.`
         });
       }
     } catch (error) {
@@ -185,7 +173,6 @@ const ImprovedOFXImporter: React.FC = () => {
       });
     }
   }, [toast]);
-
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -193,13 +180,10 @@ const ImprovedOFXImporter: React.FC = () => {
       handleFilePreview(selectedFile);
     }
   }, [handleFilePreview]);
-
   const handleFileSelection = useCallback((selectedFile: File | null) => {
     if (!selectedFile) return;
-
     const fileName = selectedFile.name.toLowerCase();
     const isOFX = fileName.endsWith('.ofx') || fileName.endsWith('.ofx.txt') || fileName.endsWith('.txt');
-    
     if (!isOFX) {
       toast({
         title: "Arquivo inválido",
@@ -208,28 +192,23 @@ const ImprovedOFXImporter: React.FC = () => {
       });
       return;
     }
-
     setFile(selectedFile);
     handleFilePreview(selectedFile);
   }, [handleFilePreview, toast]);
-
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
   }, []);
-
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
   }, []);
-
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const droppedFile = e.dataTransfer.files[0];
     handleFileSelection(droppedFile);
   }, [handleFileSelection]);
-
   const handleImport = useCallback(async () => {
     if (!file || !selectedAccountId) {
       toast({
@@ -239,15 +218,12 @@ const ImprovedOFXImporter: React.FC = () => {
       });
       return;
     }
-    
     try {
       setIsImporting(true);
       setImportResult(null);
-      
       console.log('Iniciando importação OFX...');
       const transactions = await processOFX(file);
       console.log('Transações processadas:', transactions);
-      
       if (transactions.length === 0) {
         toast({
           title: "Nenhuma transação válida",
@@ -260,10 +236,8 @@ const ImprovedOFXImporter: React.FC = () => {
 
       // Analisar e criar categorias necessárias
       const categoryManager = new CategoryManager(supabase, user!.id);
-      
       console.log('Analisando categorias necessárias...');
       const plan = await categoryManager.analyzeCategories(transactions);
-      
       if (plan.totalNewCategories > 0 || plan.totalMappedCategories > 0) {
         // Mostrar preview das categorias
         setCategoryPlan(plan);
@@ -275,7 +249,6 @@ const ImprovedOFXImporter: React.FC = () => {
 
       // Se não há categorias para criar, importar diretamente
       await importTransactionsWithCategories(transactions, categoryManager);
-
     } catch (error) {
       console.error('Erro na importação OFX:', error);
       toast({
@@ -288,14 +261,10 @@ const ImprovedOFXImporter: React.FC = () => {
   }, [file, selectedAccountId, processOFX, insertTransaction, user, toast]);
 
   // Função para importar transações com categorias
-  const importTransactionsWithCategories = async (
-    transactions: ImportedTransaction[],
-    categoryManager: CategoryManager
-  ) => {
+  const importTransactionsWithCategories = async (transactions: ImportedTransaction[], categoryManager: CategoryManager) => {
     try {
       let successCount = 0;
       let errorCount = 0;
-
       for (const transaction of transactions) {
         try {
           // Obter ID da categoria
@@ -303,8 +272,9 @@ const ImprovedOFXImporter: React.FC = () => {
           if (transaction.category) {
             categoryId = await categoryManager.getCategoryId(transaction.category);
           }
-
-          const { error } = await insertTransaction({
+          const {
+            error
+          } = await insertTransaction({
             user_id: user!.id,
             type: transaction.type,
             description: transaction.description,
@@ -315,7 +285,6 @@ const ImprovedOFXImporter: React.FC = () => {
             notes: `Importado de OFX`,
             tags: transaction.tags || []
           });
-
           if (error) {
             console.error('Erro ao inserir transação:', error);
             errorCount++;
@@ -327,17 +296,15 @@ const ImprovedOFXImporter: React.FC = () => {
           errorCount++;
         }
       }
-
       setImportResult({
         success: successCount,
         errors: errorCount,
         total: transactions.length
       });
-
       if (successCount > 0) {
         toast({
           title: "Importação concluída",
-          description: `${successCount} transações importadas com sucesso!`,
+          description: `${successCount} transações importadas com sucesso!`
         });
       } else {
         toast({
@@ -346,7 +313,6 @@ const ImprovedOFXImporter: React.FC = () => {
           variant: "destructive"
         });
       }
-
     } catch (error) {
       console.error('Erro ao importar transações:', error);
       toast({
@@ -362,19 +328,14 @@ const ImprovedOFXImporter: React.FC = () => {
   // Função para confirmar criação de categorias
   const handleConfirmCategoryCreation = useCallback(async () => {
     if (!categoryPlan || !processedTransactions.length) return;
-
     try {
       setIsImporting(true);
       setShowCategoryPreview(false);
-
       const categoryManager = new CategoryManager(supabase, user!.id);
-
       console.log('Criando categorias...');
       const result = await categoryManager.executeCategoryPlan(categoryPlan);
-      
       console.log('Categorias criadas:', result.created.length);
       console.log('Categorias mapeadas:', result.mapped.length);
-
       if (result.errors.length > 0) {
         console.warn('Erros na criação de categorias:', result.errors);
       }
@@ -386,10 +347,9 @@ const ImprovedOFXImporter: React.FC = () => {
       if (result.created.length > 0) {
         toast({
           title: "Categorias criadas",
-          description: `${result.created.length} novas categorias foram criadas automaticamente.`,
+          description: `${result.created.length} novas categorias foram criadas automaticamente.`
         });
       }
-
     } catch (error) {
       console.error('Erro ao criar categorias:', error);
       toast({
@@ -400,7 +360,6 @@ const ImprovedOFXImporter: React.FC = () => {
       setIsImporting(false);
     }
   }, [categoryPlan, processedTransactions, user, toast, selectedAccountId, insertTransaction]);
-
   const handleReset = useCallback(() => {
     setFile(null);
     setSelectedAccountId('');
@@ -414,7 +373,6 @@ const ImprovedOFXImporter: React.FC = () => {
       fileInputRef.current.value = '';
     }
   }, []);
-
   const downloadTemplate = useCallback(() => {
     // Template OFX básico (exemplo)
     const ofxContent = `OFXHEADER:100
@@ -472,8 +430,9 @@ NEWFILEUID:NONE
 </STMTTRNRS>
 </BANKMSGSRSV1>
 </OFX>`;
-    
-    const blob = new Blob([ofxContent], { type: 'text/plain;charset=utf-8;' });
+    const blob = new Blob([ofxContent], {
+      type: 'text/plain;charset=utf-8;'
+    });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -486,8 +445,7 @@ NEWFILEUID:NONE
 
   // Preview de categorias
   if (showCategoryPreview && categoryPlan) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
+    return <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-600">
             <Database className="h-6 w-6" />
@@ -503,19 +461,16 @@ NEWFILEUID:NONE
           </Alert>
 
           {/* Categorias a serem criadas */}
-          {categoryPlan.categoriesToCreate.length > 0 && (
-            <div className="space-y-3">
+          {categoryPlan.categoriesToCreate.length > 0 && <div className="space-y-3">
               <h4 className="text-lg font-semibold text-foreground">
                 Novas Categorias ({categoryPlan.categoriesToCreate.length})
               </h4>
               <div className="grid gap-3">
-                {categoryPlan.categoriesToCreate.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+                {categoryPlan.categoriesToCreate.map((category, index) => <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: category.color }}
-                      />
+                      <div className="w-4 h-4 rounded-full" style={{
+                  backgroundColor: category.color
+                }} />
                       <div>
                         <div className="font-medium text-foreground">{category.name}</div>
                         <div className="text-sm text-muted-foreground">
@@ -526,21 +481,17 @@ NEWFILEUID:NONE
                     <Badge variant="outline">
                       {category.type === 'income' ? 'Receita' : 'Despesa'}
                     </Badge>
-                  </div>
-                ))}
+                  </div>)}
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Categorias mapeadas */}
-          {categoryPlan.categoriesToMap.length > 0 && (
-            <div className="space-y-3">
+          {categoryPlan.categoriesToMap.length > 0 && <div className="space-y-3">
               <h4 className="text-lg font-semibold text-foreground">
                 Mapeamentos ({categoryPlan.categoriesToMap.length})
               </h4>
               <div className="grid gap-3">
-                {categoryPlan.categoriesToMap.map((mapping, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+                {categoryPlan.categoriesToMap.map((mapping, index) => <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
                     <div className="flex items-center gap-3">
                       <div className="w-4 h-4 rounded-full bg-blue-500" />
                       <div>
@@ -551,46 +502,26 @@ NEWFILEUID:NONE
                       </div>
                     </div>
                     <Badge variant="secondary">Mapeado</Badge>
-                  </div>
-                ))}
+                  </div>)}
               </div>
-            </div>
-          )}
+            </div>}
 
           <div className="flex justify-center gap-3">
-            <Button 
-              onClick={handleConfirmCategoryCreation}
-              disabled={isImporting}
-              className="flex items-center gap-2 px-8 py-3 text-lg font-medium"
-              size="lg"
-            >
-              {isImporting ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <CheckCircle className="h-5 w-5" />
-              )}
+            <Button onClick={handleConfirmCategoryCreation} disabled={isImporting} className="flex items-center gap-2 px-8 py-3 text-lg font-medium" size="lg">
+              {isImporting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle className="h-5 w-5" />}
               {isImporting ? 'Criando Categorias...' : 'Criar Categorias e Importar'}
             </Button>
             
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCategoryPreview(false)}
-              disabled={isImporting}
-              size="lg"
-              className="px-8 py-3"
-            >
+            <Button variant="outline" onClick={() => setShowCategoryPreview(false)} disabled={isImporting} size="lg" className="px-8 py-3">
               <X className="h-5 w-5 mr-2" />
               Cancelar
             </Button>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   if (importResult) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
+    return <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
             <CheckCircle className="h-6 w-6" />
@@ -621,22 +552,15 @@ NEWFILEUID:NONE
           </div>
 
           <div className="flex justify-center gap-3">
-            <Button 
-              onClick={handleReset} 
-              className="flex items-center gap-2 px-8 py-3 text-lg font-medium"
-              size="lg"
-            >
+            <Button onClick={handleReset} className="flex items-center gap-2 px-8 py-3 text-lg font-medium" size="lg">
               <Download className="h-5 w-5" />
               Importar Outro Arquivo
             </Button>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card className="w-full max-w-4xl mx-auto">
+  return <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-6 w-6" />
@@ -645,27 +569,10 @@ NEWFILEUID:NONE
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Área de upload */}
-        <div
-          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-            isDragOver 
-              ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' 
-              : 'border-border hover:border-blue-500/50'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".ofx,.ofx.txt,.txt"
-            onChange={handleFileChange}
-            className="hidden"
-          />
+        <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${isDragOver ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' : 'border-border hover:border-blue-500/50'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()}>
+          <input ref={fileInputRef} type="file" accept=".ofx,.ofx.txt,.txt" onChange={handleFileChange} className="hidden" />
           
-          {file ? (
-            <div className="space-y-4">
+          {file ? <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
                 <CheckCircle className="h-12 w-12 text-blue-500" />
                 <div className="text-left">
@@ -675,59 +582,37 @@ NEWFILEUID:NONE
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFile(null);
-                  setShowPreview(false);
-                  setPreviewData([]);
-                }}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={e => {
+            e.stopPropagation();
+            setFile(null);
+            setShowPreview(false);
+            setPreviewData([]);
+          }} className="flex items-center gap-2">
                 <X className="h-4 w-4" />
                 Remover Arquivo
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
+            </div> : <div className="space-y-4">
               <div className="flex justify-center">
-                <div className={`p-4 rounded-full transition-colors duration-300 ${
-                  isDragOver 
-                    ? 'bg-blue-500/10 dark:bg-blue-500/20' 
-                    : 'bg-muted/50 dark:bg-muted'
-                }`}>
-                  <FileText className={`h-12 w-12 transition-colors duration-300 ${
-                    isDragOver ? 'text-blue-600' : 'text-muted-foreground'
-                  }`} />
+                <div className={`p-4 rounded-full transition-colors duration-300 ${isDragOver ? 'bg-blue-500/10 dark:bg-blue-500/20' : 'bg-muted/50 dark:bg-muted'}`}>
+                  <FileText className={`h-12 w-12 transition-colors duration-300 ${isDragOver ? 'text-blue-600' : 'text-muted-foreground'}`} />
                 </div>
               </div>
               <div>
-                <h3 className={`text-lg font-semibold transition-colors duration-300 ${
-                  isDragOver ? 'text-blue-600' : 'text-foreground'
-                }`}>
+                <h3 className={`text-lg font-semibold transition-colors duration-300 ${isDragOver ? 'text-blue-600' : 'text-foreground'}`}>
                   {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo OFX'}
                 </h3>
-                <p className={`text-sm mt-2 transition-colors duration-300 ${
-                  isDragOver ? 'text-blue-600/80' : 'text-muted-foreground'
-                }`}>
+                <p className={`text-sm mt-2 transition-colors duration-300 ${isDragOver ? 'text-blue-600/80' : 'text-muted-foreground'}`}>
                   {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
                 </p>
               </div>
-            </div>
-          )}
+            </div>}
         </div>
 
         {/* Preview dos dados */}
-        {showPreview && previewData.length > 0 && (
-          <div className="space-y-3">
+        {showPreview && previewData.length > 0 && <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPreview(false)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
                 <X className="h-4 w-4 mr-2" />
                 Ocultar
               </Button>
@@ -744,8 +629,7 @@ NEWFILEUID:NONE
                   </tr>
                 </thead>
                 <tbody>
-                  {previewData.map((row, index) => (
-                    <tr key={index} className="border-t">
+                  {previewData.map((row, index) => <tr key={index} className="border-t">
                       <td className="px-3 py-2">{row.date}</td>
                       <td className="px-3 py-2">{row.description}</td>
                       <td className="px-3 py-2">
@@ -759,13 +643,11 @@ NEWFILEUID:NONE
                         </Badge>
                       </td>
                       <td className="px-3 py-2">{row.category || '-'}</td>
-                    </tr>
-                  ))}
+                    </tr>)}
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Seleção de conta */}
         <div className="space-y-3">
@@ -773,58 +655,27 @@ NEWFILEUID:NONE
             <Database className="h-4 w-4" />
             Conta de Destino
           </label>
-          <select
-            id="account-select"
-            value={selectedAccountId}
-            onChange={(e) => setSelectedAccountId(e.target.value)}
-            disabled={isImporting || isProcessing}
-            className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-background text-foreground"
-          >
+          <select id="account-select" value={selectedAccountId} onChange={e => setSelectedAccountId(e.target.value)} disabled={isImporting || isProcessing} className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-background text-foreground">
             <option value="">Selecione uma conta para importar as transações</option>
-            {accounts?.map((account) => (
-              <option key={account.id} value={account.id}>
+            {accounts?.map(account => <option key={account.id} value={account.id}>
                 {account.name} - {account.bank || 'Conta'}
-              </option>
-            ))}
+              </option>)}
           </select>
         </div>
 
         {/* Informações sobre o formato */}
-        <Alert className="bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-foreground">
-            <strong>Formato OFX:</strong> Arquivo de extrato bancário no formato OFX (Open Financial Exchange). 
-            O sistema detecta automaticamente transações e aplica categorização inteligente baseada na descrição.
-          </AlertDescription>
-        </Alert>
+        
 
         {/* Status do Web Worker */}
-        <Alert className={workerAvailable ? "bg-green-500/5 dark:bg-green-500/10 border-green-500/20" : "bg-yellow-500/5 dark:bg-yellow-500/10 border-yellow-500/20"}>
-          {workerAvailable ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          )}
-          <AlertDescription className="text-foreground">
-            <strong>Processamento:</strong> {workerAvailable ? 'Web Worker ativo (processamento assíncrono)' : 'Modo fallback (processamento síncrono)'}
-          </AlertDescription>
-        </Alert>
+        
 
         {/* Botão para download do template */}
         <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={downloadTemplate}
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Baixar Template OFX
-          </Button>
+          
         </div>
 
         {/* Progresso do processamento */}
-        {(isImporting || isProcessing) && (
-          <div className="space-y-3">
+        {(isImporting || isProcessing) && <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2 text-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -833,39 +684,21 @@ NEWFILEUID:NONE
               <span className="font-medium text-foreground">{Math.round(progress?.progress || 0)}%</span>
             </div>
             <Progress value={progress?.progress || 0} className="w-full h-2" />
-          </div>
-        )}
+          </div>}
 
         {/* Botões de ação */}
         <div className="flex gap-3 justify-center">
-          <Button
-            onClick={handleImport}
-            disabled={!file || !selectedAccountId || isImporting || isProcessing}
-            className="flex items-center gap-2 px-8 py-3 text-lg font-medium"
-            size="lg"
-          >
-            {(isImporting || isProcessing) ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Upload className="h-5 w-5" />
-            )}
-            {(isImporting || isProcessing) ? 'Processando...' : 'Importar Transações OFX'}
+          <Button onClick={handleImport} disabled={!file || !selectedAccountId || isImporting || isProcessing} className="flex items-center gap-2 px-8 py-3 text-lg font-medium" size="lg">
+            {isImporting || isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+            {isImporting || isProcessing ? 'Processando...' : 'Importar Transações OFX'}
           </Button>
           
-          <Button 
-            variant="outline" 
-            onClick={handleReset} 
-            disabled={isImporting || isProcessing}
-            size="lg"
-            className="px-8 py-3"
-          >
+          <Button variant="outline" onClick={handleReset} disabled={isImporting || isProcessing} size="lg" className="px-8 py-3">
             <X className="h-5 w-5 mr-2" />
             Limpar
           </Button>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default ImprovedOFXImporter;
