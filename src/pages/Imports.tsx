@@ -53,6 +53,16 @@ const Imports = () => {
     to: "/importacoes/xlsx",
     comingSoon: false
   }, {
+    id: "json",
+    title: "Importar do Chat",
+    description: "Importe transações via JSON gerado pelo ChatGPT",
+    icon: Upload,
+    color: "bg-gradient-to-br from-violet-500 to-violet-600",
+    status: "Disponível",
+    features: ["JSON estruturado", "Validação automática", "Importação rápida"],
+    to: "/importacoes/json",
+    comingSoon: false
+  }, {
     id: "accounts",
     title: "Contas Bancárias",
     description: "Sincronize suas contas bancárias",

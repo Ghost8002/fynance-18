@@ -29,6 +29,7 @@ import LandingPage from "@/landingpage/LandingPage";
 import Imports from "./pages/Imports";
 import ImportsTransactions from "./pages/ImportsTransactions";
 import ImportsXLSX from "./pages/ImportsXLSX";
+import ImportsJSON from "./pages/ImportsJSON";
 import BankSelectorDemo from "./pages/BankSelectorDemo";
 import UploadBankLogos from "./pages/UploadBankLogos";
 
@@ -65,6 +66,7 @@ const AppRoutes = () => {
       <Route path="/importacoes" element={<Imports />} />
       <Route path="/importacoes/transacoes" element={<ImportsTransactions />} />
       <Route path="/importacoes/xlsx" element={<ImportsXLSX />} />
+      <Route path="/importacoes/json" element={<ImportsJSON />} />
       <Route path="/demo-bancos" element={<BankSelectorDemo />} />
       <Route path="/upload-logos" element={<UploadBankLogos />} />
       {/* Manter rotas antigas em inglês para compatibilidade */}
