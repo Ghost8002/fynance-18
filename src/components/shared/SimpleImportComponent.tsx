@@ -281,31 +281,70 @@ const SimpleImportComponent: React.FC = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
-      <CardHeader className="space-y-2 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg">
-            <FileSpreadsheet className="h-7 w-7" />
+    <div className="space-y-6 animate-fade-in">
+      {/* Header com informações */}
+      <div className="bg-gradient-to-br from-green-500/10 via-green-600/5 to-transparent border border-green-500/20 rounded-2xl p-8">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-xl">
+              <FileSpreadsheet className="h-10 w-10" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-2">
+                Importação XLSX
+              </h2>
+              <p className="text-base text-muted-foreground mb-4">
+                Importe suas planilhas Excel de forma rápida, segura e organizada
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-muted-foreground">Formato .xlsx/.xls</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-muted-foreground">Validação automática</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-muted-foreground">Preview em tempo real</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-bold">Importar Transações XLSX</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Importe suas planilhas de forma rápida e fácil</p>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={downloadTemplate}
+            className="gap-2 bg-white/50 hover:bg-white"
+          >
+            <Download className="h-4 w-4" />
+            Baixar Template
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Área de upload */}
-        <div
-          className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 cursor-pointer ${
-            isDragOver 
-              ? 'border-green-500 bg-gradient-to-br from-green-500/10 to-green-600/5 scale-[1.02]' 
-              : 'border-border/50 hover:border-green-500/50 hover:bg-muted/30'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById('file-input')?.click()}
-        >
+      </div>
+
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-background via-background to-muted/10">
+        <CardContent className="p-8 space-y-8">
+        {/* Área de upload melhorada */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-4">
+            <Upload className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">1. Selecione seu arquivo</h3>
+          </div>
+          
+          <div
+            className={`relative border-3 border-dashed rounded-2xl p-12 text-center transition-all duration-500 cursor-pointer overflow-hidden ${
+              isDragOver 
+                ? 'border-green-500 bg-gradient-to-br from-green-500/20 via-green-600/10 to-green-500/5 scale-[1.02] shadow-2xl shadow-green-500/20' 
+                : 'border-muted-foreground/20 hover:border-green-500/50 hover:bg-gradient-to-br hover:from-green-500/5 hover:to-transparent hover:shadow-lg'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById('file-input')?.click()}
+          >
+            {/* Efeito de fundo animado */}
+            <div className={`absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/5 to-green-500/0 transition-transform duration-1000 ${isDragOver ? 'translate-x-full' : '-translate-x-full'}`} />
           <input
             type="file"
             accept=".xlsx,.xls"
@@ -361,6 +400,7 @@ const SimpleImportComponent: React.FC = () => {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Preview dos dados */}
@@ -415,26 +455,29 @@ const SimpleImportComponent: React.FC = () => {
           </div>
         )}
 
-        {/* Seleção de conta */}
-        <div className="space-y-3">
-          <label htmlFor="account-select" className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Conta de Destino
-          </label>
-          <select
-            id="account-select"
-            value={selectedAccountId}
-            onChange={(e) => setSelectedAccountId(e.target.value)}
-            disabled={importing}
-            className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 bg-background text-foreground"
-          >
-            <option value="">Selecione uma conta para importar as transações</option>
-            {accounts?.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name} - {account.bank || 'Conta'}
+        {/* Seleção de conta melhorada */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Database className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">2. Escolha a conta de destino</h3>
+          </div>
+          
+          <div className="p-6 bg-gradient-to-br from-muted/50 to-muted/20 rounded-xl border border-border/50">
+            <select
+              id="account-select"
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+              disabled={importing}
+              className="w-full p-4 text-base border-2 border-border rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-300 bg-background text-foreground font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="">📁 Selecione uma conta para importar as transações</option>
+              {accounts?.map((account) => (
+                <option key={account.id} value={account.id}>
+                  💰 {account.name} - {account.bank || 'Conta'}
               </option>
             ))}
           </select>
+          </div>
         </div>
 
         {/* Informações sobre o formato */}
@@ -524,8 +567,9 @@ const SimpleImportComponent: React.FC = () => {
             Limpar
           </Button>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

@@ -339,31 +339,70 @@ NEWFILEUID:NONE
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
-      <CardHeader className="space-y-2 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg">
-            <FileTextIcon className="h-7 w-7" />
+    <div className="space-y-6 animate-fade-in">
+      {/* Header com informações */}
+      <div className="bg-gradient-to-br from-blue-500/10 via-blue-600/5 to-transparent border border-blue-500/20 rounded-2xl p-8">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl">
+              <FileTextIcon className="h-10 w-10" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-2">
+                Importação OFX
+              </h2>
+              <p className="text-base text-muted-foreground mb-4">
+                Importe extratos bancários diretamente do seu banco de forma segura
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  <span className="text-muted-foreground">Formato .ofx/.txt</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  <span className="text-muted-foreground">Compatível com bancos</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  <span className="text-muted-foreground">Categorização inteligente</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-bold">Importar Transações OFX</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Importe seus extratos bancários rapidamente</p>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={downloadTemplate}
+            className="gap-2 bg-white/50 hover:bg-white"
+          >
+            <Download className="h-4 w-4" />
+            Baixar Exemplo
+          </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Área de upload */}
-        <div
-          className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 cursor-pointer ${
-            isDragOver 
-              ? 'border-blue-500 bg-gradient-to-br from-blue-500/10 to-blue-600/5 scale-[1.02]' 
-              : 'border-border/50 hover:border-blue-500/50 hover:bg-muted/30'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById('ofx-file-input')?.click()}
-        >
+      </div>
+
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-background via-background to-muted/10">
+        <CardContent className="p-8 space-y-8">
+        {/* Área de upload melhorada */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-4">
+            <Upload className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">1. Selecione seu arquivo OFX</h3>
+          </div>
+          
+          <div
+            className={`relative border-3 border-dashed rounded-2xl p-12 text-center transition-all duration-500 cursor-pointer overflow-hidden ${
+              isDragOver 
+                ? 'border-blue-500 bg-gradient-to-br from-blue-500/20 via-blue-600/10 to-blue-500/5 scale-[1.02] shadow-2xl shadow-blue-500/20' 
+                : 'border-muted-foreground/20 hover:border-blue-500/50 hover:bg-gradient-to-br hover:from-blue-500/5 hover:to-transparent hover:shadow-lg'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById('ofx-file-input')?.click()}
+          >
+            {/* Efeito de fundo animado */}
+            <div className={`absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 transition-transform duration-1000 ${isDragOver ? 'translate-x-full' : '-translate-x-full'}`} />
           <input
             type="file"
             accept=".ofx,.ofx.txt,.txt"
@@ -393,32 +432,49 @@ NEWFILEUID:NONE
               </Button>
             </div>
           ) : (
-            <div className="space-y-5 animate-fade-in">
+            <div className="relative z-10 space-y-6 animate-scale-in">
               <div className="flex justify-center">
-                <div className={`p-5 rounded-2xl transition-all duration-300 ${
+                <div className={`p-8 rounded-3xl transition-all duration-500 shadow-2xl ${
                   isDragOver 
-                    ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 scale-110' 
-                    : 'bg-gradient-to-br from-muted/80 to-muted/40'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 scale-125 rotate-6' 
+                    : 'bg-gradient-to-br from-muted via-muted/80 to-muted/60 hover:scale-110'
                 }`}>
-                  <FileTextIcon className={`h-16 w-16 transition-all duration-300 ${
-                    isDragOver ? 'text-blue-600 scale-110' : 'text-muted-foreground'
+                  <FileTextIcon className={`h-20 w-20 transition-all duration-500 ${
+                    isDragOver ? 'text-white animate-pulse' : 'text-muted-foreground'
                   }`} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <h3 className={`text-xl font-bold transition-colors duration-300 ${
-                  isDragOver ? 'text-blue-600' : 'text-foreground'
+              <div className="space-y-3">
+                <h3 className={`text-2xl font-black transition-all duration-300 ${
+                  isDragOver ? 'text-blue-600 scale-105' : 'text-foreground'
                 }`}>
-                  {isDragOver ? '✨ Solte o arquivo aqui' : 'Clique ou arraste seu arquivo'}
+                  {isDragOver ? '🎉 Solte aqui para processar!' : 'Arraste seu arquivo ou clique aqui'}
                 </h3>
-                <p className={`text-sm transition-colors duration-300 ${
-                  isDragOver ? 'text-blue-600/80' : 'text-muted-foreground'
+                <p className={`text-base font-medium transition-colors duration-300 ${
+                  isDragOver ? 'text-blue-600' : 'text-muted-foreground'
                 }`}>
-                  {isDragOver ? 'Processaremos automaticamente' : 'Aceitamos arquivos .ofx e .txt'}
+                  {isDragOver ? 'Vamos processar automaticamente' : 'Suportamos arquivos .ofx e .txt (até 10MB)'}
                 </p>
+                {!isDragOver && (
+                  <div className="flex items-center justify-center gap-6 mt-6">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                      Banco compatível
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      Seguro
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                      Automático
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Preview dos dados */}
@@ -581,8 +637,9 @@ NEWFILEUID:NONE
             Limpar
           </Button>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
