@@ -36,8 +36,28 @@ export const BankLogo = ({
     setImageError(true);
   };
 
-  // Se não há logo ou houve erro, mostrar ícone padrão
-  if (!logoPath || imageError || !showFallback) {
+  // Se não há logo, mostrar ícone padrão
+  if (!logoPath) {
+    if (!showFallback) return null;
+    
+    return (
+      <div className={cn(
+        "flex items-center justify-center rounded bg-muted",
+        sizeClasses[size],
+        className
+      )}>
+        <Building2 className={cn(
+          "text-muted-foreground",
+          size === 'sm' ? 'w-3 h-3' : size === 'md' ? 'w-4 h-4' : 'w-5 h-5'
+        )} />
+      </div>
+    );
+  }
+
+  // Se houve erro ao carregar, mostrar fallback
+  if (imageError) {
+    if (!showFallback) return null;
+    
     return (
       <div className={cn(
         "flex items-center justify-center rounded bg-muted",
