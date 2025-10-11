@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, AlertTriangle, CheckCircle, Settings } from "lucide-react";
-
 interface CardData {
   id: string;
   name: string;
@@ -16,23 +15,22 @@ interface CardData {
   closing_day: number;
   due_day: number;
 }
-
 interface CardLimitManagementProps {
   card: CardData;
   onUpdate?: () => void;
 }
-
-export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps) => {
+export const CardLimitManagement = ({
+  card,
+  onUpdate
+}: CardLimitManagementProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
   };
-
   if (card.type !== "credit") {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="p-6">
           <div className="text-center">
             <Settings className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -42,13 +40,10 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
             </p>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  const usagePercentage = (card.used_amount / card.credit_limit) * 100;
+  const usagePercentage = card.used_amount / card.credit_limit * 100;
   const availableAmount = card.credit_limit - card.used_amount;
-
   const getUsageStatus = () => {
     if (usagePercentage >= 90) {
       return {
@@ -76,14 +71,14 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
       };
     }
   };
-
   const usageStatus = getUsageStatus();
   const StatusIcon = usageStatus.icon;
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Status do Limite */}
-      <Card style={{ borderColor: card.color, borderWidth: 2 }}>
+      <Card style={{
+      borderColor: card.color,
+      borderWidth: 2
+    }}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -103,10 +98,7 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
               <span className="text-sm font-medium">Uso do Limite</span>
               <span className="text-sm font-bold">{usagePercentage.toFixed(1)}%</span>
             </div>
-            <Progress 
-              value={usagePercentage} 
-              className="h-4"
-            />
+            <Progress value={usagePercentage} className="h-4" />
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>R$ 0</span>
               <span>{formatCurrency(card.credit_limit)}</span>
@@ -132,8 +124,7 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
       </Card>
 
       {/* Alert de Status */}
-      {usagePercentage >= 75 && (
-        <Alert variant={usageStatus.variant}>
+      {usagePercentage >= 75 && <Alert variant={usageStatus.variant}>
           <StatusIcon className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-1">
@@ -145,8 +136,7 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
               </div>
             </div>
           </AlertDescription>
-        </Alert>
-      )}
+        </Alert>}
 
       {/* Análise Detalhada */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -175,27 +165,21 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
             <div className="pt-4 border-t">
               <h4 className="font-medium mb-2">Recomendações:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                {usagePercentage >= 90 && (
-                  <>
+                {usagePercentage >= 90 && <>
                     <li>• Faça um pagamento imediatamente</li>
                     <li>• Evite novas compras até reduzir o uso</li>
                     <li>• Considere solicitar aumento de limite</li>
-                  </>
-                )}
-                {usagePercentage >= 75 && usagePercentage < 90 && (
-                  <>
+                  </>}
+                {usagePercentage >= 75 && usagePercentage < 90 && <>
                     <li>• Monitore seus gastos com atenção</li>
                     <li>• Planeje um pagamento antecipado</li>
                     <li>• Evite compras desnecessárias</li>
-                  </>
-                )}
-                {usagePercentage < 75 && (
-                  <>
+                  </>}
+                {usagePercentage < 75 && <>
                     <li>• Limite está sendo usado adequadamente</li>
                     <li>• Continue monitorando os gastos</li>
                     <li>• Mantenha o controle financeiro</li>
-                  </>
-                )}
+                  </>}
               </ul>
             </div>
           </CardContent>
@@ -229,16 +213,9 @@ export const CardLimitManagement = ({ card, onUpdate }: CardLimitManagementProps
               </div>
             </div>
 
-            <div className="pt-4 border-t">
-              <h4 className="font-medium mb-2">Próximas datas importantes:</h4>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>• Fechamento: Dia {card.closing_day} de cada mês</p>
-                <p>• Vencimento: Dia {card.due_day} de cada mês</p>
-              </div>
-            </div>
+            
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
