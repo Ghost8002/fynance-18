@@ -6,7 +6,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Calendar, CreditCard, Package, FileText, DollarSign, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, CreditCard, Package, FileText, DollarSign, Clock, X } from "lucide-react";
+import { BillPaymentDialog } from "./BillPaymentDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CardBillProps {
   cardId: string;
@@ -23,6 +40,16 @@ interface BillData {
   paid_amount: number;
   remaining_amount: number;
   status: string;
+  user_id: string;
+  card_id: string;
+}
+
+interface BillPayment {
+  id: string;
+  transaction_id: string;
+  amount: number;
+  payment_date: string;
+  account_name: string;
 }
 
 interface InstallmentItem {
@@ -54,7 +81,12 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
   const [billData, setBillData] = useState<BillData | null>(null);
   const [installmentItems, setInstallmentItems] = useState<InstallmentItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [billPayments, setBillPayments] = useState<BillPayment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentType, setPaymentType] = useState<'full' | 'partial' | 'installment'>('full');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<BillPayment | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -191,6 +223,36 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
         setTransactions(transactionsWithCategory);
       }
 
+      // Buscar pagamentos da fatura
+      if (bill?.id) {
+        const { data: payments } = await supabase
+          .from('transactions')
+          .select(`
+            id,
+            amount,
+            date,
+            account_id,
+            accounts (name)
+          `)
+          .eq('user_id', user.id)
+          .eq('card_id', cardId)
+          .eq('description', 'Pagamento de fatura - Cartão')
+          .gte('date', startDate.toISOString().split('T')[0])
+          .lte('date', endDate.toISOString().split('T')[0])
+          .order('date', { ascending: false });
+
+        if (payments) {
+          const paymentsWithAccount = payments.map(payment => ({
+            id: payment.id,
+            transaction_id: payment.id,
+            amount: Math.abs(payment.amount),
+            payment_date: payment.date,
+            account_name: (payment as any).accounts?.name || 'Conta desconhecida'
+          }));
+          setBillPayments(paymentsWithAccount);
+        }
+      }
+
     } catch (error) {
       console.error('Error fetching bill data:', error);
       toast({
@@ -254,6 +316,72 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
   
   const totalBillAmount = totalInstallments + totalTransactions;
 
+  const handleOpenPaymentDialog = (type: 'full' | 'partial' | 'installment') => {
+    setPaymentType(type);
+    setPaymentDialogOpen(true);
+  };
+
+  const handleCancelPayment = async () => {
+    if (!selectedPayment) return;
+
+    try {
+      // Buscar transação para obter detalhes
+      const { data: transaction } = await supabase
+        .from('transactions')
+        .select('*, accounts(*)')
+        .eq('id', selectedPayment.transaction_id)
+        .single();
+
+      if (!transaction) throw new Error('Transação não encontrada');
+
+      // Restaurar saldo da conta
+      const { error: accountError } = await supabase
+        .from('accounts')
+        .update({ 
+          balance: Number(transaction.accounts.balance) + Math.abs(transaction.amount) 
+        })
+        .eq('id', transaction.account_id);
+
+      if (accountError) throw accountError;
+
+      // Deletar transação
+      const { error: deleteError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', selectedPayment.transaction_id);
+
+      if (deleteError) throw deleteError;
+
+      // Atualizar fatura
+      if (billData) {
+        const { error: billError } = await supabase
+          .from('card_bills')
+          .update({
+            paid_amount: billData.paid_amount - selectedPayment.amount,
+            remaining_amount: billData.remaining_amount + selectedPayment.amount,
+            status: billData.paid_amount - selectedPayment.amount === 0 ? 'open' : 'partial'
+          })
+          .eq('id', billData.id);
+
+        if (billError) throw billError;
+      }
+
+      toast({
+        title: "Pagamento cancelado com sucesso"
+      });
+
+      fetchBillData();
+      setCancelDialogOpen(false);
+      setSelectedPayment(null);
+    } catch (error) {
+      console.error('Erro ao cancelar pagamento:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao cancelar pagamento"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -301,6 +429,25 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Botões de Ação */}
+      {billData && billData.remaining_amount > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-2 flex-wrap">
+              <Button onClick={() => handleOpenPaymentDialog('full')}>
+                Pagar Fatura Completa
+              </Button>
+              <Button variant="outline" onClick={() => handleOpenPaymentDialog('partial')}>
+                Pagar Parcialmente
+              </Button>
+              <Button variant="outline" onClick={() => handleOpenPaymentDialog('installment')}>
+                Parcelar Fatura
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Resumo da Fatura */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -468,6 +615,59 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
         </Card>
       )}
 
+      {/* Pagamentos Realizados */}
+      {billPayments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Pagamentos Realizados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Conta</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {billPayments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        {formatDate(payment.payment_date)}
+                      </div>
+                    </TableCell>
+                    <TableCell>{payment.account_name}</TableCell>
+                    <TableCell className="font-medium">
+                      {formatCurrency(payment.amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPayment(payment);
+                          setCancelDialogOpen(true);
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                        Cancelar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Mensagem quando não há itens */}
       {installmentItems.length === 0 && transactions.length === 0 && (
         <Card>
@@ -482,6 +682,36 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog de Pagamento */}
+      {billData && (
+        <BillPaymentDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          billId={billData.id}
+          cardId={cardId}
+          totalAmount={billData.total_amount}
+          remainingAmount={billData.remaining_amount}
+          paymentType={paymentType}
+          onPaymentSuccess={fetchBillData}
+        />
+      )}
+
+      {/* Dialog de Confirmação de Cancelamento */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar este pagamento? A transação será excluída e o saldo será restaurado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelPayment}>Sim, cancelar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
