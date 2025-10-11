@@ -47,8 +47,8 @@ const ImportsXLSX = () => {
           </div>
           
           <div className="text-center space-y-6">
-            <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 dark:from-green-500/20 dark:to-green-500/10 rounded-2xl mb-6">
-              <FileSpreadsheet className="h-10 w-10 text-green-600" />
+            <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-2xl mb-6">
+              <FileSpreadsheet className="h-10 w-10 text-primary" />
             </div>
             <h1 className="text-4xl font-bold text-foreground">
               Importar Transações XLSX
