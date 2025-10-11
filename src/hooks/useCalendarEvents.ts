@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/hooks/useAuth';
+import { parseLocalDate } from '@/utils/dateValidation';
 
 export type CalendarEventType = 'transaction' | 'receivable' | 'debt';
 
@@ -48,7 +49,7 @@ export const useCalendarEvents = () => {
     transactions.forEach(transaction => {
       allEvents.push({
         id: `transaction-${transaction.id}`,
-        date: new Date(transaction.date),
+        date: parseLocalDate(transaction.date),
         title: transaction.type === 'income' ? 'Receita' : 'Despesa',
         description: transaction.description,
         amount: Number(transaction.amount),

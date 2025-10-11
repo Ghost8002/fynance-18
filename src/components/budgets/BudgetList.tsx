@@ -7,6 +7,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { parseLocalDate } from "@/utils/dateValidation";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -37,7 +38,7 @@ const BudgetList = () => {
     const currentYear = currentDate.getFullYear();
     
     const categoryTransactions = transactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
+      const transactionDate = parseLocalDate(transaction.date);
       return transaction.category_id === budget.category_id &&
              transaction.type === 'expense' &&
              transactionDate.getMonth() === currentMonth &&

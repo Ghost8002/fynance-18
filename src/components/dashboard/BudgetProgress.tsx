@@ -5,6 +5,7 @@ import { Plus, TrendingUp } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useNavigate } from "react-router-dom";
+import { parseLocalDate } from "@/utils/dateValidation";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -35,7 +36,7 @@ const BudgetProgress = () => {
   // Calculate current month expenses for each budget
   const currentDate = new Date();
   const currentMonthTransactions = transactions.filter(transaction => {
-    const transactionDate = new Date(transaction.date);
+    const transactionDate = parseLocalDate(transaction.date);
     return transactionDate.getMonth() === currentDate.getMonth() && transactionDate.getFullYear() === currentDate.getFullYear() && transaction.type === 'expense';
   });
   const budgetsWithSpent = budgets.map(budget => {

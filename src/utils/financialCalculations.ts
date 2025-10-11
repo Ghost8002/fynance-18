@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { parseLocalDate } from "./dateValidation";
 
 export interface Transaction {
   id: string;
@@ -48,7 +49,7 @@ export const filterTransactionsByPeriod = (
   
   return transactions.filter(transaction => {
     try {
-      const transactionDate = new Date(transaction.date);
+      const transactionDate = parseLocalDate(transaction.date);
       
       // Verifica se a data é válida
       if (isNaN(transactionDate.getTime())) {

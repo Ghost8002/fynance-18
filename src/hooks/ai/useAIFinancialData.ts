@@ -2,6 +2,7 @@
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/hooks/useAuth';
 import { UserFinancialData } from './types';
+import { parseLocalDate } from '@/utils/dateValidation';
 
 export const useAIFinancialData = () => {
   const { user } = useAuth();
@@ -22,7 +23,7 @@ export const useAIFinancialData = () => {
     const currentYear = new Date().getFullYear();
     
     const monthlyTransactions = transactions.filter(t => {
-      const transactionDate = new Date(t.date);
+      const transactionDate = parseLocalDate(t.date);
       return transactionDate.getMonth() === currentMonth && 
              transactionDate.getFullYear() === currentYear;
     });
