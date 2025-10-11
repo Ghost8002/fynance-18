@@ -2,6 +2,7 @@ import React from 'react';
 import { Database, Building2, Wallet, CreditCard, CheckCircle2, Landmark } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { getBankLogo } from '@/assets/banks';
 
 interface Account {
   id: string;
@@ -19,19 +20,6 @@ interface AccountSelectorProps {
   colorScheme?: 'green' | 'blue' | 'purple';
 }
 
-const bankLogos: Record<string, string> = {
-  'itau': '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau.svg',
-  'itaú': '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau.svg',
-  'bb': '/Bancos-em-SVG-main/Banco do Brasil S.A/banco-do-brasil-sem-fundo.svg',
-  'banco do brasil': '/Bancos-em-SVG-main/Banco do Brasil S.A/banco-do-brasil-sem-fundo.svg',
-  'caixa': '/Bancos-em-SVG-main/Caixa Econômica Federal/caixa-economica-federal-1.svg',
-  'cef': '/Bancos-em-SVG-main/Caixa Econômica Federal/caixa-economica-federal-1.svg',
-  'efi': '/Bancos-em-SVG-main/Efí - Gerencianet/logo-efi-bank-laranja.svg',
-  'gerencianet': '/Bancos-em-SVG-main/Efí - Gerencianet/logo-efi-bank-laranja.svg',
-  'bk': '/Bancos-em-SVG-main/BK Bank/bkBank.svg',
-  'zemo': '/Bancos-em-SVG-main/Zemo Bank/logowhite.svg',
-};
-
 const getAccountIcon = (account: Account) => {
   if (account.type?.toLowerCase().includes('credito') || account.type?.toLowerCase().includes('crédito')) {
     return CreditCard;
@@ -40,12 +28,6 @@ const getAccountIcon = (account: Account) => {
     return Wallet;
   }
   return Landmark;
-};
-
-const getBankLogo = (bankName?: string): string | null => {
-  if (!bankName) return null;
-  const normalized = bankName.toLowerCase().trim();
-  return bankLogos[normalized] || null;
 };
 
 const colorSchemes = {

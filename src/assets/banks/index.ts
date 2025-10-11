@@ -103,7 +103,40 @@ export const bankLogos: Record<string, string> = {
 
 /**
  * Função auxiliar para obter o logo de um banco
+ * Suporta tanto IDs diretos quanto nomes parciais/completos
  */
-export function getBankLogo(bankId: string): string | null {
-  return bankLogos[bankId] || null;
+export function getBankLogo(bankId: string | undefined): string | null {
+  if (!bankId) return null;
+  
+  // Normalizar o input: lowercase, remover acentos e espaços extras
+  const normalize = (str: string) => 
+    str.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/\s+/g, '-') // Substitui espaços por hífens
+      .trim();
+  
+  const normalizedInput = normalize(bankId);
+  
+  // Tentar correspondência direta primeiro
+  if (bankLogos[normalizedInput]) {
+    return bankLogos[normalizedInput];
+  }
+  
+  // Tentar correspondência exata sem normalização
+  if (bankLogos[bankId.toLowerCase().trim()]) {
+    return bankLogos[bankId.toLowerCase().trim()];
+  }
+  
+  // Tentar encontrar correspondência parcial
+  const entries = Object.entries(bankLogos);
+  for (const [key, logo] of entries) {
+    const normalizedKey = normalize(key);
+    // Verifica se o input contém a chave ou vice-versa
+    if (normalizedInput.includes(normalizedKey) || normalizedKey.includes(normalizedInput)) {
+      return logo;
+    }
+  }
+  
+  return null;
 }
