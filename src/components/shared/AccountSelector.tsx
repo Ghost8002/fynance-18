@@ -50,25 +50,25 @@ const getBankLogo = (bankName?: string): string | null => {
 
 const colorSchemes = {
   green: {
-    border: 'border-green-500',
-    bg: 'bg-green-500/5',
-    ring: 'ring-green-500',
-    text: 'text-green-600',
-    hover: 'hover:border-green-400 hover:bg-green-500/10',
+    border: 'border-primary',
+    bg: 'bg-primary/5',
+    ring: 'ring-primary',
+    text: 'text-primary',
+    hover: 'hover:border-primary/80 hover:bg-primary/10',
   },
   blue: {
-    border: 'border-blue-500',
-    bg: 'bg-blue-500/5',
-    ring: 'ring-blue-500',
-    text: 'text-blue-600',
-    hover: 'hover:border-blue-400 hover:bg-blue-500/10',
+    border: 'border-primary',
+    bg: 'bg-primary/5',
+    ring: 'ring-primary',
+    text: 'text-primary',
+    hover: 'hover:border-primary/80 hover:bg-primary/10',
   },
   purple: {
-    border: 'border-purple-500',
-    bg: 'bg-purple-500/5',
-    ring: 'ring-purple-500',
-    text: 'text-purple-600',
-    hover: 'hover:border-purple-400 hover:bg-purple-500/10',
+    border: 'border-primary',
+    bg: 'bg-primary/5',
+    ring: 'ring-primary',
+    text: 'text-primary',
+    hover: 'hover:border-primary/80 hover:bg-primary/10',
   },
 };
 
@@ -193,12 +193,8 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
               {isSelected && (
                 <div 
                   className={cn(
-                    "absolute bottom-0 left-0 right-0 h-1 rounded-b-xl",
-                    colors.bg
+                    "absolute bottom-0 left-0 right-0 h-1 rounded-b-xl bg-gradient-to-r from-primary to-transparent"
                   )}
-                  style={{
-                    background: `linear-gradient(90deg, ${colorScheme === 'green' ? 'rgb(34 197 94)' : colorScheme === 'blue' ? 'rgb(59 130 246)' : 'rgb(168 85 247)'} 0%, transparent 100%)`
-                  }}
                 />
               )}
             </button>

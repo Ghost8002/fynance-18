@@ -414,7 +414,7 @@ const SimpleImportComponent: React.FC = () => {
           selectedAccountId={selectedAccountId}
           onSelect={setSelectedAccountId}
           disabled={importing}
-          colorScheme="green"
+          colorScheme="blue"
         />
 
         {/* Informações sobre o formato */}
