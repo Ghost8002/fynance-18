@@ -16,7 +16,11 @@ export const useFinancialPeriod = () => {
     const { startDate, endDate } = getFinancialPeriod(periodType, referenceDate);
     
     return transactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
+      // Criar data local a partir da string do banco para evitar conversão UTC
+      const [year, month, day] = transaction.date.split('-').map(Number);
+      const transactionDate = new Date(year, month - 1, day);
+      transactionDate.setHours(0, 0, 0, 0);
+      
       return transactionDate >= startDate && transactionDate <= endDate;
     });
   };
