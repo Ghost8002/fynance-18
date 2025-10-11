@@ -19,9 +19,15 @@ export type Database = {
           account_number: string | null
           balance: number
           bank: string | null
+          color: string | null
           created_at: string
+          external_id: string | null
+          external_provider: string | null
           id: string
+          last_sync_at: string | null
           name: string
+          provider: string | null
+          provider_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -30,9 +36,15 @@ export type Database = {
           account_number?: string | null
           balance?: number
           bank?: string | null
+          color?: string | null
           created_at?: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
+          last_sync_at?: string | null
           name: string
+          provider?: string | null
+          provider_account_id?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -41,9 +53,15 @@ export type Database = {
           account_number?: string | null
           balance?: number
           bank?: string | null
+          color?: string | null
           created_at?: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
+          last_sync_at?: string | null
           name?: string
+          provider?: string | null
+          provider_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -176,6 +194,7 @@ export type Database = {
           period: string
           spent_amount: number
           start_date: string
+          tags: Json | null
           updated_at: string
           user_id: string
         }
@@ -188,6 +207,7 @@ export type Database = {
           period?: string
           spent_amount?: number
           start_date: string
+          tags?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -200,6 +220,7 @@ export type Database = {
           period?: string
           spent_amount?: number
           start_date?: string
+          tags?: Json | null
           updated_at?: string
           user_id?: string
         }
@@ -445,6 +466,7 @@ export type Database = {
           id: string
           last_four_digits: string
           name: string
+          tags: Json | null
           type: string
           updated_at: string
           used_amount: number
@@ -461,6 +483,7 @@ export type Database = {
           id?: string
           last_four_digits: string
           name: string
+          tags?: Json | null
           type: string
           updated_at?: string
           used_amount?: number
@@ -477,6 +500,7 @@ export type Database = {
           id?: string
           last_four_digits?: string
           name?: string
+          tags?: Json | null
           type?: string
           updated_at?: string
           used_amount?: number
@@ -514,6 +538,48 @@ export type Database = {
           sort_order?: number | null
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      custom_banks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          primary_color: string | null
+          secondary_color: string | null
+          short_name: string
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          short_name: string
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          short_name?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -636,6 +702,7 @@ export type Database = {
           description: string | null
           id: string
           status: string
+          tags: Json | null
           target_amount: number
           title: string
           updated_at: string
@@ -649,6 +716,7 @@ export type Database = {
           description?: string | null
           id?: string
           status?: string
+          tags?: Json | null
           target_amount: number
           title: string
           updated_at?: string
@@ -662,6 +730,7 @@ export type Database = {
           description?: string | null
           id?: string
           status?: string
+          tags?: Json | null
           target_amount?: number
           title?: string
           updated_at?: string
@@ -771,10 +840,13 @@ export type Database = {
           created_at: string
           date: string
           description: string
+          external_id: string | null
+          external_provider: string | null
           id: string
           installment_number: number | null
           installments_count: number | null
           notes: string | null
+          original_description: string | null
           parent_transaction_id: string | null
           tags: Json | null
           type: string
@@ -789,10 +861,13 @@ export type Database = {
           created_at?: string
           date: string
           description: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
           installment_number?: number | null
           installments_count?: number | null
           notes?: string | null
+          original_description?: string | null
           parent_transaction_id?: string | null
           tags?: Json | null
           type: string
@@ -807,10 +882,13 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
+          external_id?: string | null
+          external_provider?: string | null
           id?: string
           installment_number?: number | null
           installments_count?: number | null
           notes?: string | null
+          original_description?: string | null
           parent_transaction_id?: string | null
           tags?: Json | null
           type?: string

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BankLogoProps {
   logoPath?: string;
@@ -8,6 +9,44 @@ interface BankLogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   showFallback?: boolean;
+}
+
+/**
+ * Função para obter a URL pública do logo no Supabase Storage
+ * Se o logoPath começar com '/', assume que é um caminho local e converte para Storage
+ */
+function getBankLogoUrl(logoPath?: string, bankName?: string): string | null {
+  if (!logoPath) return null;
+  
+  // Se já é uma URL completa, retornar como está
+  if (logoPath.startsWith('http://') || logoPath.startsWith('https://')) {
+    return logoPath;
+  }
+  
+  // Se é um caminho do banco de dados antigo, extrair o ID do banco
+  if (logoPath.includes('Bancos-em-SVG-main/')) {
+    // Tentar extrair o ID do banco do nome do arquivo ou pasta
+    const parts = logoPath.split('/');
+    const fileName = parts[parts.length - 1]; // Nome do arquivo SVG
+    
+    // Tentar gerar um ID baseado no nome do banco
+    const bankId = bankName?.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-z0-9]+/g, '-') // Substitui espaços e caracteres especiais por hífen
+      .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
+    
+    if (bankId) {
+      // Gerar URL do Supabase Storage
+      const { data } = supabase.storage
+        .from('bank-logos')
+        .getPublicUrl(`${bankId}.svg`);
+      
+      return data.publicUrl;
+    }
+  }
+  
+  return logoPath;
 }
 
 export const BankLogo = ({ 
@@ -19,6 +58,9 @@ export const BankLogo = ({
 }: BankLogoProps) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+
+  // Obter URL correta do logo
+  const logoUrl = getBankLogoUrl(logoPath, bankName);
 
   const sizeClasses = {
     sm: 'w-4 h-4',
@@ -37,7 +79,7 @@ export const BankLogo = ({
   };
 
   // Se não há logo, mostrar ícone padrão
-  if (!logoPath) {
+  if (!logoUrl) {
     if (!showFallback) return null;
     
     return (
@@ -84,7 +126,7 @@ export const BankLogo = ({
       )}
       
       <img
-        src={logoPath}
+        src={logoUrl}
         alt={`Logo do ${bankName}`}
         className={cn(
           "rounded object-contain",

@@ -30,6 +30,7 @@ import Imports from "./pages/Imports";
 import ImportsTransactions from "./pages/ImportsTransactions";
 import ImportsXLSX from "./pages/ImportsXLSX";
 import BankSelectorDemo from "./pages/BankSelectorDemo";
+import UploadBankLogos from "./pages/UploadBankLogos";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +66,7 @@ const AppRoutes = () => {
       <Route path="/importacoes/transacoes" element={<ImportsTransactions />} />
       <Route path="/importacoes/xlsx" element={<ImportsXLSX />} />
       <Route path="/demo-bancos" element={<BankSelectorDemo />} />
+      <Route path="/upload-logos" element={<UploadBankLogos />} />
       {/* Manter rotas antigas em inglês para compatibilidade */}
       <Route path="/transactions" element={<Transactions />} />
       <Route path="/cards" element={<Cards />} />
