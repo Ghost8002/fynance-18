@@ -307,7 +307,7 @@ NEWFILEUID:NONE
                     </tr>
                   </thead>
                   <tbody>
-                    {result.transactions.slice(0, 10).map((transaction, index) => (
+                    {result.transactions.slice(0, 5).map((transaction, index) => (
                       <tr key={index} className="border-t">
                         <td className="px-3 py-2">{transaction.date}</td>
                         <td className="px-3 py-2">{transaction.description}</td>
@@ -326,9 +326,9 @@ NEWFILEUID:NONE
                     ))}
                   </tbody>
                 </table>
-                {result.transactions.length > 10 && (
+                {result.transactions.length > 5 && (
                   <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
-                    Mostrando 10 de {result.transactions.length} transações
+                    Mostrando 5 de {result.transactions.length} transações
                   </div>
                 )}
               </div>
@@ -427,7 +427,7 @@ NEWFILEUID:NONE
                   </tr>
                 </thead>
                 <tbody>
-                  {previewData.map((row, index) => (
+                  {previewData.slice(0, 5).map((row, index) => (
                     <tr key={index} className="border-t">
                       <td className="px-3 py-2">{row.date}</td>
                       <td className="px-3 py-2">{row.description}</td>
@@ -446,6 +446,11 @@ NEWFILEUID:NONE
                   ))}
                 </tbody>
               </table>
+              {previewData.length > 5 && (
+                <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
+                  Mostrando 5 de {previewData.length} transações
+                </div>
+              )}
             </div>
           </div>
         )}

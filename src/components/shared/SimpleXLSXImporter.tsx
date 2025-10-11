@@ -628,7 +628,7 @@ const SimpleXLSXImporter: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {previewData.slice(0, 20).map((row, index) => <tr key={index} className="border-t">
+                  {previewData.slice(0, 5).map((row, index) => <tr key={index} className="border-t">
                       <td className="px-3 py-2">{row.data}</td>
                       <td className="px-3 py-2">{row.descricao}</td>
                       <td className="px-3 py-2">
@@ -646,8 +646,8 @@ const SimpleXLSXImporter: React.FC = () => {
                     </tr>)}
                 </tbody>
               </table>
-              {previewData.length > 20 && <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
-                  Mostrando 20 de {previewData.length} linhas
+              {previewData.length > 5 && <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
+                  Mostrando 5 de {previewData.length} linhas
                 </div>}
             </div>
           </div>}
