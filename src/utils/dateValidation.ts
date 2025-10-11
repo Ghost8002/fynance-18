@@ -88,12 +88,12 @@ export const convertOFXDate = (dateStr: string): string => {
  * Resolve problemas de timezone em todas as importações (OFX, XLSX, etc.)
  */
 export const convertToLocalDateString = (year: string, month: string, day: string): string => {
-  // Criar data no timezone local especificando horário para evitar interpretação UTC
-  // Usar T00:00:00 para garantir que seja interpretada como horário local
-  const localDate = new Date(`${year}-${month}-${day}T00:00:00`);
+  // Garantir que os componentes estão no formato correto
+  const paddedMonth = month.padStart(2, '0');
+  const paddedDay = day.padStart(2, '0');
   
-  // Retornar apenas a parte da data em formato YYYY-MM-DD
-  return localDate.toISOString().split('T')[0];
+  // Retornar diretamente no formato YYYY-MM-DD sem conversão UTC
+  return `${year}-${paddedMonth}-${paddedDay}`;
 };
 
 /**
