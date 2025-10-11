@@ -75,11 +75,15 @@ const Cards = () => {
         {/* Selected Card Details */}
         {selectedCardData && (
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className={`grid w-full ${selectedCardData.type === 'credit' ? 'grid-cols-5' : 'grid-cols-2'}`}>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="bill">Fatura</TabsTrigger>
-              <TabsTrigger value="limit">Limite</TabsTrigger>
-              <TabsTrigger value="installments">Parcelamentos</TabsTrigger>
+              {selectedCardData.type === 'credit' && (
+                <>
+                  <TabsTrigger value="bill">Fatura</TabsTrigger>
+                  <TabsTrigger value="limit">Limite</TabsTrigger>
+                  <TabsTrigger value="installments">Parcelamentos</TabsTrigger>
+                </>
+              )}
               <TabsTrigger value="transactions">Transações</TabsTrigger>
             </TabsList>
 
@@ -87,26 +91,30 @@ const Cards = () => {
               <CardOverview card={selectedCardData} />
             </TabsContent>
 
-            <TabsContent value="bill" className="space-y-4">
-              <CardBill 
-                cardId={selectedCard!} 
-                onBillUpdate={handlePurchaseAdded}
-              />
-            </TabsContent>
+            {selectedCardData.type === 'credit' && (
+              <>
+                <TabsContent value="bill" className="space-y-4">
+                  <CardBill 
+                    cardId={selectedCard!} 
+                    onBillUpdate={handlePurchaseAdded}
+                  />
+                </TabsContent>
 
-            <TabsContent value="limit" className="space-y-4">
-              <CardLimitManagement 
-                card={selectedCardData} 
-                onUpdate={handlePurchaseAdded}
-              />
-            </TabsContent>
+                <TabsContent value="limit" className="space-y-4">
+                  <CardLimitManagement 
+                    card={selectedCardData} 
+                    onUpdate={handlePurchaseAdded}
+                  />
+                </TabsContent>
 
-            <TabsContent value="installments" className="space-y-4">
-              <CardInstallments 
-                cardId={selectedCard!} 
-                onInstallmentPaid={handlePurchaseAdded}
-              />
-            </TabsContent>
+                <TabsContent value="installments" className="space-y-4">
+                  <CardInstallments 
+                    cardId={selectedCard!} 
+                    onInstallmentPaid={handlePurchaseAdded}
+                  />
+                </TabsContent>
+              </>
+            )}
 
             <TabsContent value="transactions" className="space-y-4">
               <CardTransactions cardId={selectedCard!} />
