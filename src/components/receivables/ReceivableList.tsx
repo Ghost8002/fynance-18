@@ -18,6 +18,7 @@ import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfMonth, endOfMonth } from "date-fns";
 import ReceivableForm from "./ReceivableForm";
+import { combineDebtsWithVirtualRecurrences, VirtualRecurrence } from "@/utils/recurrenceUtils";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -29,10 +30,27 @@ const formatCurrency = (value: number) => {
 };
 
 // Helper function to get status badge
-const getStatusBadge = (status: string, dueDate: string) => {
+const getStatusBadge = (status: string, dueDate: string, isVirtual?: boolean) => {
   const today = startOfDay(new Date());
   const due = startOfDay(parse(dueDate, 'yyyy-MM-dd', new Date()));
   const daysDiff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Para recorrências virtuais, sempre mostrar como pendente
+  if (isVirtual) {
+    if (daysDiff < 0) {
+      return <Badge variant="destructive">
+        Em Atraso ({Math.abs(daysDiff)} dias)
+      </Badge>;
+    } else if (daysDiff <= 3) {
+      return <Badge variant="outline" className="text-orange-600 border-orange-200">
+        Vence em {daysDiff} dias
+      </Badge>;
+    } else {
+      return <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+        Faltam {daysDiff} dias
+      </Badge>;
+    }
+  }
   
   let actualStatus = status;
   if (status === 'pending' && isBefore(due, today)) {
@@ -127,20 +145,28 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
   // Find default income category
   const defaultIncomeCategory = categories.find(cat => cat.type === 'income' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('receita'))) || categories.find(cat => cat.type === 'income');
 
-  // Filter receivables by current month only
+  // Filter receivables by current month and include virtual recurrences
   const filteredReceivables = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
     
-    return receivables.filter(receivable => {
+    // Combinar recebíveis reais com recorrências virtuais (6 meses à frente)
+    const combinedReceivables = combineDebtsWithVirtualRecurrences(receivables, 6);
+    
+    return combinedReceivables.filter(receivable => {
       const dueDate = new Date(receivable.due_date);
       return dueDate >= monthStart && dueDate <= monthEnd;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
   }, [receivables, currentMonth]);
 
-  // Calculate totals for filtered receivables
+  // Calculate totals for filtered receivables (excluding virtual recurrences)
   const totals = useMemo(() => {
     return filteredReceivables.reduce((acc, receivable) => {
+      // Não incluir recorrências virtuais nos totais
+      if ((receivable as any).is_virtual) {
+        return acc;
+      }
+      
       const due = new Date(receivable.due_date);
       let actualStatus = receivable.status;
       if (receivable.status === 'pending' && due < new Date()) {
@@ -460,47 +486,105 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                             Conta não especificada
                           </Badge>}
                       </TableCell>
-                      <TableCell>{getStatusBadge(receivable.status, receivable.due_date)}</TableCell>
+                      <TableCell>{getStatusBadge(receivable.status, receivable.due_date, (receivable as any).is_virtual)}</TableCell>
                       <TableCell>
-                        <RecurrenceProgress isRecurring={receivable.is_recurring} recurrenceType={receivable.recurrence_type} currentCount={receivable.current_count || 0} maxOccurrences={receivable.max_occurrences} endDate={receivable.recurrence_end_date} />
+                        {(receivable as any).is_virtual ? (
+                          <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                            <Repeat className="h-3 w-3" />
+                            Recorrência #{(receivable as any).occurrence_number}
+                          </Badge>
+                        ) : (
+                          <RecurrenceProgress 
+                            isRecurring={receivable.is_recurring} 
+                            recurrenceType={receivable.recurrence_type} 
+                            currentCount={receivable.current_count || 0} 
+                            maxOccurrences={receivable.max_occurrences} 
+                            endDate={receivable.recurrence_end_date} 
+                          />
+                        )}
                       </TableCell>
                       
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {receivable.status === 'pending' ? <Button variant="outline" size="sm" onClick={() => handleMarkAsReceived(receivable)} disabled={loadingOperations[`mark-received-${receivable.id}`]} className="text-green-600 hover:text-green-700">
-                              {loadingOperations[`mark-received-${receivable.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                            </Button> : receivable.status === 'received' ? <Button variant="outline" size="sm" onClick={() => handleUnmarkAsReceived(receivable)} disabled={loadingOperations[`unmark-received-${receivable.id}`]} className="text-orange-600 hover:text-orange-700">
-                              {loadingOperations[`unmark-received-${receivable.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                            </Button> : null}
-                          
-                          <Button variant="outline" size="sm" onClick={() => setSelectedReceivable(receivable)} disabled={Object.values(loadingOperations).some(Boolean)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" disabled={Object.values(loadingOperations).some(Boolean)} className="text-red-600 hover:text-red-700">
-                                <Trash2 className="h-4 w-4" />
+                           {!(receivable as any).is_virtual ? (
+                            <>
+                              {((receivable as any).status === 'pending' || (receivable as any).status === 'overdue') && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleMarkAsReceived(receivable as any)} 
+                                  disabled={loadingOperations[`mark-received-${(receivable as any).id}`]} 
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  {loadingOperations[`mark-received-${(receivable as any).id}`] ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Check className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
+                              
+                              {(receivable as any).status === 'received' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleUnmarkAsReceived(receivable as any)} 
+                                  disabled={loadingOperations[`unmark-received-${(receivable as any).id}`]} 
+                                  className="text-orange-600 hover:text-orange-700"
+                                >
+                                  {loadingOperations[`unmark-received-${(receivable as any).id}`] ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setSelectedReceivable(receivable)} 
+                                disabled={Object.values(loadingOperations).some(Boolean)}
+                              >
+                                <Edit className="h-4 w-4" />
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o pagamento "{receivable.description}"? 
-                                  Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(receivable.id)} className="bg-red-600 hover:bg-red-700">
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    disabled={Object.values(loadingOperations).some(Boolean)} 
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja excluir o pagamento "{receivable.description}"? 
+                                      Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                     <AlertDialogAction 
+                                       onClick={() => handleDelete(receivable.id)} 
+                                       className="bg-red-600 hover:bg-red-700"
+                                     >
+                                       Excluir
+                                     </AlertDialogAction>
+                                   </AlertDialogFooter>
+                                 </AlertDialogContent>
+                               </AlertDialog>
+                             </>
+                           ) : (
+                             <span className="text-xs text-muted-foreground">Recorrência futura</span>
+                           )}
+                         </div>
+                       </TableCell>
                     </TableRow>)}
                 </TableBody>
               </Table>

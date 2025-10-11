@@ -170,7 +170,7 @@ const DebtList: React.FC<DebtListProps> = ({
   const totals = useMemo(() => {
     return filteredDebts.reduce((acc, debt) => {
       // Não incluir recorrências virtuais nos totais
-      if (debt.is_virtual) {
+      if ((debt as any).is_virtual) {
         return acc;
       }
       
@@ -527,22 +527,27 @@ const DebtList: React.FC<DebtListProps> = ({
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                       <TableCell>{getStatusBadge(debt.status, debt.due_date, debt.is_virtual)}</TableCell>
+                       <TableCell>{getStatusBadge(debt.status, debt.due_date, (debt as any).is_virtual)}</TableCell>
                        <TableCell>
-                         <RecurrenceProgress 
-                           isRecurring={debt.is_recurring} 
-                           recurrenceType={debt.recurrence_type} 
-                           currentCount={debt.current_count || 0} 
-                           maxOccurrences={debt.max_occurrences} 
-                           endDate={debt.recurrence_end_date}
-                           isVirtual={debt.is_virtual}
-                           occurrenceNumber={debt.occurrence_number}
-                         />
+                         {(debt as any).is_virtual ? (
+                           <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                             <Repeat className="h-3 w-3" />
+                             Recorrência #{(debt as any).occurrence_number}
+                           </Badge>
+                         ) : (
+                           <RecurrenceProgress 
+                             isRecurring={debt.is_recurring} 
+                             recurrenceType={debt.recurrence_type} 
+                             currentCount={debt.current_count || 0} 
+                             maxOccurrences={debt.max_occurrences} 
+                             endDate={debt.recurrence_end_date}
+                           />
+                         )}
                        </TableCell>
                       
                        <TableCell className="text-right">
                          <div className="flex items-center justify-end gap-2">
-                           {debt.is_virtual ? (
+                           {(debt as any).is_virtual ? (
                              <span className="text-xs text-muted-foreground">Recorrência futura</span>
                            ) : (
                              <>
