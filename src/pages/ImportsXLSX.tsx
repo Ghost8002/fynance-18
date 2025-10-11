@@ -4,15 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import SimpleXLSXImporter from "@/components/shared/SimpleXLSXImporter";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowLeft, 
-  FileSpreadsheet
-} from "lucide-react";
-
+import { ArrowLeft, FileSpreadsheet } from "lucide-react";
 const ImportsXLSX = () => {
-  const { isAuthenticated } = useAuth();
+  const {
+    isAuthenticated
+  } = useAuth();
   const navigate = useNavigate();
-
   useEffect(() => {
     if (!isAuthenticated) navigate("/login");
     // SEO
@@ -33,32 +30,20 @@ const ImportsXLSX = () => {
     }
     link.setAttribute("href", window.location.origin + "/importacoes/xlsx");
   }, [isAuthenticated, navigate]);
-
   if (!isAuthenticated) return null;
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       <div className="space-y-8">
         {/* Header */}
         <div className="relative">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate("/importacoes")} 
-                className="flex items-center gap-2 hover:bg-muted/50"
-              >
+              <Button variant="outline" size="sm" onClick={() => navigate("/importacoes")} className="flex items-center gap-2 hover:bg-muted/50">
                 <ArrowLeft className="h-4 w-4" />
                 Voltar
               </Button>
             </div>
             
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                Formato: Data, Descrição, Valor, Tipo, Categoria, Tags
-              </span>
-            </div>
+            
           </div>
           
           <div className="text-center space-y-6">
@@ -81,8 +66,6 @@ const ImportsXLSX = () => {
           <SimpleXLSXImporter />
         </div>
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default ImportsXLSX;

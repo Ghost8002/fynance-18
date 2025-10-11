@@ -3,18 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Upload, 
-  FileText, 
-  CheckCircle, 
-  AlertTriangle, 
-  Loader2, 
-  X, 
-  Database,
-  FileSpreadsheet,
-  Eye,
-  ArrowRight
-} from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertTriangle, Loader2, X, Database, FileSpreadsheet, Eye, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
@@ -26,7 +15,6 @@ import { testTransactionInsert } from '@/utils/testTransactionInsert';
 import CategoryTagValidationModal from './CategoryTagValidationModal';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
-
 interface XLSXRow {
   data: string;
   descricao: string;
@@ -36,30 +24,49 @@ interface XLSXRow {
   categoria_id?: string;
   tags: string;
 }
-
 interface ImportResult {
   success: number;
   errors: number;
   total: number;
 }
-
 interface ValidationItem {
   name: string;
   type: 'category' | 'tag';
   count: number;
   action: 'create' | 'ignore';
 }
-
 const SimpleXLSXImporter: React.FC = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { insert: insertTransaction, refetch: refetchTransactions } = useSupabaseData('transactions', user?.id);
-  const { data: categories, refetch: refetchCategories } = useSupabaseData('categories', user?.id);
-  const { data: tags, refetch: refetchTags } = useSupabaseData('tags', user?.id);
-  const { updateAccountBalance } = useBalanceUpdates();
-  const { detectUnmappedItems, createItems, applyValidationChoices, findCategoryByName, findTagByName } = useCategoryTagValidation();
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    data: accounts
+  } = useSupabaseData('accounts', user?.id);
+  const {
+    insert: insertTransaction,
+    refetch: refetchTransactions
+  } = useSupabaseData('transactions', user?.id);
+  const {
+    data: categories,
+    refetch: refetchCategories
+  } = useSupabaseData('categories', user?.id);
+  const {
+    data: tags,
+    refetch: refetchTags
+  } = useSupabaseData('tags', user?.id);
+  const {
+    updateAccountBalance
+  } = useBalanceUpdates();
+  const {
+    detectUnmappedItems,
+    createItems,
+    applyValidationChoices,
+    findCategoryByName,
+    findTagByName
+  } = useCategoryTagValidation();
   const [file, setFile] = useState<File | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [previewData, setPreviewData] = useState<XLSXRow[]>([]);
@@ -67,7 +74,7 @@ const SimpleXLSXImporter: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  
+
   // Estados para validação de categorias/tags
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationCategories, setValidationCategories] = useState<ValidationItem[]>([]);
@@ -75,10 +82,12 @@ const SimpleXLSXImporter: React.FC = () => {
   const [pendingImportData, setPendingImportData] = useState<XLSXRow[]>([]);
 
   // Validação das colunas obrigatórias
-  const validateColumns = (headers: string[]): { isValid: boolean; missingColumns: string[] } => {
+  const validateColumns = (headers: string[]): {
+    isValid: boolean;
+    missingColumns: string[];
+  } => {
     const requiredColumns = ['Data', 'Descrição', 'Valor', 'Tipo', 'Categoria', 'Tags'];
     const missingColumns = requiredColumns.filter(col => !headers.includes(col));
-    
     return {
       isValid: missingColumns.length === 0,
       missingColumns
@@ -89,29 +98,27 @@ const SimpleXLSXImporter: React.FC = () => {
   const processFile = useCallback(async (selectedFile: File) => {
     try {
       const arrayBuffer = await selectedFile.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const workbook = XLSX.read(arrayBuffer, {
+        type: 'array'
+      });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1
+      });
       if (jsonData.length < 2) {
         throw new Error('Arquivo deve ter pelo menos cabeçalho e uma linha de dados');
       }
-
       const headers = jsonData[0] as string[];
       const validation = validateColumns(headers);
-      
       if (!validation.isValid) {
         throw new Error(`Colunas obrigatórias ausentes: ${validation.missingColumns.join(', ')}`);
       }
-
       const dataRows = jsonData.slice(1);
       const processedData: XLSXRow[] = [];
-
       for (let i = 0; i < dataRows.length; i++) {
         const row = dataRows[i] as any[];
         if (!row || row.length === 0) continue;
-
         try {
           const data = String(row[0] || '').trim();
           const descricao = String(row[1] || '').trim();
@@ -138,9 +145,10 @@ const SimpleXLSXImporter: React.FC = () => {
 
           // Processar data
           let formattedDate = data;
-          
+
           // Se a data é um número (serial do Excel)
-          if (!isNaN(Number(data)) && Number(data) > 25569) { // 25569 é aproximadamente 1970-01-01 em Excel
+          if (!isNaN(Number(data)) && Number(data) > 25569) {
+            // 25569 é aproximadamente 1970-01-01 em Excel
             try {
               // Converter número serial do Excel para data
               const excelEpoch = new Date(1900, 0, 1);
@@ -175,7 +183,6 @@ const SimpleXLSXImporter: React.FC = () => {
               formattedDate = convertToLocalDateString(parts[0], parts[1], parts[2]);
             }
           }
-
           processedData.push({
             data: formattedDate,
             descricao,
@@ -189,20 +196,17 @@ const SimpleXLSXImporter: React.FC = () => {
           continue;
         }
       }
-
       setPreviewData(processedData);
       setShowPreview(true);
-      
       toast({
         title: "Arquivo processado",
-        description: `${processedData.length} linhas válidas encontradas`,
+        description: `${processedData.length} linhas válidas encontradas`
       });
-
     } catch (error) {
       toast({
         title: "Erro ao processar arquivo",
         description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   }, [toast]);
@@ -216,7 +220,7 @@ const SimpleXLSXImporter: React.FC = () => {
         toast({
           title: "Arquivo inválido",
           description: "Por favor, selecione um arquivo XLSX válido.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -230,12 +234,10 @@ const SimpleXLSXImporter: React.FC = () => {
     e.preventDefault();
     setIsDragOver(true);
   }, []);
-
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
   }, []);
-
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -246,7 +248,7 @@ const SimpleXLSXImporter: React.FC = () => {
         toast({
           title: "Arquivo inválido",
           description: "Por favor, selecione um arquivo XLSX válido.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
@@ -258,11 +260,9 @@ const SimpleXLSXImporter: React.FC = () => {
   // Verificar categorias e tags antes da importação
   const handleImport = useCallback(async () => {
     if (!selectedAccountId || previewData.length === 0) return;
-
     try {
       // Detectar categorias e tags não mapeadas
       const validationResult = detectUnmappedItems(previewData);
-      
       if (validationResult.hasUnmappedItems) {
         // Mostrar modal de validação
         setValidationCategories(validationResult.categories);
@@ -278,7 +278,7 @@ const SimpleXLSXImporter: React.FC = () => {
       toast({
         title: "Erro na validação",
         description: "Ocorreu um erro ao validar categorias e tags.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   }, [selectedAccountId, previewData, detectUnmappedItems, toast]);
@@ -289,7 +289,6 @@ const SimpleXLSXImporter: React.FC = () => {
     let success = 0;
     let errors = 0;
     const insertedTransactions: any[] = [];
-
     try {
       // Preparar todas as transações para inserção
       const transactionsToInsert = dataToImport.map(row => {
@@ -323,7 +322,6 @@ const SimpleXLSXImporter: React.FC = () => {
             } : null;
           }).filter(tag => tag !== null);
         }
-
         const transactionData = {
           account_id: selectedAccountId,
           date: row.data,
@@ -331,7 +329,8 @@ const SimpleXLSXImporter: React.FC = () => {
           amount: amount,
           type: type,
           category_id: category_id,
-          tags: tags.length > 0 ? tags : [], // Garantir que tags seja sempre um array
+          tags: tags.length > 0 ? tags : [],
+          // Garantir que tags seja sempre um array
           user_id: user?.id
         };
 
@@ -339,7 +338,6 @@ const SimpleXLSXImporter: React.FC = () => {
         if (!transactionData.category_id) {
           delete transactionData.category_id;
         }
-
         return transactionData;
       });
 
@@ -352,16 +350,12 @@ const SimpleXLSXImporter: React.FC = () => {
           console.log('Tipo de amount:', typeof transaction.amount);
           console.log('Tipo de tags:', typeof transaction.tags, Array.isArray(transaction.tags));
           console.log('Tags:', transaction.tags);
-          
           const result = await insertTransaction(transaction);
-          
           console.log('Resultado da inserção:', result);
-          
           if (result.error) {
             console.error('Erro retornado pela função insert:', result.error);
             throw new Error(result.error);
           }
-          
           if (result.data && result.data[0]) {
             insertedTransactions.push(result.data[0]);
             success++;
@@ -375,9 +369,10 @@ const SimpleXLSXImporter: React.FC = () => {
           console.error('❌ ERRO ao inserir transação:', error);
           console.error('Dados da transação que falhou:', JSON.stringify(transaction, null, 2));
           errors++;
-          
+
           // Se há muitos erros, interromper o processo
-          if (errors > dataToImport.length * 0.1) { // Mais de 10% de erro
+          if (errors > dataToImport.length * 0.1) {
+            // Mais de 10% de erro
             throw new Error('Muitos erros na importação. Processo interrompido.');
           }
         }
@@ -386,38 +381,40 @@ const SimpleXLSXImporter: React.FC = () => {
       // Atualizar saldo da conta apenas se houve sucessos
       if (success > 0) {
         await updateAccountBalance(selectedAccountId);
-        
+
         // Refresh das transações para que apareçam imediatamente
         await refetchTransactions();
       }
-
-      setResult({ success, errors, total: dataToImport.length });
+      setResult({
+        success,
+        errors,
+        total: dataToImport.length
+      });
 
       // Mensagem de sucesso diferenciada
       if (errors === 0) {
         toast({
           title: "Importação concluída com sucesso",
-          description: `✅ ${success} lançamentos gravados na conta ${accounts?.find(a => a.id === selectedAccountId)?.name || 'selecionada'}`,
+          description: `✅ ${success} lançamentos gravados na conta ${accounts?.find(a => a.id === selectedAccountId)?.name || 'selecionada'}`
         });
       } else {
         toast({
           title: "Importação concluída com avisos",
           description: `✅ ${success} lançamentos gravados, ${errors} falharam na conta ${accounts?.find(a => a.id === selectedAccountId)?.name || 'selecionada'}`,
-          variant: "destructive",
+          variant: "destructive"
         });
       }
-
     } catch (error) {
       // Em caso de erro crítico, tentar reverter transações inseridas
       console.error('Erro crítico na importação:', error);
-      
+
       // Nota: Em um sistema real, aqui seria implementado um rollback transacional
       // Por enquanto, apenas reportamos o erro
-      
+
       toast({
         title: "Erro na importação",
         description: `Ocorreu um erro durante a importação. ${success} transações foram salvas antes do erro.`,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -431,34 +428,29 @@ const SimpleXLSXImporter: React.FC = () => {
 
       // Criar categorias e tags selecionadas
       const createResult = await createItems(validationItems);
-      
       if (createResult.errors > 0) {
         toast({
           title: "Aviso",
           description: `${createResult.success} itens criados, ${createResult.errors} falharam.`,
-          variant: "destructive",
+          variant: "destructive"
         });
       }
 
       // Refresh dos dados para incluir as categorias/tags recém-criadas
       if (createResult.success > 0) {
-        await Promise.all([
-          refetchCategories(),
-          refetchTags()
-        ]);
+        await Promise.all([refetchCategories(), refetchTags()]);
       }
 
       // Aplicar escolhas aos dados com os itens criados
       const processedData = applyValidationChoices(pendingImportData, validationItems, createResult.createdItems);
-      
+
       // Prosseguir com importação
       await proceedWithImport(processedData);
-
     } catch (error) {
       toast({
         title: "Erro na validação",
         description: "Ocorreu um erro ao processar as escolhas.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -472,30 +464,29 @@ const SimpleXLSXImporter: React.FC = () => {
       toast({
         title: "Erro",
         description: "Selecione uma conta primeiro",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     try {
       const result = await testTransactionInsert(supabase, user.id, selectedAccountId);
       if (result.success) {
         toast({
           title: "Teste bem-sucedido",
-          description: "Transação de teste inserida com sucesso!",
+          description: "Transação de teste inserida com sucesso!"
         });
       } else {
         toast({
           title: "Teste falhou",
           description: `Erro: ${result.error?.message || 'Erro desconhecido'}`,
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } catch (error) {
       toast({
         title: "Erro no teste",
         description: "Erro ao executar teste de inserção",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   }, [user?.id, selectedAccountId, toast]);
@@ -506,13 +497,13 @@ const SimpleXLSXImporter: React.FC = () => {
       XLSXTemplateGenerator.downloadTemplate();
       toast({
         title: "Template baixado",
-        description: "Template XLSX baixado com sucesso!",
+        description: "Template XLSX baixado com sucesso!"
       });
     } catch (error) {
       toast({
         title: "Erro ao baixar template",
         description: "Não foi possível baixar o template.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   }, [toast]);
@@ -528,8 +519,7 @@ const SimpleXLSXImporter: React.FC = () => {
 
   // Se há resultado, mostrar tela de sucesso
   if (result) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
+    return <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
             <CheckCircle className="h-6 w-6" />
@@ -560,22 +550,15 @@ const SimpleXLSXImporter: React.FC = () => {
           </div>
 
           <div className="flex justify-center">
-            <Button 
-              onClick={handleReset}
-              className="flex items-center gap-2 px-8 py-3 text-lg font-medium"
-              size="lg"
-            >
+            <Button onClick={handleReset} className="flex items-center gap-2 px-8 py-3 text-lg font-medium" size="lg">
               <Upload className="h-5 w-5" />
               Importar Outro Arquivo
             </Button>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card className="w-full max-w-4xl mx-auto">
+  return <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileSpreadsheet className="h-6 w-6" />
@@ -584,27 +567,10 @@ const SimpleXLSXImporter: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Upload do arquivo */}
-        <div
-          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-            isDragOver 
-              ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' 
-              : 'border-border hover:border-green-500/50'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById('file-input')?.click()}
-        >
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleFileChange}
-            className="hidden"
-            id="file-input"
-          />
+        <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${isDragOver ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' : 'border-border hover:border-green-500/50'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => document.getElementById('file-input')?.click()}>
+          <input type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" id="file-input" />
           
-          {file ? (
-            <div className="space-y-4">
+          {file ? <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
                 <CheckCircle className="h-12 w-12 text-green-500" />
                 <div className="text-left">
@@ -614,81 +580,49 @@ const SimpleXLSXImporter: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setFile(null)}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={() => setFile(null)} className="flex items-center gap-2">
                 <X className="h-4 w-4" />
                 Remover Arquivo
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
+            </div> : <div className="space-y-4">
               <div className="flex justify-center">
-                <div className={`p-4 rounded-full transition-colors duration-300 ${
-                  isDragOver 
-                    ? 'bg-green-500/10 dark:bg-green-500/20' 
-                    : 'bg-muted/50 dark:bg-muted'
-                }`}>
-                  <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${
-                    isDragOver ? 'text-green-600' : 'text-muted-foreground'
-                  }`} />
+                <div className={`p-4 rounded-full transition-colors duration-300 ${isDragOver ? 'bg-green-500/10 dark:bg-green-500/20' : 'bg-muted/50 dark:bg-muted'}`}>
+                  <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${isDragOver ? 'text-green-600' : 'text-muted-foreground'}`} />
                 </div>
               </div>
               <div>
-                <h3 className={`text-lg font-semibold transition-colors duration-300 ${
-                  isDragOver ? 'text-green-600' : 'text-foreground'
-                }`}>
+                <h3 className={`text-lg font-semibold transition-colors duration-300 ${isDragOver ? 'text-green-600' : 'text-foreground'}`}>
                   {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo XLSX'}
                 </h3>
-                <p className={`text-sm mt-2 transition-colors duration-300 ${
-                  isDragOver ? 'text-green-600/80' : 'text-muted-foreground'
-                }`}>
+                <p className={`text-sm mt-2 transition-colors duration-300 ${isDragOver ? 'text-green-600/80' : 'text-muted-foreground'}`}>
                   {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
                 </p>
               </div>
-            </div>
-          )}
+            </div>}
         </div>
 
         {/* Seleção da conta */}
-        {file && (
-          <div className="space-y-3">
+        {file && <div className="space-y-3">
             <label htmlFor="account-select" className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Database className="h-4 w-4" />
               Conta de Destino *
             </label>
-            <select
-              id="account-select"
-              value={selectedAccountId}
-              onChange={(e) => setSelectedAccountId(e.target.value)}
-              disabled={isProcessing}
-              className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 bg-background text-foreground"
-            >
+            <select id="account-select" value={selectedAccountId} onChange={e => setSelectedAccountId(e.target.value)} disabled={isProcessing} className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 bg-background text-foreground">
               <option value="">Selecione uma conta para importar as transações</option>
-              {accounts?.map((account) => (
-                <option key={account.id} value={account.id}>
+              {accounts?.map(account => <option key={account.id} value={account.id}>
                   {account.name} - {account.bank || 'Conta'}
-                </option>
-              ))}
+                </option>)}
             </select>
-          </div>
-        )}
+          </div>}
 
         {/* Pré-visualização */}
-        {showPreview && previewData.length > 0 && (
-          <div className="space-y-3">
+        {showPreview && previewData.length > 0 && <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-md font-medium text-foreground flex items-center gap-2">
                 <Eye className="h-4 w-4" />
                 Pré-visualização dos Dados ({previewData.length} linhas)
               </h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPreview(false)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
                 <X className="h-4 w-4 mr-2" />
                 Ocultar
               </Button>
@@ -706,8 +640,7 @@ const SimpleXLSXImporter: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {previewData.slice(0, 20).map((row, index) => (
-                    <tr key={index} className="border-t">
+                  {previewData.slice(0, 20).map((row, index) => <tr key={index} className="border-t">
                       <td className="px-3 py-2">{row.data}</td>
                       <td className="px-3 py-2">{row.descricao}</td>
                       <td className="px-3 py-2">
@@ -722,45 +655,26 @@ const SimpleXLSXImporter: React.FC = () => {
                       </td>
                       <td className="px-3 py-2">{row.categoria || '-'}</td>
                       <td className="px-3 py-2">{row.tags || '-'}</td>
-                    </tr>
-                  ))}
+                    </tr>)}
                 </tbody>
               </table>
-              {previewData.length > 20 && (
-                <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
+              {previewData.length > 20 && <div className="p-3 text-center text-sm text-muted-foreground bg-muted/30">
                   Mostrando 20 de {previewData.length} linhas
-                </div>
-              )}
+                </div>}
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Informações sobre formato */}
-        <Alert className="bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20">
-          <AlertTriangle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-foreground">
-            <strong>Formato obrigatório:</strong> O arquivo XLSX deve ter as colunas nesta ordem: Data, Descrição, Valor, Tipo, Categoria, Tags. 
-            Apenas Data, Descrição, Valor e Tipo são obrigatórios.
-          </AlertDescription>
-        </Alert>
+        
 
         {/* Botões de utilitários */}
         <div className="flex justify-center gap-4">
-          <Button
-            variant="outline"
-            onClick={handleDownloadTemplate}
-            className="flex items-center gap-2"
-          >
+          <Button variant="outline" onClick={handleDownloadTemplate} className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             Baixar Template XLSX
           </Button>
           
-          <Button
-            variant="outline"
-            onClick={handleTestInsert}
-            disabled={!selectedAccountId}
-            className="flex items-center gap-2"
-          >
+          <Button variant="outline" onClick={handleTestInsert} disabled={!selectedAccountId} className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             Testar Inserção
           </Button>
@@ -768,43 +682,20 @@ const SimpleXLSXImporter: React.FC = () => {
 
         {/* Botões de ação */}
         <div className="flex gap-3 justify-center">
-          <Button
-            onClick={handleImport}
-            disabled={!file || !selectedAccountId || previewData.length === 0 || isProcessing}
-            className="flex items-center gap-2 px-8 py-3 text-lg font-medium"
-            size="lg"
-          >
-            {isProcessing ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <ArrowRight className="h-5 w-5" />
-            )}
+          <Button onClick={handleImport} disabled={!file || !selectedAccountId || previewData.length === 0 || isProcessing} className="flex items-center gap-2 px-8 py-3 text-lg font-medium" size="lg">
+            {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
             {isProcessing ? 'Importando...' : 'Confirmar Importação'}
           </Button>
           
-          <Button 
-            variant="outline" 
-            onClick={handleReset} 
-            disabled={isProcessing}
-            size="lg"
-            className="px-8 py-3"
-          >
+          <Button variant="outline" onClick={handleReset} disabled={isProcessing} size="lg" className="px-8 py-3">
             <X className="h-5 w-5 mr-2" />
             Limpar
           </Button>
         </div>
 
         {/* Modal de validação de categorias e tags */}
-        <CategoryTagValidationModal
-          isOpen={showValidationModal}
-          onClose={() => setShowValidationModal(false)}
-          onConfirm={handleValidationConfirm}
-          categories={validationCategories}
-          tags={validationTags}
-        />
+        <CategoryTagValidationModal isOpen={showValidationModal} onClose={() => setShowValidationModal(false)} onConfirm={handleValidationConfirm} categories={validationCategories} tags={validationTags} />
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default SimpleXLSXImporter;
