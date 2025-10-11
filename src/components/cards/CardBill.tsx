@@ -72,6 +72,10 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
   const [paymentType, setPaymentType] = useState<'full' | 'partial' | 'installment'>('full');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentTransactions, setPaymentTransactions] = useState<any[]>([]);
+  const [cancelingTransaction, setCancelingTransaction] = useState<Transaction | null>(null);
+  const [cancelTransactionDialogOpen, setCancelTransactionDialogOpen] = useState(false);
+  const [cancelingInstallmentItem, setCancelingInstallmentItem] = useState<InstallmentItem | null>(null);
+  const [cancelInstallmentDialogOpen, setCancelInstallmentDialogOpen] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -370,6 +374,127 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
     }
   };
 
+  const handleCancelTransaction = async () => {
+    if (!cancelingTransaction || !user?.id) return;
+
+    try {
+      // Restaurar o limite do cartão
+      const { data: card } = await supabase
+        .from('cards')
+        .select('used_amount')
+        .eq('id', cardId)
+        .single();
+
+      if (card) {
+        const transactionAmount = Math.abs(cancelingTransaction.amount);
+        const newUsedAmount = Math.max(0, Number(card.used_amount) - transactionAmount);
+
+        await supabase
+          .from('cards')
+          .update({
+            used_amount: newUsedAmount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', cardId)
+          .eq('user_id', user.id);
+      }
+
+      // Deletar a transação
+      await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', cancelingTransaction.id)
+        .eq('user_id', user.id);
+
+      toast({
+        title: "Transação cancelada",
+        description: "O limite do cartão foi restaurado com sucesso"
+      });
+
+      setCancelTransactionDialogOpen(false);
+      setCancelingTransaction(null);
+      fetchBillData();
+      if (onBillUpdate) onBillUpdate();
+    } catch (error) {
+      console.error('Error canceling transaction:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao cancelar transação"
+      });
+    }
+  };
+
+  const handleCancelInstallmentItem = async () => {
+    if (!cancelingInstallmentItem || !user?.id) return;
+
+    try {
+      // Restaurar o limite do cartão
+      const { data: card } = await supabase
+        .from('cards')
+        .select('used_amount')
+        .eq('id', cardId)
+        .single();
+
+      if (card) {
+        const newUsedAmount = Math.max(0, Number(card.used_amount) - cancelingInstallmentItem.amount);
+
+        await supabase
+          .from('cards')
+          .update({
+            used_amount: newUsedAmount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', cardId)
+          .eq('user_id', user.id);
+      }
+
+      // Deletar a parcela
+      await supabase
+        .from('card_installment_items')
+        .delete()
+        .eq('id', cancelingInstallmentItem.id);
+
+      // Deletar dívida relacionada se existir
+      await supabase
+        .from('debts')
+        .delete()
+        .eq('installment_id', cancelingInstallmentItem.installment_id)
+        .eq('installment_number', cancelingInstallmentItem.installment_number)
+        .eq('user_id', user.id);
+
+      // Verificar se ainda existem parcelas do parcelamento
+      const { data: remainingItems } = await supabase
+        .from('card_installment_items')
+        .select('id')
+        .eq('installment_id', cancelingInstallmentItem.installment_id);
+
+      // Se não há mais parcelas, deletar o parcelamento
+      if (!remainingItems || remainingItems.length === 0) {
+        await supabase
+          .from('card_installments')
+          .delete()
+          .eq('id', cancelingInstallmentItem.installment_id)
+          .eq('user_id', user.id);
+      }
+
+      toast({
+        title: "Parcela cancelada",
+        description: "O limite do cartão foi restaurado com sucesso"
+      });
+
+      setCancelInstallmentDialogOpen(false);
+      setCancelingInstallmentItem(null);
+      fetchBillData();
+      if (onBillUpdate) onBillUpdate();
+    } catch (error) {
+      console.error('Error canceling installment item:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao cancelar parcela"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -561,6 +686,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -585,6 +711,21 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
                     </TableCell>
                     <TableCell>
                       {getItemStatusBadge(item.status)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.status !== 'paid' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setCancelingInstallmentItem(item);
+                            setCancelInstallmentDialogOpen(true);
+                          }}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -611,6 +752,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -630,6 +772,19 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
                     </TableCell>
                     <TableCell className="font-medium">
                       {formatCurrency(Math.abs(txn.amount))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCancelingTransaction(txn);
+                          setCancelTransactionDialogOpen(true);
+                        }}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -669,7 +824,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
         />
       )}
 
-      {/* Dialog de Cancelamento */}
+      {/* Dialog de Cancelamento de Pagamento */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -683,6 +838,62 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
             <AlertDialogCancel>Não, manter</AlertDialogCancel>
             <AlertDialogAction onClick={handleCancelPayment}>
               Sim, cancelar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog de Cancelamento de Transação */}
+      <AlertDialog open={cancelTransactionDialogOpen} onOpenChange={setCancelTransactionDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar transação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá cancelar a transação "{cancelingTransaction?.description}" no valor de{" "}
+              {cancelingTransaction && formatCurrency(Math.abs(cancelingTransaction.amount))}.
+              O limite do cartão será restaurado automaticamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelingTransaction(null)}>
+              Voltar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelTransaction}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Cancelar Transação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog de Cancelamento de Parcela */}
+      <AlertDialog open={cancelInstallmentDialogOpen} onOpenChange={setCancelInstallmentDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar parcela?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá cancelar a parcela "{cancelingInstallmentItem?.description}" 
+              ({cancelingInstallmentItem?.installment_number}/{cancelingInstallmentItem?.installments_count}) 
+              no valor de {cancelingInstallmentItem && formatCurrency(cancelingInstallmentItem.amount)}.
+              O limite do cartão será restaurado automaticamente.
+              {cancelingInstallmentItem && (
+                <span className="block mt-2 text-amber-600">
+                  Atenção: Esta ação não pode ser desfeita.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelingInstallmentItem(null)}>
+              Voltar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelInstallmentItem}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Cancelar Parcela
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
