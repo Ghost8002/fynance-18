@@ -3,11 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { FileSpreadsheet, FileText, Upload, Info, CheckCircle, AlertTriangle } from 'lucide-react';
+import { FileSpreadsheet, FileText, Upload, Info, CheckCircle, AlertTriangle, FileJson } from 'lucide-react';
 import SimpleImportComponent from './SimpleImportComponent';
 import SimpleOFXImportComponent from './SimpleOFXImportComponent';
+import SimpleJSONImportComponent from './SimpleJSONImportComponent';
+
 const UnifiedImportComponent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'xlsx' | 'ofx'>('xlsx');
+  const [activeTab, setActiveTab] = useState<'xlsx' | 'ofx' | 'json'>('xlsx');
   
   return (
     <div className="space-y-6">
@@ -19,8 +21,8 @@ const UnifiedImportComponent: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'xlsx' | 'ofx')}>
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'xlsx' | 'ofx' | 'json')}>
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="xlsx">
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 Planilha (XLSX)
@@ -28,6 +30,10 @@ const UnifiedImportComponent: React.FC = () => {
               <TabsTrigger value="ofx">
                 <FileText className="h-4 w-4 mr-2" />
                 OFX
+              </TabsTrigger>
+              <TabsTrigger value="json">
+                <FileJson className="h-4 w-4 mr-2" />
+                Importar do Chat
               </TabsTrigger>
             </TabsList>
             
@@ -37,6 +43,10 @@ const UnifiedImportComponent: React.FC = () => {
             
             <TabsContent value="ofx" className="mt-4">
               <SimpleOFXImportComponent />
+            </TabsContent>
+            
+            <TabsContent value="json" className="mt-4">
+              <SimpleJSONImportComponent />
             </TabsContent>
           </Tabs>
         </CardContent>
