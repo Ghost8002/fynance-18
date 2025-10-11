@@ -13,44 +13,44 @@ interface BankLogoUpload {
 
 const bankLogosToUpload: BankLogoUpload[] = [
   // Bancos Digitais
-  { id: 'nubank', name: 'Nubank', logoPath: '/Bancos-em-SVG-main/Nu Pagamentos S.A/nubank-logo-2021.svg' },
-  { id: 'inter', name: 'Inter', logoPath: '/Bancos-em-SVG-main/Banco Inter S.A/inter.svg' },
-  { id: 'c6', name: 'C6 Bank', logoPath: '/Bancos-em-SVG-main/Banco C6 S.A/c6 bank.svg' },
-  { id: 'neon', name: 'Neon', logoPath: '/Bancos-em-SVG-main/Neon/header-logo-neon.svg' },
-  { id: 'original', name: 'Original', logoPath: '/Bancos-em-SVG-main/Banco Original S.A/banco-original-logo-verde.svg' },
+  { id: 'nubank', name: 'Nubank', logoPath: '/banco-logos-temp/nubank.svg' },
+  { id: 'inter', name: 'Inter', logoPath: '/banco-logos-temp/inter.svg' },
+  { id: 'c6', name: 'C6 Bank', logoPath: '/banco-logos-temp/c6.svg' },
+  { id: 'neon', name: 'Neon', logoPath: '/banco-logos-temp/neon.svg' },
+  { id: 'original', name: 'Original', logoPath: '/banco-logos-temp/original.svg' },
   
   // Bancos Tradicionais
-  { id: 'itau', name: 'Itaú', logoPath: '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-fundo-azul.svg' },
-  { id: 'bradesco', name: 'Bradesco', logoPath: '/Bancos-em-SVG-main/Bradesco S.A/bradesco.svg' },
-  { id: 'santander', name: 'Santander', logoPath: '/Bancos-em-SVG-main/Banco Santander Brasil S.A/banco-santander-logo.svg' },
-  { id: 'banco-do-brasil', name: 'Banco do Brasil', logoPath: '/Bancos-em-SVG-main/Banco do Brasil S.A/banco-do-brasil-sem-fundo.svg' },
-  { id: 'caixa', name: 'Caixa', logoPath: '/Bancos-em-SVG-main/Caixa Econômica Federal/caixa-economica-federal.svg' },
+  { id: 'itau', name: 'Itaú', logoPath: '/banco-logos-temp/itau.svg' },
+  { id: 'bradesco', name: 'Bradesco', logoPath: '/banco-logos-temp/bradesco.svg' },
+  { id: 'santander', name: 'Santander', logoPath: '/banco-logos-temp/santander.svg' },
+  { id: 'banco-do-brasil', name: 'Banco do Brasil', logoPath: '/banco-logos-temp/banco-do-brasil.svg' },
+  { id: 'caixa', name: 'Caixa', logoPath: '/banco-logos-temp/caixa.svg' },
   
   // Bancos de Investimento
-  { id: 'btg-pactual', name: 'BTG Pactual', logoPath: '/Bancos-em-SVG-main/Banco BTG Pacutal/btg-pactual.svg' },
-  { id: 'xp', name: 'XP', logoPath: '/Bancos-em-SVG-main/XP Investimentos/xp-investimentos.svg' },
+  { id: 'btg-pactual', name: 'BTG Pactual', logoPath: '/banco-logos-temp/btg-pactual.svg' },
+  { id: 'xp', name: 'XP', logoPath: '/banco-logos-temp/xp.svg' },
   
   // Fintechs
-  { id: 'picpay', name: 'PicPay', logoPath: '/Bancos-em-SVG-main/PicPay/Logo-PicPay.svg' },
-  { id: 'mercado-pago', name: 'Mercado Pago', logoPath: '/Bancos-em-SVG-main/Mercado Pago/mercado-pago.svg' },
-  { id: 'pagseguro', name: 'PagSeguro', logoPath: '/Bancos-em-SVG-main/PagSeguro Internet S.A/logo.svg' },
-  { id: 'stone', name: 'Stone', logoPath: '/Bancos-em-SVG-main/Stone Pagamentos S.A/stone.svg' },
+  { id: 'picpay', name: 'PicPay', logoPath: '/banco-logos-temp/picpay.svg' },
+  { id: 'mercado-pago', name: 'Mercado Pago', logoPath: '/banco-logos-temp/mercado-pago.svg' },
+  { id: 'pagseguro', name: 'PagSeguro', logoPath: '/banco-logos-temp/pagseguro.svg' },
+  { id: 'stone', name: 'Stone', logoPath: '/banco-logos-temp/stone.svg' },
   
   // Cooperativas
-  { id: 'sicredi', name: 'Sicredi', logoPath: '/Bancos-em-SVG-main/Sicredi/logo-svg2.svg' },
-  { id: 'sicoob', name: 'Sicoob', logoPath: '/Bancos-em-SVG-main/Sicoob/sicoob-vector-logo.svg' },
+  { id: 'sicredi', name: 'Sicredi', logoPath: '/banco-logos-temp/sicredi.svg' },
+  { id: 'sicoob', name: 'Sicoob', logoPath: '/banco-logos-temp/sicoob.svg' },
   
   // Outros
-  { id: 'safra', name: 'Safra', logoPath: '/Bancos-em-SVG-main/Banco Safra S.A/logo-safra.svg' },
-  { id: 'banrisul', name: 'Banrisul', logoPath: '/Bancos-em-SVG-main/Banrisul/banrisul-logo-2023.svg' },
-  { id: 'daycoval', name: 'Daycoval', logoPath: '/Bancos-em-SVG-main/Banco Daycoval/logo-Daycoval.svg' },
-  { id: 'votorantim', name: 'BV', logoPath: '/Bancos-em-SVG-main/Banco Votorantim/banco-bv-logo.svg' },
-  { id: 'mercantil', name: 'Mercantil', logoPath: '/Bancos-em-SVG-main/Banco Mercantil do Brasil S.A/banco-mercantil-novo-azul.svg' },
-  { id: 'sofisa', name: 'Sofisa', logoPath: '/Bancos-em-SVG-main/Banco Sofisa/logo-sofisa.svg' },
-  { id: 'modo', name: 'Modo', logoPath: '/Bancos-em-SVG-main/ModoBank/logo.svg' },
-  { id: 'omie', name: 'Omie', logoPath: '/Bancos-em-SVG-main/Omie.Cash/omie.svg' },
-  { id: 'omni', name: 'Omni', logoPath: '/Bancos-em-SVG-main/Omni/logo-omni.svg' },
-  { id: 'pinbank', name: 'PinBank', logoPath: '/Bancos-em-SVG-main/PinBank/pinBank.svg' },
+  { id: 'safra', name: 'Safra', logoPath: '/banco-logos-temp/safra.svg' },
+  { id: 'banrisul', name: 'Banrisul', logoPath: '/banco-logos-temp/banrisul.svg' },
+  { id: 'daycoval', name: 'Daycoval', logoPath: '/banco-logos-temp/daycoval.svg' },
+  { id: 'votorantim', name: 'BV', logoPath: '/banco-logos-temp/votorantim.svg' },
+  { id: 'mercantil', name: 'Mercantil', logoPath: '/banco-logos-temp/mercantil.svg' },
+  { id: 'sofisa', name: 'Sofisa', logoPath: '/banco-logos-temp/sofisa.svg' },
+  { id: 'modo', name: 'Modo', logoPath: '/banco-logos-temp/modo.svg' },
+  { id: 'omie', name: 'Omie', logoPath: '/banco-logos-temp/omie.svg' },
+  { id: 'omni', name: 'Omni', logoPath: '/banco-logos-temp/omni.svg' },
+  { id: 'pinbank', name: 'PinBank', logoPath: '/banco-logos-temp/pinbank.svg' },
 ];
 
 /**
