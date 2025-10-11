@@ -281,20 +281,25 @@ const SimpleImportComponent: React.FC = () => {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSpreadsheet className="h-6 w-6" />
-          Importar Transações XLSX
-        </CardTitle>
+    <Card className="w-full max-w-4xl mx-auto border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
+      <CardHeader className="space-y-2 pb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg">
+            <FileSpreadsheet className="h-7 w-7" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold">Importar Transações XLSX</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Importe suas planilhas de forma rápida e fácil</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Área de upload */}
         <div
-          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+          className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-all duration-300 cursor-pointer ${
             isDragOver 
-              ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' 
-              : 'border-border hover:border-green-500/50'
+              ? 'border-green-500 bg-gradient-to-br from-green-500/10 to-green-600/5 scale-[1.02]' 
+              : 'border-border/50 hover:border-green-500/50 hover:bg-muted/30'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -330,28 +335,28 @@ const SimpleImportComponent: React.FC = () => {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5 animate-fade-in">
               <div className="flex justify-center">
-                <div className={`p-4 rounded-full transition-colors duration-300 ${
+                <div className={`p-5 rounded-2xl transition-all duration-300 ${
                   isDragOver 
-                    ? 'bg-green-500/10 dark:bg-green-500/20' 
-                    : 'bg-muted/50 dark:bg-muted'
+                    ? 'bg-gradient-to-br from-green-500/20 to-green-600/10 scale-110' 
+                    : 'bg-gradient-to-br from-muted/80 to-muted/40'
                 }`}>
-                  <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${
-                    isDragOver ? 'text-green-600' : 'text-muted-foreground'
+                  <FileSpreadsheet className={`h-16 w-16 transition-all duration-300 ${
+                    isDragOver ? 'text-green-600 scale-110' : 'text-muted-foreground'
                   }`} />
                 </div>
               </div>
-              <div>
-                <h3 className={`text-lg font-semibold transition-colors duration-300 ${
+              <div className="space-y-2">
+                <h3 className={`text-xl font-bold transition-colors duration-300 ${
                   isDragOver ? 'text-green-600' : 'text-foreground'
                 }`}>
-                  {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo XLSX'}
+                  {isDragOver ? '✨ Solte o arquivo aqui' : 'Clique ou arraste seu arquivo'}
                 </h3>
-                <p className={`text-sm mt-2 transition-colors duration-300 ${
+                <p className={`text-sm transition-colors duration-300 ${
                   isDragOver ? 'text-green-600/80' : 'text-muted-foreground'
                 }`}>
-                  {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
+                  {isDragOver ? 'Processaremos automaticamente' : 'Aceitamos arquivos .xlsx e .xls'}
                 </p>
               </div>
             </div>
@@ -360,9 +365,12 @@ const SimpleImportComponent: React.FC = () => {
 
         {/* Preview dos dados */}
         {showPreview && previewData.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
+              <div className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                <h4 className="text-lg font-semibold text-foreground">Preview dos Dados</h4>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
@@ -372,9 +380,9 @@ const SimpleImportComponent: React.FC = () => {
                 Ocultar
               </Button>
             </div>
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-xl overflow-hidden shadow-sm">
               <table className="w-full text-sm">
-                <thead className="bg-muted/50">
+                <thead className="bg-gradient-to-r from-muted/80 to-muted/40">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Data</th>
                     <th className="px-3 py-2 text-left font-medium">Descrição</th>
