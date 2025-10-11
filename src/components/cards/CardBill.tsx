@@ -384,59 +384,6 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Card de Status do Pagamento */}
-      {billData && billData.paid_amount > 0 && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                {billData.status === 'paid' && (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                )}
-                {billData.status === 'partial' && (
-                  <AlertCircle className="w-5 h-5 text-yellow-600" />
-                )}
-                <CardTitle className="text-lg">
-                  {billData.status === 'paid' && 'Fatura Paga Completamente'}
-                  {billData.status === 'partial' && 'Fatura Paga Parcialmente'}
-                </CardTitle>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCancelDialogOpen(true)}
-                className="text-destructive hover:text-destructive"
-              >
-                <XCircle className="w-4 h-4 mr-2" />
-                Cancelar Pagamento
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Valor pago:</span>
-                <span className="font-medium">{formatCurrency(billData.paid_amount)}</span>
-              </div>
-              {billData.status === 'partial' && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Valor restante:</span>
-                  <span className="font-medium">{formatCurrency(billData.remaining_amount)}</span>
-                </div>
-              )}
-              {paymentTransactions.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Forma de pagamento:</span>
-                  <span className="font-medium">
-                    {paymentTransactions.length > 1 ? 'Parcelado' : 'À vista'}
-                  </span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Header com navegação */}
       <Card>
         <CardHeader>
@@ -488,6 +435,61 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Card de Status do Pagamento */}
+      {billData && billData.paid_amount > 0 && (
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  {billData.status === 'paid' && (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  )}
+                  {billData.status === 'partial' && (
+                    <AlertCircle className="w-5 h-5 text-yellow-600" />
+                  )}
+                  <CardTitle className="text-lg">
+                    {billData.status === 'paid' && 'Fatura Paga Completamente'}
+                    {billData.status === 'partial' && 'Fatura Paga Parcialmente'}
+                  </CardTitle>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCancelDialogOpen(true)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Cancelar Pagamento
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Valor pago:</span>
+                  <span className="font-medium">{formatCurrency(billData.paid_amount)}</span>
+                </div>
+                {billData.status === 'partial' && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Valor restante:</span>
+                    <span className="font-medium">{formatCurrency(billData.remaining_amount)}</span>
+                  </div>
+                )}
+                {paymentTransactions.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Forma de pagamento:</span>
+                    <span className="font-medium">
+                      {paymentTransactions.length > 1 ? 'Parcelado' : 'À vista'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Resumo da Fatura */}
