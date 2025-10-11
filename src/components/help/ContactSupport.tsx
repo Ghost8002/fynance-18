@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,28 +7,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { FormEvent } from "react";
 import { Mail, MessageSquare, Phone } from "lucide-react";
-
 const ContactSupport = () => {
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     toast({
       title: "Mensagem enviada",
-      description: "Agradecemos seu contato. Responderemos em breve!",
+      description: "Agradecemos seu contato. Responderemos em breve!"
     });
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardContent className="p-6 flex flex-col items-center text-center">
             <Mail className="h-10 w-10 text-finance-blue mb-4" />
             <h3 className="text-lg font-medium mb-2">E-mail</h3>
-            <p className="text-gray-500 mb-4">
-              suporte@vidafinanceira.com
-            </p>
+            <p className="text-gray-500 mb-4">suporte@fynance.com</p>
             <p className="text-sm text-gray-500">
               Respondemos em até 24 horas
             </p>
@@ -40,9 +35,7 @@ const ContactSupport = () => {
           <CardContent className="p-6 flex flex-col items-center text-center">
             <Phone className="h-10 w-10 text-finance-blue mb-4" />
             <h3 className="text-lg font-medium mb-2">Telefone</h3>
-            <p className="text-gray-500 mb-4">
-              +55 (11) 3456-7890
-            </p>
+            <p className="text-gray-500 mb-4">+55 (99) 98481-6847</p>
             <p className="text-sm text-gray-500">
               Seg-Sex, 9h às 18h
             </p>
@@ -96,12 +89,7 @@ const ContactSupport = () => {
 
             <div className="space-y-2">
               <Label htmlFor="message">Mensagem</Label>
-              <Textarea 
-                id="message" 
-                placeholder="Descreva sua dúvida ou problema em detalhes..." 
-                className="min-h-32" 
-                required
-              />
+              <Textarea id="message" placeholder="Descreva sua dúvida ou problema em detalhes..." className="min-h-32" required />
             </div>
 
             <div className="space-y-2">
@@ -114,17 +102,11 @@ const ContactSupport = () => {
           </form>
         </CardContent>
         <CardFooter>
-          <Button 
-            type="submit" 
-            className="bg-finance-blue hover:bg-finance-blue/90"
-            onClick={handleSubmit}
-          >
+          <Button type="submit" className="bg-finance-blue hover:bg-finance-blue/90" onClick={handleSubmit}>
             Enviar mensagem
           </Button>
         </CardFooter>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default ContactSupport;
