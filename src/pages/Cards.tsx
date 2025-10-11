@@ -7,6 +7,7 @@ import { CardList } from "@/components/cards/CardList";
 import { CardForm } from "@/components/cards/CardForm";
 import { InstallmentPurchaseForm } from "@/components/cards/InstallmentPurchaseForm";
 import { CardOverview } from "@/components/cards/CardOverview";
+import { CardBill } from "@/components/cards/CardBill";
 import { CardInstallments } from "@/components/cards/CardInstallments";
 import { CardTransactions } from "@/components/cards/CardTransactions";
 import { CardLimitManagement } from "@/components/cards/CardLimitManagement";
@@ -74,8 +75,9 @@ const Cards = () => {
         {/* Selected Card Details */}
         {selectedCardData && (
           <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="bill">Fatura</TabsTrigger>
               <TabsTrigger value="limit">Limite</TabsTrigger>
               <TabsTrigger value="installments">Parcelamentos</TabsTrigger>
               <TabsTrigger value="transactions">Transações</TabsTrigger>
@@ -83,6 +85,13 @@ const Cards = () => {
 
             <TabsContent value="overview" className="space-y-4">
               <CardOverview card={selectedCardData} />
+            </TabsContent>
+
+            <TabsContent value="bill" className="space-y-4">
+              <CardBill 
+                cardId={selectedCard!} 
+                onBillUpdate={handlePurchaseAdded}
+              />
             </TabsContent>
 
             <TabsContent value="limit" className="space-y-4">
