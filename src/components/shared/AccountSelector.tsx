@@ -94,13 +94,13 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Database className="h-5 w-5 text-foreground" />
-        <h3 className="text-lg font-semibold text-foreground">Selecione a Conta de Destino</h3>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Database className="h-4 w-4 text-foreground" />
+        <h3 className="text-base font-semibold text-foreground">Selecione a Conta de Destino</h3>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {accounts.map((account) => {
           const isSelected = selectedAccountId === account.id;
           const AccountIcon = getAccountIcon(account);
@@ -113,7 +113,7 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
               onClick={() => !disabled && onSelect(account.id)}
               disabled={disabled}
               className={cn(
-                "relative p-4 rounded-xl border-2 text-left transition-all duration-200",
+                "relative p-3 rounded-lg border-2 text-left transition-all duration-200",
                 "focus:outline-none focus:ring-2 focus:ring-offset-2",
                 isSelected
                   ? `${colors.border} ${colors.bg} ring-2 ${colors.ring} shadow-lg scale-[1.02]`
@@ -121,10 +121,10 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                 disabled && "opacity-50 cursor-not-allowed"
               )}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
                   {bankLogo ? (
-                    <div className="w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center p-1.5 overflow-hidden">
+                    <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center p-1 overflow-hidden">
                       <img 
                         src={bankLogo} 
                         alt={account.bank} 
@@ -133,22 +133,22 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
                     </div>
                   ) : (
                     <div className={cn(
-                      "w-10 h-10 rounded-lg flex items-center justify-center",
+                      "w-8 h-8 rounded-lg flex items-center justify-center",
                       isSelected ? colors.bg : "bg-muted"
                     )}>
                       <AccountIcon className={cn(
-                        "h-5 w-5",
+                        "h-4 w-4",
                         isSelected ? colors.text : "text-muted-foreground"
                       )} />
                     </div>
                   )}
                   
                   <div className="flex-1">
-                    <h4 className="font-semibold text-foreground leading-tight">
+                    <h4 className="font-medium text-sm text-foreground leading-tight">
                       {account.name}
                     </h4>
                     {account.bank && (
-                      <p className="text-sm text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {account.bank}
                       </p>
                     )}
@@ -157,15 +157,15 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
 
                 {isSelected && (
                   <div className={cn(
-                    "flex items-center justify-center w-6 h-6 rounded-full",
+                    "flex items-center justify-center w-5 h-5 rounded-full",
                     colors.bg
                   )}>
-                    <CheckCircle2 className={cn("h-5 w-5", colors.text)} />
+                    <CheckCircle2 className={cn("h-4 w-4", colors.text)} />
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 {account.type && (
                   <Badge 
                     variant="outline" 
@@ -207,9 +207,9 @@ export const AccountSelector: React.FC<AccountSelectorProps> = ({
       </div>
 
       {!selectedAccountId && (
-        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg border border-dashed border-muted-foreground/30">
+        <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg border border-dashed border-muted-foreground/30">
           <Database className="h-4 w-4 text-muted-foreground shrink-0" />
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Clique em uma conta acima para selecionar onde as transações serão importadas
           </p>
         </div>
