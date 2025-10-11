@@ -1,7 +1,9 @@
 /**
  * Banco de dados de bancos brasileiros com logos em SVG
- * Baseado na coleção de logos disponível em Bancos-em-SVG-main/
+ * Logos são carregados do Supabase Storage
  */
+
+import { bankLogos } from '@/assets/banks';
 
 export interface BankInfo {
   id: string;
@@ -26,11 +28,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'nubank',
     name: 'Nu Pagamentos S.A',
     shortName: 'Nubank',
-    logoPath: '/Bancos-em-SVG-main/Nu Pagamentos S.A/nubank-logo-2021.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Nu Pagamentos S.A/nubank-branco.svg',
-      '/Bancos-em-SVG-main/Nu Pagamentos S.A/nubank-logo-fundo-roxo2021.svg'
-    ],
+    logoPath: bankLogos['nubank'],
+    alternativeLogos: [],
     type: 'digital',
     isActive: true,
     website: 'https://nubank.com.br',
@@ -43,7 +42,7 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'inter',
     name: 'Banco Inter S.A',
     shortName: 'Inter',
-    logoPath: '/Bancos-em-SVG-main/Banco Inter S.A/inter.svg',
+    logoPath: bankLogos['inter'],
     alternativeLogos: [],
     type: 'digital',
     isActive: true,
@@ -57,12 +56,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'c6',
     name: 'Banco C6 S.A',
     shortName: 'C6 Bank',
-    logoPath: '/Bancos-em-SVG-main/Banco C6 S.A/c6 bank.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco C6 S.A/c6 bank- branco.svg',
-      '/Bancos-em-SVG-main/Banco C6 S.A/c6 bank- nome- branco.svg',
-      '/Bancos-em-SVG-main/Banco C6 S.A/c6 bank- nome- preto .svg'
-    ],
+    logoPath: bankLogos['c6'],
+    alternativeLogos: [],
     type: 'digital',
     isActive: true,
     website: 'https://c6bank.com.br',
@@ -75,7 +70,7 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'neon',
     name: 'Neon',
     shortName: 'Neon',
-    logoPath: '/Bancos-em-SVG-main/Neon/neon.svg',
+    logoPath: bankLogos['neon'],
     alternativeLogos: [],
     type: 'digital',
     isActive: true,
@@ -87,12 +82,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'original',
     name: 'Banco Original S.A',
     shortName: 'Original',
-    logoPath: '/Bancos-em-SVG-main/Banco Original S.A/banco-original-logo-verde.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco Original S.A/banco-original-logo-branco.svg',
-      '/Bancos-em-SVG-main/Banco Original S.A/banco-original-logo-verde-nome.svg',
-      '/Bancos-em-SVG-main/Banco Original S.A/banco-original-logo-branco-nome.svg'
-    ],
+    logoPath: bankLogos['original'],
+    alternativeLogos: [],
     type: 'digital',
     isActive: true,
     website: 'https://original.com.br',
@@ -104,14 +95,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'itau',
     name: 'Itaú Unibanco S.A',
     shortName: 'Itaú',
-    logoPath: '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-fundo-azul.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-laranja.svg',
-      '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-laranja-nome.svg',
-      '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-sem-fundo.svg',
-      '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-sem-fundo-nome.svg',
-      '/Bancos-em-SVG-main/Itaú Unibanco S.A/itau-fundo-azul-nome.svg'
-    ],
+    logoPath: bankLogos['itau'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://itau.com.br',
@@ -124,10 +109,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'bradesco',
     name: 'Bradesco S.A',
     shortName: 'Bradesco',
-    logoPath: '/Bancos-em-SVG-main/Bradesco S.A/bradesco.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Bradesco S.A/bradesco-nome.svg'
-    ],
+    logoPath: bankLogos['bradesco'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://bradesco.com.br',
@@ -140,10 +123,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'santander',
     name: 'Banco Santander Brasil S.A',
     shortName: 'Santander',
-    logoPath: '/Bancos-em-SVG-main/Banco Santander Brasil S.A/banco-santander-logo.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco Santander Brasil S.A/santander-fundo-vermelho.svg'
-    ],
+    logoPath: bankLogos['santander'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://santander.com.br',
@@ -154,10 +135,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'banco-do-brasil',
     name: 'Banco do Brasil S.A',
     shortName: 'Banco do Brasil',
-    logoPath: '/Bancos-em-SVG-main/Banco do Brasil S.A/banco-do-brasil-sem-fundo.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco do Brasil S.A/banco-do-brasil-com-fundo.svg'
-    ],
+    logoPath: bankLogos['banco-do-brasil'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://bb.com.br',
@@ -168,10 +147,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'caixa',
     name: 'Caixa Econômica Federal',
     shortName: 'Caixa',
-    logoPath: '/Bancos-em-SVG-main/Caixa Econômica Federal/caixa-economica-federal.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Caixa Econômica Federal/caixa-economica-federal-X.svg'
-    ],
+    logoPath: bankLogos['caixa'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://caixa.gov.br',
@@ -183,10 +160,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'btg-pactual',
     name: 'Banco BTG Pactual',
     shortName: 'BTG Pactual',
-    logoPath: '/Bancos-em-SVG-main/Banco BTG Pacutal/btg-pactual.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco BTG Pacutal/btg-pactual-nome .svg'
-    ],
+    logoPath: bankLogos['btg-pactual'],
+    alternativeLogos: [],
     type: 'investment',
     isActive: true,
     website: 'https://btgpactual.com',
@@ -197,10 +172,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'xp',
     name: 'XP Investimentos',
     shortName: 'XP',
-    logoPath: '/Bancos-em-SVG-main/XP Investimentos/xp-investimentos.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/XP Investimentos/xp-investimentos-nome.svg'
-    ],
+    logoPath: bankLogos['xp'],
+    alternativeLogos: [],
     type: 'investment',
     isActive: true,
     website: 'https://xpi.com.br',
@@ -212,10 +185,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'picpay',
     name: 'PicPay',
     shortName: 'PicPay',
-    logoPath: '/Bancos-em-SVG-main/PicPay/picpay.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/PicPay/picpay-nome.svg'
-    ],
+    logoPath: bankLogos['picpay'],
+    alternativeLogos: [],
     type: 'fintech',
     isActive: true,
     website: 'https://picpay.com.br',
@@ -226,10 +197,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'mercado-pago',
     name: 'Mercado Pago',
     shortName: 'Mercado Pago',
-    logoPath: '/Bancos-em-SVG-main/Mercado Pago/mercado-pago.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Mercado Pago/mercado-pago-nome.svg'
-    ],
+    logoPath: bankLogos['mercado-pago'],
+    alternativeLogos: [],
     type: 'fintech',
     isActive: true,
     website: 'https://mercadopago.com.br',
@@ -240,11 +209,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'pagseguro',
     name: 'PagSeguro Internet S.A',
     shortName: 'PagSeguro',
-    logoPath: '/Bancos-em-SVG-main/PagSeguro Internet S.A/logo.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/PagSeguro Internet S.A/pagseguro-nome.svg',
-      '/Bancos-em-SVG-main/PagSeguro Internet S.A/pagseguro-fundo.svg'
-    ],
+    logoPath: bankLogos['pagseguro'],
+    alternativeLogos: [],
     type: 'fintech',
     isActive: true,
     website: 'https://pagseguro.uol.com.br',
@@ -255,11 +221,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'stone',
     name: 'Stone Pagamentos S.A',
     shortName: 'Stone',
-    logoPath: '/Bancos-em-SVG-main/Stone Pagamentos S.A/stone.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Stone Pagamentos S.A/stone-nome.svg',
-      '/Bancos-em-SVG-main/Stone Pagamentos S.A/stone-fundo.svg'
-    ],
+    logoPath: bankLogos['stone'],
+    alternativeLogos: [],
     type: 'fintech',
     isActive: true,
     website: 'https://stone.com.br',
@@ -271,10 +234,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'sicredi',
     name: 'Sicredi',
     shortName: 'Sicredi',
-    logoPath: '/Bancos-em-SVG-main/Sicredi/logo-svg2.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Sicredi/sicredi-nome.svg'
-    ],
+    logoPath: bankLogos['sicredi'],
+    alternativeLogos: [],
     type: 'credit_union',
     isActive: true,
     website: 'https://sicredi.com.br',
@@ -285,10 +246,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'sicoob',
     name: 'Sicoob',
     shortName: 'Sicoob',
-    logoPath: '/Bancos-em-SVG-main/Sicoob/sicoob-vector-logo.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Sicoob/sicoob-nome.svg'
-    ],
+    logoPath: bankLogos['sicoob'],
+    alternativeLogos: [],
     type: 'credit_union',
     isActive: true,
     website: 'https://sicoob.com.br',
@@ -300,10 +259,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'safra',
     name: 'Banco Safra S.A',
     shortName: 'Safra',
-    logoPath: '/Bancos-em-SVG-main/Banco Safra S.A/logo-safra.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco Safra S.A/logo-safra-nome.svg'
-    ],
+    logoPath: bankLogos['safra'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://safra.com.br',
@@ -314,10 +271,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'banrisul',
     name: 'Banrisul',
     shortName: 'Banrisul',
-    logoPath: '/Bancos-em-SVG-main/Banrisul/banrisul-logo-2023.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banrisul/banrisul-nome.svg'
-    ],
+    logoPath: bankLogos['banrisul'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://banrisul.com.br',
@@ -328,11 +283,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'daycoval',
     name: 'Banco Daycoval',
     shortName: 'Daycoval',
-    logoPath: '/Bancos-em-SVG-main/Banco Daycoval/logo-Daycoval.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco Daycoval/logo-Daycoval- maior.svg',
-      '/Bancos-em-SVG-main/Banco Daycoval/logo-Daycoval-com-fundo.svg'
-    ],
+    logoPath: bankLogos['daycoval'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://daycoval.com.br',
@@ -343,7 +295,7 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'votorantim',
     name: 'Banco Votorantim',
     shortName: 'BV',
-    logoPath: '/Bancos-em-SVG-main/Banco Votorantim/banco-bv-logo.svg',
+    logoPath: bankLogos['votorantim'],
     alternativeLogos: [],
     type: 'traditional',
     isActive: true,
@@ -355,11 +307,8 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'mercantil',
     name: 'Banco Mercantil do Brasil S.A',
     shortName: 'Mercantil',
-    logoPath: '/Bancos-em-SVG-main/Banco Mercantil do Brasil S.A/banco-mercantil-novo-azul.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco Mercantil do Brasil S.A/banco-mercantil-novo-branco.svg',
-      '/Bancos-em-SVG-main/Banco Mercantil do Brasil S.A/logo_mercantil-nome-branco.svg'
-    ],
+    logoPath: bankLogos['mercantil'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://mercantildobrasil.com.br',
@@ -370,16 +319,685 @@ export const BANK_DATABASE: Record<string, BankInfo> = {
     id: 'sofisa',
     name: 'Banco Sofisa',
     shortName: 'Sofisa',
-    logoPath: '/Bancos-em-SVG-main/Banco Sofisa/logo-sofisa.svg',
-    alternativeLogos: [
-      '/Bancos-em-SVG-main/Banco Sofisa/logo-banco-sofisa.svg',
-      '/Bancos-em-SVG-main/Banco Sofisa/logo-banco-sofisa-verde.svg',
-      '/Bancos-em-SVG-main/Banco Sofisa/logo-sofisa-direto.svg'
-    ],
+    logoPath: bankLogos['sofisa'],
+    alternativeLogos: [],
     type: 'traditional',
     isActive: true,
     website: 'https://sofisa.com.br',
     description: 'Banco brasileiro'
+  },
+
+  // Bancos adicionais
+  'modo': {
+    id: 'modo',
+    name: 'Modo',
+    shortName: 'Modo',
+    logoPath: bankLogos['modo'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://modo.com.br',
+    description: 'Banco digital'
+  },
+
+  'omie': {
+    id: 'omie',
+    name: 'Omie',
+    shortName: 'Omie',
+    logoPath: bankLogos['omie'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://omie.com.br',
+    description: 'Plataforma de gestão empresarial'
+  },
+
+  'omni': {
+    id: 'omni',
+    name: 'Omni',
+    shortName: 'Omni',
+    logoPath: bankLogos['omni'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://omni.com.br',
+    description: 'Banco digital'
+  },
+
+  'pinbank': {
+    id: 'pinbank',
+    name: 'Pinbank',
+    shortName: 'Pinbank',
+    logoPath: bankLogos['pinbank'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://pinbank.com.br',
+    description: 'Banco digital'
+  },
+
+  'magalupay': {
+    id: 'magalupay',
+    name: 'Magalu Pay',
+    shortName: 'Magalu Pay',
+    logoPath: bankLogos['magalupay'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://magalupay.com.br',
+    description: 'Solução de pagamentos'
+  },
+
+  'bs2': {
+    id: 'bs2',
+    name: 'Banco BS2',
+    shortName: 'BS2',
+    logoPath: bankLogos['bs2'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://bs2.com',
+    description: 'Banco digital'
+  },
+
+  'cora': {
+    id: 'cora',
+    name: 'Cora',
+    shortName: 'Cora',
+    logoPath: bankLogos['cora'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://cora.com.br',
+    description: 'Banco digital para empresas'
+  },
+
+  'letsbank': {
+    id: 'letsbank',
+    name: 'Letsbank',
+    shortName: 'Letsbank',
+    logoPath: bankLogos['letsbank'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://letsbank.com.br',
+    description: 'Banco digital'
+  },
+
+  'bmg': {
+    id: 'bmg',
+    name: 'Banco BMG',
+    shortName: 'BMG',
+    logoPath: bankLogos['bmg'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://bmg.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'pine': {
+    id: 'pine',
+    name: 'Pine',
+    shortName: 'Pine',
+    logoPath: bankLogos['pine'],
+    alternativeLogos: [],
+    type: 'investment',
+    isActive: true,
+    website: 'https://pine.com',
+    description: 'Corretora de investimentos'
+  },
+
+  'abc': {
+    id: 'abc',
+    name: 'Banco ABC Brasil',
+    shortName: 'ABC Brasil',
+    logoPath: bankLogos['abc'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://abcbrasil.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'bmp': {
+    id: 'bmp',
+    name: 'BMP Money Plus',
+    shortName: 'BMP',
+    logoPath: bankLogos['bmp'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://bmp.com.br',
+    description: 'Banco digital'
+  },
+
+  'arbi': {
+    id: 'arbi',
+    name: 'Banco Arbi',
+    shortName: 'Arbi',
+    logoPath: bankLogos['arbi'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://arbi.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'industrial': {
+    id: 'industrial',
+    name: 'Banco Industrial do Brasil',
+    shortName: 'Industrial',
+    logoPath: bankLogos['industrial'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://industrial.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'paulista': {
+    id: 'paulista',
+    name: 'Banco Paulista',
+    shortName: 'Paulista',
+    logoPath: bankLogos['paulista'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://paulista.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'rendimento': {
+    id: 'rendimento',
+    name: 'Banco Rendimento',
+    shortName: 'Rendimento',
+    logoPath: bankLogos['rendimento'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://rendimento.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'topazio': {
+    id: 'topazio',
+    name: 'Banco Topázio',
+    shortName: 'Topázio',
+    logoPath: bankLogos['topazio'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://topazio.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'tribanco': {
+    id: 'tribanco',
+    name: 'Tribanco',
+    shortName: 'Tribanco',
+    logoPath: bankLogos['tribanco'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://tribanco.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'conta-simples': {
+    id: 'conta-simples',
+    name: 'Conta Simples',
+    shortName: 'Conta Simples',
+    logoPath: bankLogos['conta-simples'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://contasimples.com.br',
+    description: 'Banco digital para empresas'
+  },
+
+  'efi': {
+    id: 'efi',
+    name: 'Efi Bank',
+    shortName: 'Efi',
+    logoPath: bankLogos['efi'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://efi.com.br',
+    description: 'Solução de pagamentos'
+  },
+
+  'duepay': {
+    id: 'duepay',
+    name: 'DuePay',
+    shortName: 'DuePay',
+    logoPath: bankLogos['duepay'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://duepay.com.br',
+    description: 'Plataforma de pagamentos'
+  },
+
+  'ifood-pago': {
+    id: 'ifood-pago',
+    name: 'iFood Pago',
+    shortName: 'iFood Pago',
+    logoPath: bankLogos['ifood-pago'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://ifoodpago.com.br',
+    description: 'Solução de pagamentos do iFood'
+  },
+
+  'recargapay': {
+    id: 'recargapay',
+    name: 'RecargaPay',
+    shortName: 'RecargaPay',
+    logoPath: bankLogos['recargapay'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://recargapay.com.br',
+    description: 'Plataforma de pagamentos'
+  },
+
+  'squid': {
+    id: 'squid',
+    name: 'Squid',
+    shortName: 'Squid',
+    logoPath: bankLogos['squid'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://squid.com.br',
+    description: 'Plataforma financeira'
+  },
+
+  'transfeera': {
+    id: 'transfeera',
+    name: 'Transfeera',
+    shortName: 'Transfeera',
+    logoPath: bankLogos['transfeera'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://transfeera.com',
+    description: 'Plataforma de pagamentos'
+  },
+
+  'asaas': {
+    id: 'asaas',
+    name: 'Asaas',
+    shortName: 'Asaas',
+    logoPath: bankLogos['asaas'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://asaas.com',
+    description: 'Plataforma de cobranças'
+  },
+
+  'unicred': {
+    id: 'unicred',
+    name: 'Unicred',
+    shortName: 'Unicred',
+    logoPath: bankLogos['unicred'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://unicred.com.br',
+    description: 'Cooperativa de crédito'
+  },
+
+  'uniprime': {
+    id: 'uniprime',
+    name: 'Uniprime',
+    shortName: 'Uniprime',
+    logoPath: bankLogos['uniprime'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://uniprime.com.br',
+    description: 'Cooperativa de crédito'
+  },
+
+  'sulcredi': {
+    id: 'sulcredi',
+    name: 'Sulcredi',
+    shortName: 'Sulcredi',
+    logoPath: bankLogos['sulcredi'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://sulcredi.com.br',
+    description: 'Cooperativa de crédito'
+  },
+
+  'sisprime': {
+    id: 'sisprime',
+    name: 'Sisprime',
+    shortName: 'Sisprime',
+    logoPath: bankLogos['sisprime'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://sisprime.com.br',
+    description: 'Sistema de cooperativas'
+  },
+
+  'brb': {
+    id: 'brb',
+    name: 'BRB - Banco de Brasília',
+    shortName: 'BRB',
+    logoPath: bankLogos['brb'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://brb.com.br',
+    description: 'Banco público do Distrito Federal'
+  },
+
+  'banpara': {
+    id: 'banpara',
+    name: 'Banpará',
+    shortName: 'Banpará',
+    logoPath: bankLogos['banpara'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://banpara.com.br',
+    description: 'Banco do Estado do Pará'
+  },
+
+  'banese': {
+    id: 'banese',
+    name: 'Banese',
+    shortName: 'Banese',
+    logoPath: bankLogos['banese'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://banese.com.br',
+    description: 'Banco do Estado de Sergipe'
+  },
+
+  'banestes': {
+    id: 'banestes',
+    name: 'Banestes',
+    shortName: 'Banestes',
+    logoPath: bankLogos['banestes'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://banestes.com.br',
+    description: 'Banco do Estado do Espírito Santo'
+  },
+
+  'bnb': {
+    id: 'bnb',
+    name: 'Banco do Nordeste',
+    shortName: 'BNB',
+    logoPath: bankLogos['bnb'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://bnb.gov.br',
+    description: 'Banco de desenvolvimento regional'
+  },
+
+  'banco-amazonia': {
+    id: 'banco-amazonia',
+    name: 'Banco da Amazônia',
+    shortName: 'Basa',
+    logoPath: bankLogos['banco-amazonia'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://bancoamazonia.com.br',
+    description: 'Banco de desenvolvimento regional'
+  },
+
+  'multiplo': {
+    id: 'multiplo',
+    name: 'Banco Múltiplo',
+    shortName: 'Múltiplo',
+    logoPath: bankLogos['multiplo'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://multiplo.com.br',
+    description: 'Banco brasileiro'
+  },
+
+  'bees': {
+    id: 'bees',
+    name: 'Bees Bank',
+    shortName: 'Bees',
+    logoPath: bankLogos['bees'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://bees.com',
+    description: 'Banco digital'
+  },
+
+  'capitual': {
+    id: 'capitual',
+    name: 'Capitual',
+    shortName: 'Capitual',
+    logoPath: bankLogos['capitual'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://capitual.com',
+    description: 'Banco digital'
+  },
+
+  'quality': {
+    id: 'quality',
+    name: 'Quality Digital Bank',
+    shortName: 'Quality',
+    logoPath: bankLogos['quality'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://quality.com.br',
+    description: 'Banco digital'
+  },
+
+  'starbank': {
+    id: 'starbank',
+    name: 'Starbank',
+    shortName: 'Starbank',
+    logoPath: bankLogos['starbank'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://starbank.com.br',
+    description: 'Banco digital'
+  },
+
+  'zemo': {
+    id: 'zemo',
+    name: 'Zema',
+    shortName: 'Zema',
+    logoPath: bankLogos['zemo'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://zema.com.br',
+    description: 'Banco digital'
+  },
+
+  'bk': {
+    id: 'bk',
+    name: 'Banco BK',
+    shortName: 'BK',
+    logoPath: bankLogos['bk'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://bancobk.com.br',
+    description: 'Banco digital'
+  },
+
+  'bnp': {
+    id: 'bnp',
+    name: 'BNP Paribas',
+    shortName: 'BNP',
+    logoPath: bankLogos['bnp'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://bnpparibas.com.br',
+    description: 'Banco internacional'
+  },
+
+  'bofa': {
+    id: 'bofa',
+    name: 'Bank of America',
+    shortName: 'BofA',
+    logoPath: bankLogos['bofa'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://bankofamerica.com',
+    description: 'Banco internacional'
+  },
+
+  'linker': {
+    id: 'linker',
+    name: 'Linker',
+    shortName: 'Linker',
+    logoPath: bankLogos['linker'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://linker.com.br',
+    description: 'Plataforma de pagamentos'
+  },
+
+  'grafeno': {
+    id: 'grafeno',
+    name: 'Grafeno',
+    shortName: 'Grafeno',
+    logoPath: bankLogos['grafeno'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://grafeno.digital',
+    description: 'Plataforma financeira'
+  },
+
+  'infinitepay': {
+    id: 'infinitepay',
+    name: 'InfinitePay',
+    shortName: 'InfinitePay',
+    logoPath: bankLogos['infinitepay'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://infinitepay.com.br',
+    description: 'Solução de pagamentos'
+  },
+
+  'ip4y': {
+    id: 'ip4y',
+    name: 'IP4Y',
+    shortName: 'IP4Y',
+    logoPath: bankLogos['ip4y'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://ip4y.com.br',
+    description: 'Plataforma de pagamentos'
+  },
+
+  'iugo': {
+    id: 'iugo',
+    name: 'Iugo',
+    shortName: 'Iugo',
+    logoPath: bankLogos['iugo'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://iugo.com.br',
+    description: 'Plataforma financeira'
+  },
+
+  'paycash': {
+    id: 'paycash',
+    name: 'PayCash',
+    shortName: 'PayCash',
+    logoPath: bankLogos['paycash'],
+    alternativeLogos: [],
+    type: 'fintech',
+    isActive: true,
+    website: 'https://paycash.com.br',
+    description: 'Solução de pagamentos'
+  },
+
+  'contbank': {
+    id: 'contbank',
+    name: 'Contbank',
+    shortName: 'Contbank',
+    logoPath: bankLogos['contbank'],
+    alternativeLogos: [],
+    type: 'digital',
+    isActive: true,
+    website: 'https://contbank.com.br',
+    description: 'Banco digital'
+  },
+
+  'credisis': {
+    id: 'credisis',
+    name: 'Credisis',
+    shortName: 'Credisis',
+    logoPath: bankLogos['credisis'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://credisis.com.br',
+    description: 'Cooperativa de crédito'
+  },
+
+  'cresol': {
+    id: 'cresol',
+    name: 'Cresol',
+    shortName: 'Cresol',
+    logoPath: bankLogos['cresol'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://cresol.com.br',
+    description: 'Cooperativa de crédito'
+  },
+
+  'ailos': {
+    id: 'ailos',
+    name: 'Ailos',
+    shortName: 'Ailos',
+    logoPath: bankLogos['ailos'],
+    alternativeLogos: [],
+    type: 'credit_union',
+    isActive: true,
+    website: 'https://ailos.coop.br',
+    description: 'Sistema de cooperativas'
+  },
+
+  'mufg': {
+    id: 'mufg',
+    name: 'MUFG Bank',
+    shortName: 'MUFG',
+    logoPath: bankLogos['mufg'],
+    alternativeLogos: [],
+    type: 'traditional',
+    isActive: true,
+    website: 'https://mufg.jp',
+    description: 'Banco internacional'
   }
 };
 
