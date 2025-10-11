@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startOfMonth, endOfMonth } from "date-fns";
 import DebtForm from "./DebtForm";
 import { CardDebtsSection } from "./CardDebtsSection";
+import { combineDebtsWithVirtualRecurrences, filterVirtualRecurrencesByPeriod, VirtualRecurrence } from "@/utils/recurrenceUtils";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -30,11 +31,28 @@ const formatCurrency = (value: number) => {
 };
 
 // Helper function to get status badge  
-const getStatusBadge = (status: string, dueDate: string, periodEnd?: Date) => {
+const getStatusBadge = (status: string, dueDate: string, isVirtual?: boolean, periodEnd?: Date) => {
   const comparisonDate = periodEnd || startOfDay(new Date());
   const due = startOfDay(parse(dueDate, 'yyyy-MM-dd', new Date()));
   const today = startOfDay(new Date());
   const daysDiff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Para recorrências virtuais, sempre mostrar como pendente
+  if (isVirtual) {
+    if (daysDiff < 0) {
+      return <Badge variant="destructive">
+        Em Atraso ({Math.abs(daysDiff)} dias)
+      </Badge>;
+    } else if (daysDiff <= 3) {
+      return <Badge variant="outline" className="text-orange-600 border-orange-200">
+        Vence em {daysDiff} dias
+      </Badge>;
+    } else {
+      return <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+        Faltam {daysDiff} dias
+      </Badge>;
+    }
+  }
   
   let actualStatus = status;
   if (status === 'pending' && isBefore(due, comparisonDate)) {
@@ -51,16 +69,18 @@ const getStatusBadge = (status: string, dueDate: string, periodEnd?: Date) => {
       </Badge>;
     case 'pending':
     default:
-      if (daysDiff <= 3 && daysDiff >= 0) {
-        return <Badge variant="outline" className="text-orange-600 border-orange-200">
-          Vence em {daysDiff} dias
-        </Badge>;
-      } else if (daysDiff < 0) {
+      if (daysDiff < 0) {
         return <Badge variant="destructive">
           Em Atraso ({Math.abs(daysDiff)} dias)
         </Badge>;
+      } else if (daysDiff <= 3) {
+        return <Badge variant="outline" className="text-orange-600 border-orange-200">
+          Vence em {daysDiff} dias
+        </Badge>;
       } else {
-        return <Badge variant="secondary">Pendente</Badge>;
+        return <Badge variant="secondary">
+          Faltam {daysDiff} dias
+        </Badge>;
       }
   }
 };
@@ -132,20 +152,28 @@ const DebtList: React.FC<DebtListProps> = ({
   // Find default expense category
   const defaultExpenseCategory = categories.find(cat => cat.type === 'expense' && (cat.name.toLowerCase().includes('outros') || cat.name.toLowerCase().includes('despesa'))) || categories.find(cat => cat.type === 'expense');
 
-  // Filter debts by current month only
+  // Filter debts by current month and include virtual recurrences
   const filteredDebts = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
     
-    return debts.filter(debt => {
+    // Combinar dívidas reais com recorrências virtuais (6 meses à frente)
+    const combinedDebts = combineDebtsWithVirtualRecurrences(debts, 6);
+    
+    return combinedDebts.filter(debt => {
       const dueDate = new Date(debt.due_date);
       return dueDate >= monthStart && dueDate <= monthEnd;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
   }, [debts, currentMonth]);
 
-  // Calculate totals for filtered debts
+  // Calculate totals for filtered debts (excluding virtual recurrences)
   const totals = useMemo(() => {
     return filteredDebts.reduce((acc, debt) => {
+      // Não incluir recorrências virtuais nos totais
+      if (debt.is_virtual) {
+        return acc;
+      }
+      
       const due = new Date(debt.due_date);
       let actualStatus = debt.status;
       if (debt.status === 'pending' && due < new Date()) {
@@ -499,47 +527,61 @@ const DebtList: React.FC<DebtListProps> = ({
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(debt.status, debt.due_date, endOfMonth(currentMonth))}</TableCell>
-                      <TableCell>
-                        <RecurrenceProgress isRecurring={debt.is_recurring} recurrenceType={debt.recurrence_type} currentCount={debt.current_count || 0} maxOccurrences={debt.max_occurrences} endDate={debt.recurrence_end_date} />
-                      </TableCell>
+                       <TableCell>{getStatusBadge(debt.status, debt.due_date, debt.is_virtual)}</TableCell>
+                       <TableCell>
+                         <RecurrenceProgress 
+                           isRecurring={debt.is_recurring} 
+                           recurrenceType={debt.recurrence_type} 
+                           currentCount={debt.current_count || 0} 
+                           maxOccurrences={debt.max_occurrences} 
+                           endDate={debt.recurrence_end_date}
+                           isVirtual={debt.is_virtual}
+                           occurrenceNumber={debt.occurrence_number}
+                         />
+                       </TableCell>
                       
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {debt.status === 'pending' ? <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(debt)} disabled={loadingOperations[`mark-paid-${debt.id}`]} className="text-green-600 hover:text-green-700">
-                              {loadingOperations[`mark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                            </Button> : debt.status === 'paid' ? <Button variant="outline" size="sm" onClick={() => handleUnmarkAsPaid(debt)} disabled={loadingOperations[`unmark-paid-${debt.id}`]} className="text-orange-600 hover:text-orange-700">
-                              {loadingOperations[`unmark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                            </Button> : null}
-                          
-                          <Button variant="outline" size="sm" onClick={() => setSelectedDebt(debt)} disabled={Object.values(loadingOperations).some(Boolean)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" disabled={Object.values(loadingOperations).some(Boolean)} className="text-red-600 hover:text-red-700">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir a dívida "{debt.description}"? 
-                                  Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(debt.id)} className="bg-red-600 hover:bg-red-700">
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
+                       <TableCell className="text-right">
+                         <div className="flex items-center justify-end gap-2">
+                           {debt.is_virtual ? (
+                             <span className="text-xs text-muted-foreground">Recorrência futura</span>
+                           ) : (
+                             <>
+                               {debt.status === 'pending' ? <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(debt)} disabled={loadingOperations[`mark-paid-${debt.id}`]} className="text-green-600 hover:text-green-700">
+                                   {loadingOperations[`mark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                 </Button> : debt.status === 'paid' ? <Button variant="outline" size="sm" onClick={() => handleUnmarkAsPaid(debt)} disabled={loadingOperations[`unmark-paid-${debt.id}`]} className="text-orange-600 hover:text-orange-700">
+                                   {loadingOperations[`unmark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                                 </Button> : null}
+                               
+                               <Button variant="outline" size="sm" onClick={() => setSelectedDebt(debt)} disabled={Object.values(loadingOperations).some(Boolean)}>
+                                 <Edit className="h-4 w-4" />
+                               </Button>
+                               
+                               <AlertDialog>
+                                 <AlertDialogTrigger asChild>
+                                   <Button variant="outline" size="sm" disabled={Object.values(loadingOperations).some(Boolean)} className="text-red-600 hover:text-red-700">
+                                     <Trash2 className="h-4 w-4" />
+                                   </Button>
+                                 </AlertDialogTrigger>
+                                 <AlertDialogContent>
+                                   <AlertDialogHeader>
+                                     <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                     <AlertDialogDescription>
+                                       Tem certeza que deseja excluir a dívida "{debt.description}"? 
+                                       Esta ação não pode ser desfeita.
+                                     </AlertDialogDescription>
+                                   </AlertDialogHeader>
+                                   <AlertDialogFooter>
+                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                     <AlertDialogAction onClick={() => handleDelete(debt.id)} className="bg-red-600 hover:bg-red-700">
+                                       Excluir
+                                     </AlertDialogAction>
+                                   </AlertDialogFooter>
+                                 </AlertDialogContent>
+                               </AlertDialog>
+                             </>
+                           )}
+                         </div>
+                       </TableCell>
                     </TableRow>)}
                 </TableBody>
               </Table>

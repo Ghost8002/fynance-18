@@ -10,6 +10,10 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Plus } from "lucide-react";
 import TagSelector from "@/components/shared/TagSelector";
+import BankSelector from "@/components/shared/BankSelector";
+import BankLogo from "@/components/shared/BankLogo";
+import { getBankById } from "@/utils/banks/bankDatabase";
+import ColorPicker from "@/components/shared/ColorPicker";
 
 interface CardFormProps {
   onCardAdded?: () => void;
@@ -53,14 +57,6 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
     { value: "transportation", label: "Vale Transporte" }
   ];
 
-  const cardColors = [
-    { value: "#3B82F6", label: "Azul" },
-    { value: "#EF4444", label: "Vermelho" },
-    { value: "#10B981", label: "Verde" },
-    { value: "#F59E0B", label: "Laranja" },
-    { value: "#8B5CF6", label: "Roxo" },
-    { value: "#6B7280", label: "Cinza" }
-  ];
 
   const handleInputChange = (field: keyof CardFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -260,12 +256,10 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bank">Banco *</Label>
-              <Input
-                id="bank"
-                value={formData.bank}
-                onChange={(e) => handleInputChange('bank', e.target.value)}
-                placeholder="Ex: Nubank"
+              <BankSelector
+                selectedBankId={formData.bank}
+                onBankChange={(bankId) => handleInputChange('bank', bankId || '')}
+                placeholder="Selecionar banco..."
               />
             </div>
           </div>
@@ -338,27 +332,11 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="color">Cor</Label>
-              <Select value={formData.color} onValueChange={(value) => handleInputChange('color', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {cardColors.map((color) => (
-                    <SelectItem key={color.value} value={color.value}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-4 h-4 rounded-full" 
-                          style={{ backgroundColor: color.value }}
-                        />
-                        {color.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <ColorPicker
+              value={formData.color}
+              onChange={(color) => handleInputChange('color', color)}
+              label="Cor do Cartão"
+            />
           </div>
 
           <TagSelector
@@ -374,12 +352,21 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
                   className="w-12 h-8 rounded flex items-center justify-center"
                   style={{ backgroundColor: formData.color }}
                 >
-                  <CreditCard className="w-6 h-6 text-white" />
+                  {formData.bank ? (
+                    <BankLogo 
+                      logoPath={getBankById(formData.bank)?.logoPath} 
+                      bankName={getBankById(formData.bank)?.name || formData.bank}
+                      size="sm"
+                      className="text-white"
+                    />
+                  ) : (
+                    <CreditCard className="w-6 h-6 text-white" />
+                  )}
                 </div>
                 <div>
                   <p className="font-medium">{formData.name || "Nome do Cartão"}</p>
                   <p className="text-sm text-muted-foreground">
-                    {formData.bank || "Banco"} •••• {formData.last_four_digits || "0000"}
+                    {getBankById(formData.bank)?.shortName || formData.bank || "Banco"} •••• {formData.last_four_digits || "0000"}
                   </p>
                 </div>
               </div>

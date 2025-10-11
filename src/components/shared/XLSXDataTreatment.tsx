@@ -129,7 +129,7 @@ const XLSXDataTreatment = ({ transactions, accountId, onSave, onCancel }: XLSXDa
       'transferência enviada': 'Transferência Enviada',
       'pix recebido': 'Transferência Recebida',
       'pix enviado': 'Transferência Enviada',
-      'pix': 'Transferência Recebida',
+      // 'pix': 'Transferência Recebida', // REMOVIDO - usar apenas pix recebido/enviado
       'ted': 'Transferência Recebida',
       'doc': 'Transferência Recebida',
       

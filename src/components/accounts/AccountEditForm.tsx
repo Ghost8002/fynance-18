@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
+import ColorPicker from "@/components/shared/ColorPicker";
 
 interface AccountEditFormProps {
   account: {
@@ -23,6 +24,7 @@ interface AccountEditFormProps {
     bank: string;
     account_number: string;
     balance: number;
+    color?: string;
   };
   isOpen: boolean;
   onClose: () => void;
@@ -35,7 +37,8 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
     type: '',
     name: '',
     bank: '',
-    balance: ''
+    balance: '',
+    color: '#3B82F6'
   });
 
   const { user } = useSupabaseAuth();
@@ -50,7 +53,8 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
         type: account.type,
         name: account.name,
         bank: account.bank || '',
-        balance: account.balance.toString()
+        balance: account.balance.toString(),
+        color: account.color || '#3B82F6'
       });
     }
   }, [account, isOpen]);
@@ -84,6 +88,8 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
         name: formData.name,
         bank: formData.bank || null,
         balance: formData.balance ? Number(formData.balance) : 0,
+        // Só salvar cor se for diferente da padrão (usuário escolheu uma cor)
+        color: formData.color !== '#3B82F6' ? formData.color : null,
       };
 
       const { error } = await update(account.id, accountData);
@@ -174,6 +180,12 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
               onChange={(e) => handleInputChange('balance', e.target.value)}
             />
           </div>
+
+          <ColorPicker
+            value={formData.color}
+            onChange={(color) => handleInputChange('color', color)}
+            label="Cor da Conta"
+          />
         </form>
         <DialogFooter>
           <Button 

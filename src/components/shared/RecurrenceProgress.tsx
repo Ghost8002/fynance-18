@@ -11,6 +11,8 @@ interface RecurrenceProgressProps {
   currentCount?: number;
   maxOccurrences?: number;
   endDate?: string;
+  isVirtual?: boolean;
+  occurrenceNumber?: number;
 }
 
 export const RecurrenceProgress = ({ 
@@ -18,7 +20,9 @@ export const RecurrenceProgress = ({
   recurrenceType, 
   currentCount = 0, 
   maxOccurrences,
-  endDate 
+  endDate,
+  isVirtual = false,
+  occurrenceNumber
 }: RecurrenceProgressProps) => {
   if (!isRecurring) return null;
 
@@ -33,12 +37,19 @@ export const RecurrenceProgress = ({
 
   return (
     <div className="space-y-2">
-      <Badge variant="outline" className="flex items-center gap-1 w-fit">
+      <Badge variant="outline" className={`flex items-center gap-1 w-fit ${isVirtual ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' : ''}`}>
         <Repeat className="h-3 w-3" />
         {typeLabels[recurrenceType as keyof typeof typeLabels] || 'Recorrente'}
+        {isVirtual && occurrenceNumber && (
+          <span className="ml-1">#{occurrenceNumber}</span>
+        )}
       </Badge>
       
-      {hasLimit && (
+      {isVirtual ? (
+        <div className="text-xs text-blue-600 dark:text-blue-400">
+          Recorrência futura
+        </div>
+      ) : hasLimit && (
         <div className="space-y-1">
           {maxOccurrences && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">

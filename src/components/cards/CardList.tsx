@@ -10,6 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Search, MoreVertical, Edit2, Trash2, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import BankLogo from "@/components/shared/BankLogo";
+import { getBankById } from "@/utils/banks/bankDatabase";
+import { useCustomBanks } from "@/hooks/useCustomBanks";
 
 interface CardListProps {
   onCardSelect?: (cardId: string) => void;
@@ -33,6 +36,7 @@ export const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: cards, loading, error, remove, refetch } = useSupabaseData('cards', user?.id);
+  const { customBanks } = useCustomBanks();
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 
@@ -64,6 +68,44 @@ export const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
     if (percentage >= 90) return { label: "Crítico", variant: "destructive" as const };
     if (percentage >= 75) return { label: "Atenção", variant: "secondary" as const };
     return { label: "Normal", variant: "outline" as const };
+  };
+
+  const getBankInfo = (bankId: string) => {
+    // Verificar se é um banco customizado
+    if (bankId.startsWith('custom_')) {
+      const customBankId = bankId.replace('custom_', '');
+      const customBank = customBanks.find(cb => cb.id === customBankId);
+      if (customBank) {
+        return {
+          name: customBank.name,
+          shortName: customBank.short_name,
+          logoPath: '',
+          primaryColor: customBank.primary_color,
+          secondaryColor: customBank.secondary_color
+        };
+      }
+    }
+    
+    // Buscar banco padrão
+    const bank = getBankById(bankId);
+    if (bank) {
+      return {
+        name: bank.name,
+        shortName: bank.shortName,
+        logoPath: bank.logoPath,
+        primaryColor: bank.primaryColor,
+        secondaryColor: bank.secondaryColor
+      };
+    }
+    
+    // Fallback se não encontrar
+    return {
+      name: bankId,
+      shortName: bankId,
+      logoPath: '',
+      primaryColor: undefined,
+      secondaryColor: undefined
+    };
   };
 
   const filteredCards = cards?.filter((card: CardData) =>
@@ -154,6 +196,7 @@ export const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
           const usagePercentage = card.type === "credit" ? (card.used_amount / card.credit_limit) * 100 : 0;
           const availableAmount = card.type === "credit" ? card.credit_limit - card.used_amount : 0;
           const usageStatus = getUsageStatus(usagePercentage);
+          const bankInfo = getBankInfo(card.bank);
           
           return (
             <Card 
@@ -171,12 +214,21 @@ export const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
                       className="w-10 h-6 rounded flex items-center justify-center"
                       style={{ backgroundColor: card.color }}
                     >
-                      <CreditCard className="w-4 h-4 text-white" />
+                      {bankInfo.logoPath ? (
+                        <BankLogo 
+                          logoPath={bankInfo.logoPath} 
+                          bankName={bankInfo.name}
+                          size="sm"
+                          className="text-white"
+                        />
+                      ) : (
+                        <CreditCard className="w-4 h-4 text-white" />
+                      )}
                     </div>
                     <div>
                       <CardTitle className="text-base">{card.name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {card.bank} •••• {card.last_four_digits}
+                        {bankInfo.shortName} •••• {card.last_four_digits}
                       </p>
                     </div>
                   </div>

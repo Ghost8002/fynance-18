@@ -105,6 +105,7 @@ export const useOFXImport = () => {
                 date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
               }
               
+              // Determinar tipo inicial (será corrigido pelo motor melhorado se necessário)
               const type: 'income' | 'expense' = amount > 0 ? 'income' : 'expense';
               
               let category: string | undefined;

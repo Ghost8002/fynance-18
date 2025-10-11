@@ -3,6 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CreditCard, AlertTriangle, CheckCircle, Calendar, TrendingUp } from "lucide-react";
+import BankLogo from "@/components/shared/BankLogo";
+import { getBankById } from "@/utils/banks/bankDatabase";
+import { useCustomBanks } from "@/hooks/useCustomBanks";
 
 interface CardData {
   id: string;
@@ -22,11 +25,51 @@ interface CardOverviewProps {
 }
 
 export const CardOverview = ({ card }: CardOverviewProps) => {
+  const { customBanks } = useCustomBanks();
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const getBankInfo = (bankId: string) => {
+    // Verificar se é um banco customizado
+    if (bankId.startsWith('custom_')) {
+      const customBankId = bankId.replace('custom_', '');
+      const customBank = customBanks.find(cb => cb.id === customBankId);
+      if (customBank) {
+        return {
+          name: customBank.name,
+          shortName: customBank.short_name,
+          logoPath: '',
+          primaryColor: customBank.primary_color,
+          secondaryColor: customBank.secondary_color
+        };
+      }
+    }
+    
+    // Buscar banco padrão
+    const bank = getBankById(bankId);
+    if (bank) {
+      return {
+        name: bank.name,
+        shortName: bank.shortName,
+        logoPath: bank.logoPath,
+        primaryColor: bank.primaryColor,
+        secondaryColor: bank.secondaryColor
+      };
+    }
+    
+    // Fallback se não encontrar
+    return {
+      name: bankId,
+      shortName: bankId,
+      logoPath: '',
+      primaryColor: undefined,
+      secondaryColor: undefined
+    };
   };
 
   const getCardTypeLabel = (type: string) => {
@@ -108,6 +151,7 @@ export const CardOverview = ({ card }: CardOverviewProps) => {
   const daysUntilDue = getDaysUntilDue();
   const daysUntilClosing = getDaysUntilClosing();
   const StatusIcon = usageStatus.icon;
+  const bankInfo = getBankInfo(card.bank);
 
   return (
     <div className="space-y-6">
@@ -119,12 +163,21 @@ export const CardOverview = ({ card }: CardOverviewProps) => {
               className="w-16 h-10 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: card.color }}
             >
-              <CreditCard className="w-8 h-8 text-white" />
+              {bankInfo.logoPath ? (
+                <BankLogo 
+                  logoPath={bankInfo.logoPath} 
+                  bankName={bankInfo.name}
+                  size="md"
+                  className="text-white"
+                />
+              ) : (
+                <CreditCard className="w-8 h-8 text-white" />
+              )}
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-semibold">{card.name}</h3>
               <p className="text-muted-foreground">
-                {card.bank} •••• {card.last_four_digits}
+                {bankInfo.shortName} •••• {card.last_four_digits}
               </p>
               <Badge variant="outline" className="mt-1">
                 {getCardTypeLabel(card.type)}

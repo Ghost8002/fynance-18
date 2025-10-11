@@ -17,6 +17,8 @@ import { Wallet } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
+import BankSelector from "@/components/shared/BankSelector";
+import ColorPicker from "@/components/shared/ColorPicker";
 
 const AccountForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +27,8 @@ const AccountForm = () => {
     type: '',
     name: '',
     bank: '',
-    balance: ''
+    balance: '',
+    color: '#3B82F6'
   });
 
   const { user } = useSupabaseAuth();
@@ -63,6 +66,8 @@ const AccountForm = () => {
         name: formData.name,
         bank: formData.bank || null,
         balance: formData.balance ? Number(formData.balance) : 0,
+        // Só salvar cor se for diferente da padrão (usuário escolheu uma cor)
+        color: formData.color !== '#3B82F6' ? formData.color : null,
       };
 
       const { error } = await insert(accountData);
@@ -81,7 +86,8 @@ const AccountForm = () => {
         type: '',
         name: '',
         bank: '',
-        balance: ''
+        balance: '',
+        color: '#3B82F6'
       });
       
       setIsOpen(false);
@@ -145,12 +151,10 @@ const AccountForm = () => {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="bank">Banco ou Instituição</Label>
-            <Input 
-              id="bank" 
-              placeholder="Ex: Banco X" 
-              value={formData.bank}
-              onChange={(e) => handleInputChange('bank', e.target.value)}
+            <BankSelector
+              selectedBankId={formData.bank}
+              onBankChange={(bankId) => handleInputChange('bank', bankId || '')}
+              placeholder="Selecionar banco..."
             />
           </div>
 
@@ -165,6 +169,12 @@ const AccountForm = () => {
               onChange={(e) => handleInputChange('balance', e.target.value)}
             />
           </div>
+
+          <ColorPicker
+            value={formData.color}
+            onChange={(color) => handleInputChange('color', color)}
+            label="Cor da Conta"
+          />
         </form>
         <DialogFooter>
           <Button 

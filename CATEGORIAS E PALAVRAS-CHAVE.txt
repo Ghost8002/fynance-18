@@ -1,7 +1,3 @@
-====================================
-CATEGORIAS E PALAVRAS-CHAVE
-====================================
-
 [ALIMENTAÇÃO]
 supermercado
 mercadinho

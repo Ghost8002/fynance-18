@@ -13,6 +13,9 @@ import AccountEditForm from "./AccountEditForm";
 import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import BankLogo from "@/components/shared/BankLogo";
+import { getBankById } from "@/utils/banks/bankDatabase";
+import { useCustomBanks } from "@/hooks/useCustomBanks";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -41,6 +44,7 @@ const AccountList = () => {
   const {
     toast
   } = useToast();
+  const { customBanks } = useCustomBanks();
   const [selectedAccountForHistory, setSelectedAccountForHistory] = useState<string | null>(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<any>(null);
@@ -107,6 +111,44 @@ const AccountList = () => {
   const handleEditSuccess = () => {
     refetch();
   };
+
+  const getBankInfo = (bankId: string) => {
+    // Verificar se é um banco customizado
+    if (bankId.startsWith('custom_')) {
+      const customBankId = bankId.replace('custom_', '');
+      const customBank = customBanks.find(cb => cb.id === customBankId);
+      if (customBank) {
+        return {
+          name: customBank.name,
+          shortName: customBank.short_name,
+          logoPath: '',
+          primaryColor: customBank.primary_color,
+          secondaryColor: customBank.secondary_color
+        };
+      }
+    }
+    
+    // Buscar banco padrão
+    const bank = getBankById(bankId);
+    if (bank) {
+      return {
+        name: bank.name,
+        shortName: bank.shortName,
+        logoPath: bank.logoPath,
+        primaryColor: bank.primaryColor,
+        secondaryColor: bank.secondaryColor
+      };
+    }
+    
+    // Fallback se não encontrar
+    return {
+      name: bankId,
+      shortName: bankId,
+      logoPath: '',
+      primaryColor: undefined,
+      secondaryColor: undefined
+    };
+  };
   if (loading) {
     return <div className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -143,12 +185,40 @@ const AccountList = () => {
         const calculatedBalance = calculateAccountBalance(account.id);
         // Use calculated balance instead of stored balance for display
         const displayBalance = calculatedBalance;
-        return <Card key={account.id} className="relative overflow-hidden">
+        const bankInfo = getBankInfo(account.bank);
+        // Usar cor personalizada se definida, senão usar cor do banco, senão padrão
+        const accountColor = account.color || bankInfo.primaryColor || '#e5e7eb';
+        
+        return <Card 
+          key={account.id} 
+          className="relative overflow-hidden"
+          style={{ 
+            borderColor: accountColor,
+            borderWidth: accountColor !== '#e5e7eb' ? '2px' : '1px'
+          }}
+        >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Building2 className="h-5 w-5 text-blue-600" />
-                    <CardTitle className="text-lg">{account.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      {bankInfo.logoPath ? (
+                        <BankLogo 
+                          logoPath={bankInfo.logoPath} 
+                          bankName={bankInfo.name}
+                          size="sm"
+                        />
+                      ) : (
+                        <Building2 className="h-5 w-5 text-blue-600" />
+                      )}
+                      <CardTitle className="text-lg">{account.name}</CardTitle>
+                    </div>
+                    {accountColor !== '#e5e7eb' && (
+                      <div 
+                        className="w-3 h-3 rounded-full border border-border"
+                        style={{ backgroundColor: accountColor }}
+                        title={`Cor: ${accountColor}`}
+                      />
+                    )}
                   </div>
                   <div className="flex space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => handleViewHistory(account.id)}>
@@ -180,7 +250,7 @@ const AccountList = () => {
                     </AlertDialog>
                   </div>
                 </div>
-                <CardDescription>{account.bank}</CardDescription>
+                <CardDescription>{bankInfo.shortName}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>

@@ -1,8 +1,8 @@
 // Web Worker para processamento assíncrono de importação
 // Este worker processa arquivos XLSX e OFX sem bloquear a thread principal
 
-// Importar o sistema de categorização
-import { CategoryEngine } from '../utils/categorization/CategoryEngine';
+// Importar o sistema de categorização customizado
+import { getCustomCategoryEngine } from '../utils/categorization/CustomCategoryEngine';
 import { convertOFXDate, isValidOFXDate } from '../utils/dateValidation';
 
 interface WorkerMessage {
@@ -29,18 +29,18 @@ interface ProcessedTransaction {
   tags?: string[];
 }
 
-// Instância global do motor de categorização
-let categoryEngine: CategoryEngine | null = null;
+// Instância global do motor de categorização customizado
+let customCategoryEngine: any = null;
 
-// Inicializar motor de categorização
-function initializeCategoryEngine() {
-  if (!categoryEngine) {
-    categoryEngine = new CategoryEngine({
+// Inicializar motor de categorização customizado
+function initializeCustomCategoryEngine() {
+  if (!customCategoryEngine) {
+    customCategoryEngine = getCustomCategoryEngine({
       minConfidence: 70,
-      enableLearning: true
+      enableTypeCorrection: true
     });
   }
-  return categoryEngine;
+  return customCategoryEngine;
 }
 
 // Função para processar XLSX
@@ -80,7 +80,7 @@ function processXLSX(data: XLSXData): ProcessedTransaction[] {
       const amount = parseAmount(amountStr);
       if (isNaN(amount) || amount === 0) continue;
 
-      // Determinar tipo
+      // Determinar tipo inicial (será corrigido pelo motor melhorado)
       let type: 'income' | 'expense' = 'expense';
       if (typeStr) {
         const typeLower = typeStr.toLowerCase();
@@ -88,18 +88,39 @@ function processXLSX(data: XLSXData): ProcessedTransaction[] {
           type = 'income';
         }
       } else {
+        // Lógica melhorada: considerar o sinal do valor original
         type = amount > 0 ? 'income' : 'expense';
       }
 
       // Processar tags
       const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
 
+      // Usar motor de categorização customizado se não houver categoria específica
+      let finalCategory = category.trim() || undefined;
+      if (!finalCategory) {
+        const engine = initializeCustomCategoryEngine();
+        const categorization = engine.categorize({
+          description: description.trim(),
+          amount: amount, // Manter valor original com sinal
+          originalType: type,
+          date: formatDate(date)
+        });
+        
+        if (categorization) {
+          finalCategory = categorization.category;
+          // Usar tipo da categoria se diferente do original
+          if (categorization.type !== type) {
+            type = categorization.type;
+          }
+        }
+      }
+
       transactions.push({
         date: formatDate(date),
         description: description.trim(),
         amount: Math.abs(amount),
         type,
-        category: category.trim() || undefined,
+        category: finalCategory,
         tags
       });
 
@@ -212,18 +233,20 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
             type = amount > 0 ? 'income' : 'expense';
           }
           
-          // Categorização inteligente usando o novo sistema
-          const engine = initializeCategoryEngine();
+          // Categorização inteligente usando o sistema customizado
+          const engine = initializeCustomCategoryEngine();
           const categorization = engine.categorize({
-            date,
             description,
-            amount: Math.abs(amount),
-            type,
-            category: undefined,
-            tags: []
+            amount: amount, // Manter valor original com sinal
+            originalType: type,
+            date
           });
           
           const category = categorization?.category;
+          // Usar tipo da categoria se diferente do original
+          if (categorization?.type && categorization.type !== type) {
+            type = categorization.type;
+          }
           
           transactions.push({
             date,
