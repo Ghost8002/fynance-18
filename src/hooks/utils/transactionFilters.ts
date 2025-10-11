@@ -53,45 +53,85 @@ export const applyTransactionFilters = (transactions: any[], filters: Transactio
     }
   }
 
-  // Date range filter
+  // Helper para criar data local sem conversão UTC
+  const createLocalDateFromString = (dateStr: string): Date => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  // Date range filter - usando datas locais para evitar problemas de timezone
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  startOfToday.setHours(0, 0, 0, 0);
+  
   const startOfThisWeek = new Date(startOfToday);
   startOfThisWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+  
   const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  startOfThisMonth.setHours(0, 0, 0, 0);
+  
   const startOfThisYear = new Date(now.getFullYear(), 0, 1);
+  startOfThisYear.setHours(0, 0, 0, 0);
+  
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(now.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(now.getDate() - 30);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
+  
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  startOfLastMonth.setHours(0, 0, 0, 0);
+  
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+  endOfLastMonth.setHours(23, 59, 59, 999);
 
   switch (filters.dateRange) {
     case "today":
-      filtered = filtered.filter(t => new Date(t.date) >= startOfToday);
+      filtered = filtered.filter(t => {
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= startOfToday;
+      });
       break;
     case "this-week":
-      filtered = filtered.filter(t => new Date(t.date) >= startOfThisWeek);
+      filtered = filtered.filter(t => {
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= startOfThisWeek;
+      });
       break;
     case "last-7-days":
-      filtered = filtered.filter(t => new Date(t.date) >= sevenDaysAgo);
+      filtered = filtered.filter(t => {
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= sevenDaysAgo;
+      });
       break;
     case "current-month":
-      filtered = filtered.filter(t => new Date(t.date) >= startOfThisMonth);
+      filtered = filtered.filter(t => {
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= startOfThisMonth;
+      });
       break;
     case "last-month":
       filtered = filtered.filter(t => {
-        const d = new Date(t.date);
-        return d >= startOfLastMonth && d <= endOfLastMonth;
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= startOfLastMonth && transactionDate <= endOfLastMonth;
       });
       break;
     case "this-year":
     case "current-year":
-      filtered = filtered.filter(t => new Date(t.date) >= startOfThisYear);
+      filtered = filtered.filter(t => {
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= startOfThisYear;
+      });
       break;
     case "last-30-days":
-      filtered = filtered.filter(t => new Date(t.date) >= thirtyDaysAgo);
+      filtered = filtered.filter(t => {
+        const transactionDate = createLocalDateFromString(t.date);
+        return transactionDate >= thirtyDaysAgo;
+      });
       break;
     case "all":
     default:
@@ -99,6 +139,9 @@ export const applyTransactionFilters = (transactions: any[], filters: Transactio
       break;
   }
 
-  // Sort by date (newest first)
-  return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Sort by date (newest first) - usando comparação de strings para evitar timezone
+  return filtered.sort((a, b) => {
+    // Comparar datas como strings no formato YYYY-MM-DD funciona corretamente
+    return b.date.localeCompare(a.date);
+  });
 };
