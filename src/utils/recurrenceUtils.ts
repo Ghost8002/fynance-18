@@ -66,8 +66,9 @@ export function generateVirtualRecurrences(
   const currentDate = startOfDay(new Date());
   const endDate = addMonths(currentDate, monthsAhead);
   
+  // Começar a partir da próxima ocorrência após a data base
   let nextDate = baseDate;
-  let occurrenceNumber = (debt.current_count || 1) + 1;
+  const currentCount = debt.current_count || 1;
   
   // Função para calcular a próxima data baseada no tipo de recorrência
   const getNextDate = (date: Date, type: string): Date => {
@@ -83,31 +84,27 @@ export function generateVirtualRecurrences(
     }
   };
 
-  // Função para verificar se a recorrência deve parar
-  const shouldStop = (occurrence: number, date: Date): boolean => {
-    // Parar se passou da data limite
-    if (debt.recurrence_end_date && isAfter(date, new Date(debt.recurrence_end_date))) {
-      return true;
+  // Gerar recorrências começando da próxima após a base
+  for (let i = 1; i <= 100; i++) { // Limite de segurança de 100 iterações
+    nextDate = getNextDate(nextDate, debt.recurrence_type);
+    const occurrenceNumber = currentCount + i;
+    
+    // Verificar se passou da data limite
+    if (debt.recurrence_end_date && isAfter(nextDate, new Date(debt.recurrence_end_date))) {
+      break;
     }
     
-    // Parar se atingiu o número máximo de ocorrências
-    if (debt.max_occurrences && occurrence > debt.max_occurrences) {
-      return true;
+    // Verificar se atingiu o número máximo de ocorrências
+    if (debt.max_occurrences && occurrenceNumber > debt.max_occurrences) {
+      break;
     }
     
-    // Parar se passou do período de visualização
-    if (isAfter(date, endDate)) {
-      return true;
+    // Verificar se passou do período de visualização
+    if (isAfter(nextDate, endDate)) {
+      break;
     }
     
-    return false;
-  };
-
-  // Gerar recorrências até atingir os limites
-  while (!shouldStop(occurrenceNumber, nextDate)) {
-    // Só incluir se a data for diferente da data base (evitar duplicatas)
-    if (nextDate.toISOString().split('T')[0] !== baseDate.toISOString().split('T')[0]) {
-      const virtualRecurrence: VirtualRecurrence = {
+    const virtualRecurrence: VirtualRecurrence = {
       id: `virtual-${debt.id}-${occurrenceNumber}`,
       description: debt.description,
       amount: debt.amount,
@@ -132,11 +129,7 @@ export function generateVirtualRecurrences(
       installment_number: debt.installment_number
     };
     
-      virtualRecurrences.push(virtualRecurrence);
-    }
-    
-    nextDate = getNextDate(nextDate, debt.recurrence_type);
-    occurrenceNumber++;
+    virtualRecurrences.push(virtualRecurrence);
   }
   
   return virtualRecurrences;
