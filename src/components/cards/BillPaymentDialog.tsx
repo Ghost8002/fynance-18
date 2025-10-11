@@ -75,48 +75,167 @@ export const BillPaymentDialog = ({
     setLoading(true);
 
     try {
-      // Criar transação de pagamento
-      const transactionData = {
-        user_id: user?.id,
-        description: `Pagamento de fatura - Cartão`,
-        amount: -amount, // Negativo porque é saída
-        date: new Date().toISOString().split('T')[0],
-        type: 'expense',
-        account_id: selectedAccountId,
-        card_id: cardId,
-        installments_count: paymentType === 'installment' ? parseInt(installmentCount) : 1
-      };
-
-      const { data: transaction, error: transactionError } = await supabase
-        .from('transactions')
-        .insert(transactionData)
-        .select()
+      // Buscar dados do cartão
+      const { data: card, error: cardError } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('id', cardId)
         .single();
 
-      if (transactionError) throw transactionError;
+      if (cardError) throw cardError;
 
-      // Atualizar saldo da conta
-      const account = accounts?.find(acc => acc.id === selectedAccountId);
-      if (account) {
-        const { error: accountError } = await supabase
-          .from('accounts')
-          .update({ balance: Number(account.balance) - amount })
-          .eq('id', selectedAccountId);
+      if (paymentType === 'installment') {
+        // Lógica de parcelamento
+        const count = parseInt(installmentCount);
+        const installmentAmount = amount / count;
+        const today = new Date();
+        
+        // Criar transação principal
+        const { data: parentTransaction, error: parentError } = await supabase
+          .from('transactions')
+          .insert({
+            user_id: user?.id,
+            description: `Pagamento parcelado de fatura - Cartão`,
+            amount: -amount,
+            date: today.toISOString().split('T')[0],
+            type: 'expense',
+            account_id: selectedAccountId,
+            card_id: cardId,
+            installments_count: count
+          })
+          .select()
+          .single();
 
-        if (accountError) throw accountError;
+        if (parentError) throw parentError;
+
+        // Criar transações das parcelas
+        const installmentTransactions = [];
+        for (let i = 0; i < count; i++) {
+          const installmentDate = new Date(today);
+          installmentDate.setMonth(installmentDate.getMonth() + i);
+          
+          installmentTransactions.push({
+            user_id: user?.id,
+            description: `Pagamento de fatura - Cartão (Parcela ${i + 1}/${count})`,
+            amount: -installmentAmount,
+            date: installmentDate.toISOString().split('T')[0],
+            type: 'expense',
+            account_id: selectedAccountId,
+            card_id: cardId,
+            parent_transaction_id: parentTransaction.id,
+            installment_number: i + 1,
+            installments_count: count
+          });
+        }
+
+        const { error: installmentsError } = await supabase
+          .from('transactions')
+          .insert(installmentTransactions);
+
+        if (installmentsError) throw installmentsError;
+
+        // Atualizar saldo da conta (apenas primeira parcela)
+        const account = accounts?.find(acc => acc.id === selectedAccountId);
+        if (account) {
+          const { error: accountError } = await supabase
+            .from('accounts')
+            .update({ balance: Number(account.balance) - installmentAmount })
+            .eq('id', selectedAccountId);
+
+          if (accountError) throw accountError;
+        }
+
+        // Atualizar fatura atual
+        const { error: billError } = await supabase
+          .from('card_bills')
+          .update({
+            paid_amount: installmentAmount,
+            remaining_amount: remainingAmount - installmentAmount,
+            status: installmentAmount >= remainingAmount ? 'paid' : 'partial'
+          })
+          .eq('id', billId);
+
+        if (billError) throw billError;
+
+        // Gerar faturas para os meses seguintes
+        for (let i = 1; i < count; i++) {
+          const futureDate = new Date(today);
+          futureDate.setMonth(futureDate.getMonth() + i);
+          const futureMonth = futureDate.getMonth() + 1;
+          const futureYear = futureDate.getFullYear();
+
+          // Chamar função para gerar fatura do mês futuro
+          await supabase.rpc('generate_monthly_bill', {
+            p_card_id: cardId,
+            p_month: futureMonth,
+            p_year: futureYear
+          });
+        }
+
+        // Restaurar crédito do cartão
+        const { error: cardUpdateError } = await supabase
+          .from('cards')
+          .update({ 
+            used_amount: Math.max(0, Number(card.used_amount) - amount)
+          })
+          .eq('id', cardId);
+
+        if (cardUpdateError) throw cardUpdateError;
+
+      } else {
+        // Pagamento completo ou parcial
+        const transactionData = {
+          user_id: user?.id,
+          description: `Pagamento de fatura - Cartão`,
+          amount: -amount,
+          date: new Date().toISOString().split('T')[0],
+          type: 'expense',
+          account_id: selectedAccountId,
+          card_id: cardId,
+          installments_count: 1
+        };
+
+        const { data: transaction, error: transactionError } = await supabase
+          .from('transactions')
+          .insert(transactionData)
+          .select()
+          .single();
+
+        if (transactionError) throw transactionError;
+
+        // Atualizar saldo da conta
+        const account = accounts?.find(acc => acc.id === selectedAccountId);
+        if (account) {
+          const { error: accountError } = await supabase
+            .from('accounts')
+            .update({ balance: Number(account.balance) - amount })
+            .eq('id', selectedAccountId);
+
+          if (accountError) throw accountError;
+        }
+
+        // Atualizar fatura
+        const { error: billError } = await supabase
+          .from('card_bills')
+          .update({
+            paid_amount: remainingAmount === amount ? totalAmount : amount,
+            remaining_amount: remainingAmount - amount,
+            status: remainingAmount === amount ? 'paid' : 'partial'
+          })
+          .eq('id', billId);
+
+        if (billError) throw billError;
+
+        // Restaurar crédito do cartão
+        const { error: cardUpdateError } = await supabase
+          .from('cards')
+          .update({ 
+            used_amount: Math.max(0, Number(card.used_amount) - amount)
+          })
+          .eq('id', cardId);
+
+        if (cardUpdateError) throw cardUpdateError;
       }
-
-      // Atualizar fatura
-      const { error: billError } = await supabase
-        .from('card_bills')
-        .update({
-          paid_amount: remainingAmount === amount ? totalAmount : amount,
-          remaining_amount: remainingAmount - amount,
-          status: remainingAmount === amount ? 'paid' : 'partial'
-        })
-        .eq('id', billId);
-
-      if (billError) throw billError;
 
       toast({
         title: "Pagamento realizado com sucesso"
