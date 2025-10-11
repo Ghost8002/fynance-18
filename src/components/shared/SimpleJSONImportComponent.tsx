@@ -279,7 +279,7 @@ const SimpleJSONImportComponent: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileJson className="h-6 w-6" />
-          Importar Transações do Chat (JSON)
+          Importar do Chat
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -427,28 +427,7 @@ const SimpleJSONImportComponent: React.FC = () => {
               </>
             )}
           </Button>
-          
-          <Button
-            variant="outline"
-            onClick={downloadTemplate}
-            className="h-12 px-6"
-          >
-            <Download className="mr-2 h-5 w-5" />
-            Baixar Template
-          </Button>
         </div>
-
-        {/* Informações */}
-        <Alert className="bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800">
-          <Info className="h-5 w-5 text-blue-600" />
-          <AlertDescription className="text-blue-700 dark:text-blue-300">
-            <p className="font-medium mb-2">Use o ChatGPT para gerar seu arquivo JSON:</p>
-            <p className="text-sm">
-              Peça ao ChatGPT para criar transações no formato JSON e importe o arquivo aqui. 
-              Baixe o template para ver o formato correto.
-            </p>
-          </AlertDescription>
-        </Alert>
       </CardContent>
     </Card>
   );

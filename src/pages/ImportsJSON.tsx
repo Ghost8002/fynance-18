@@ -71,7 +71,7 @@ const ImportsJSON = () => {
               <Upload className="h-10 w-10 text-primary" />
             </div>
             <h1 className="text-4xl font-bold text-foreground">
-              Importar do Chat (JSON)
+              Importar do Chat
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Carregue seu arquivo JSON gerado pelo ChatGPT e importe todas as suas transações de forma rápida e automatizada. 
