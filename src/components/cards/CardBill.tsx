@@ -690,8 +690,8 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
           onOpenChange={setPaymentDialogOpen}
           billId={billData.id}
           cardId={cardId}
-          totalAmount={billData.total_amount}
-          remainingAmount={billData.remaining_amount}
+          totalAmount={totalBillAmount}
+          remainingAmount={totalBillAmount}
           paymentType={paymentType}
           onPaymentSuccess={fetchBillData}
         />
