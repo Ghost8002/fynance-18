@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Check, X, Loader2 } from "lucide-react";
+import { parseLocalDate } from "@/utils/dateValidation";
 
 interface TransactionTableRowProps {
   transaction: any;
@@ -24,7 +25,7 @@ const formatCurrency = (value: number) => {
 
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
-  return new Date(dateString).toLocaleDateString('pt-BR', options);
+  return parseLocalDate(dateString).toLocaleDateString('pt-BR', options);
 };
 
 const TransactionTableRow = ({ 
