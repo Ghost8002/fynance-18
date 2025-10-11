@@ -120,6 +120,25 @@ export const dateToLocalDateString = (date: Date): string => {
 };
 
 /**
+ * Converte uma string de data (YYYY-MM-DD) em objeto Date no timezone local
+ * Evita problemas de conversão UTC que deslocam a data em 1 dia
+ */
+export const parseLocalDate = (dateString: string): Date => {
+  if (!dateString) return new Date();
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+/**
+ * Compara duas datas no formato string (YYYY-MM-DD)
+ * Retorna: -1 se a < b, 0 se iguais, 1 se a > b
+ */
+export const compareDateStrings = (a: string, b: string): number => {
+  return a.localeCompare(b);
+};
+/**
  * Valida se uma string é uma data OFX válida (YYYYMMDD)
  */
 export const isValidOFXDate = (dateStr: string): boolean => {

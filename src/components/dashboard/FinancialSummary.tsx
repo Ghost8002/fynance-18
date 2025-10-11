@@ -30,6 +30,8 @@ const toNumber = (value: any): number => {
   return isNaN(num) ? 0 : num;
 };
 
+import { parseLocalDate } from "@/utils/dateValidation";
+
 interface FinancialSummaryProps {
   hiddenWidgets?: string[];
   selectedPeriod?: PeriodType;
@@ -139,7 +141,7 @@ const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month'
 
   // Filtrar transações do período para análise de categorias
   const currentPeriodTransactions = (transactions || []).filter(t => {
-    const d = new Date(t.date);
+    const d = parseLocalDate(t.date);
     return d >= currentPeriod.startDate && d <= currentPeriod.endDate;
   });
 

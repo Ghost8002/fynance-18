@@ -24,6 +24,8 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR', options);
 };
 
+import { parseLocalDate, compareDateStrings } from "@/utils/dateValidation";
+
 const TransactionList = () => {
   const { user } = useAuth();
   const { data: transactions = [], loading, error, remove, refetch } = useSupabaseData('transactions', user?.id);
@@ -97,8 +99,9 @@ const TransactionList = () => {
 
       // Date range filter
       if (filters.dateRange !== "all") {
-        const transactionDate = new Date(transaction.date);
+        const transactionDate = parseLocalDate(transaction.date);
         const now = new Date();
+        now.setHours(0, 0, 0, 0);
         
         switch (filters.dateRange) {
           case "today":
@@ -111,6 +114,7 @@ const TransactionList = () => {
           case "last-7-days":
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            sevenDaysAgo.setHours(0, 0, 0, 0);
             return transactionDate >= sevenDaysAgo;
           
           case "current-month":
@@ -131,7 +135,7 @@ const TransactionList = () => {
       }
 
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a, b) => compareDateStrings(b.date, a.date));
   }, [transactions, filters]);
 
   const handleEditTransaction = (transaction: any) => {

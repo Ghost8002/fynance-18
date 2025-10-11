@@ -6,6 +6,7 @@ import { ArrowUpIcon, ArrowDownIcon, MoreHorizontal, Plus } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useNavigate } from "react-router-dom";
+import { compareDateStrings } from "@/utils/dateValidation";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -54,9 +55,9 @@ const RecentTransactions = () => {
     );
   }
 
-  // Get the 5 most recent transactions
+  // Get the 5 most recent transactions - usando comparação de strings para evitar timezone
   const recentTransactions = transactions
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => compareDateStrings(b.date, a.date))
     .slice(0, 5);
 
   return (

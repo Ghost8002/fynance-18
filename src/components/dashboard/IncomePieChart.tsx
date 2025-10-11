@@ -34,7 +34,10 @@ const IncomePieChart = ({ selectedPeriod = 'current-month', customDateRange }: I
 const incomeTx = transactions.filter(t => t.type === 'income');
 const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.from && customDateRange?.to && customDateRange.from <= customDateRange.to)
   ? incomeTx.filter(t => {
-      const d = new Date(t.date);
+      // Criar data local a partir da string para evitar conversão UTC
+      const [year, month, day] = t.date.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+      d.setHours(0, 0, 0, 0);
       return d >= (customDateRange.from as Date) && d <= (customDateRange.to as Date);
     })
   : filterTransactionsByPeriod(incomeTx, selectedPeriod);
