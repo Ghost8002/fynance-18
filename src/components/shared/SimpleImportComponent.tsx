@@ -290,7 +290,125 @@ const SimpleImportComponent: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Seleção de conta - PRIMEIRO PASSO */}
+        {/* Área de upload */}
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+            isDragOver 
+              ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' 
+              : 'border-border hover:border-green-500/50'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => document.getElementById('file-input')?.click()}
+        >
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleFileChange}
+            className="hidden"
+            id="file-input"
+          />
+          
+          {file ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-3">
+                <CheckCircle className="h-12 w-12 text-green-500" />
+                <div className="text-left">
+                  <p className="font-semibold text-foreground">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setFile(null)}
+                className="flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                Remover Arquivo
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <div className={`p-4 rounded-full transition-colors duration-300 ${
+                  isDragOver 
+                    ? 'bg-green-500/10 dark:bg-green-500/20' 
+                    : 'bg-muted/50 dark:bg-muted'
+                }`}>
+                  <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${
+                    isDragOver ? 'text-green-600' : 'text-muted-foreground'
+                  }`} />
+                </div>
+              </div>
+              <div>
+                <h3 className={`text-lg font-semibold transition-colors duration-300 ${
+                  isDragOver ? 'text-green-600' : 'text-foreground'
+                }`}>
+                  {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo XLSX'}
+                </h3>
+                <p className={`text-sm mt-2 transition-colors duration-300 ${
+                  isDragOver ? 'text-green-600/80' : 'text-muted-foreground'
+                }`}>
+                  {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Preview dos dados */}
+        {showPreview && previewData.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(false)}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Ocultar
+              </Button>
+            </div>
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Data</th>
+                    <th className="px-3 py-2 text-left font-medium">Descrição</th>
+                    <th className="px-3 py-2 text-left font-medium">Valor</th>
+                    <th className="px-3 py-2 text-left font-medium">Tipo</th>
+                    <th className="px-3 py-2 text-left font-medium">Categoria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewData.map((row, index) => (
+                    <tr key={index} className="border-t">
+                      <td className="px-3 py-2">{row.date}</td>
+                      <td className="px-3 py-2">{row.description}</td>
+                      <td className="px-3 py-2">
+                        <span className={row.type === 'expense' ? 'text-red-600' : 'text-green-600'}>
+                          R$ {row.amount.toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge variant={row.type === 'expense' ? 'destructive' : 'default'}>
+                          {row.type === 'expense' ? 'Despesa' : 'Receita'}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2">{row.category || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Seleção de conta */}
         <AccountSelector
           accounts={accounts}
           selectedAccountId={selectedAccountId}
@@ -298,133 +416,6 @@ const SimpleImportComponent: React.FC = () => {
           disabled={importing}
           colorScheme="green"
         />
-
-        {/* Área de upload - SÓ APARECE SE CONTA SELECIONADA */}
-        {selectedAccountId && (
-          <>
-            <div
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-                isDragOver 
-                  ? 'border-green-500 bg-green-500/5 dark:bg-green-500/10' 
-                  : 'border-border hover:border-green-500/50'
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => document.getElementById('file-input')?.click()}
-            >
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-input"
-              />
-              
-              {file ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <CheckCircle className="h-12 w-12 text-green-500" />
-                    <div className="text-left">
-                      <p className="font-semibold text-foreground">{file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(file.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFile(null);
-                      setShowPreview(false);
-                      setPreviewData([]);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <X className="h-4 w-4" />
-                    Remover Arquivo
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <div className={`p-4 rounded-full transition-colors duration-300 ${
-                      isDragOver 
-                        ? 'bg-green-500/10 dark:bg-green-500/20' 
-                        : 'bg-muted/50 dark:bg-muted'
-                    }`}>
-                      <FileSpreadsheet className={`h-12 w-12 transition-colors duration-300 ${
-                        isDragOver ? 'text-green-600' : 'text-muted-foreground'
-                      }`} />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className={`text-lg font-semibold transition-colors duration-300 ${
-                      isDragOver ? 'text-green-600' : 'text-foreground'
-                    }`}>
-                      {isDragOver ? 'Solte o arquivo aqui' : 'Selecione um arquivo XLSX'}
-                    </h3>
-                    <p className={`text-sm mt-2 transition-colors duration-300 ${
-                      isDragOver ? 'text-green-600/80' : 'text-muted-foreground'
-                    }`}>
-                      {isDragOver ? 'Arquivo será processado automaticamente' : 'ou arraste e solte aqui'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Preview dos dados */}
-            {showPreview && previewData.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPreview(false)}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Ocultar
-                  </Button>
-                </div>
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-medium">Data</th>
-                        <th className="px-3 py-2 text-left font-medium">Descrição</th>
-                        <th className="px-3 py-2 text-left font-medium">Valor</th>
-                        <th className="px-3 py-2 text-left font-medium">Tipo</th>
-                        <th className="px-3 py-2 text-left font-medium">Categoria</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewData.map((row, index) => (
-                        <tr key={index} className="border-t">
-                          <td className="px-3 py-2">{row.date}</td>
-                          <td className="px-3 py-2">{row.description}</td>
-                          <td className="px-3 py-2">
-                            <span className={row.type === 'expense' ? 'text-red-600' : 'text-green-600'}>
-                              R$ {row.amount.toFixed(2)}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2">
-                            <Badge variant={row.type === 'expense' ? 'destructive' : 'default'}>
-                              {row.type === 'expense' ? 'Despesa' : 'Receita'}
-                            </Badge>
-                          </td>
-                          <td className="px-3 py-2">{row.category || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </>
-        )}
 
         {/* Informações sobre o formato */}
         <Alert className="bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20">
