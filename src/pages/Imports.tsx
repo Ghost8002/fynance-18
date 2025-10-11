@@ -32,7 +32,6 @@ const Imports = () => {
       document.head.appendChild(link);
     }
     link.setAttribute("href", window.location.origin + "/importacoes");
-
   }, [isAuthenticated, navigate]);
   const importOptions = [{
     id: "transactions",
@@ -111,63 +110,7 @@ const Imports = () => {
         </div>
 
         {/* Estatísticas rápidas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500 rounded-lg">
-                  <FileText className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-blue-600 font-medium">Importações Realizadas</p>
-                  <p className="text-2xl font-bold text-blue-700">0</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500 rounded-lg">
-                  <Database className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-green-600 font-medium">Contas Conectadas</p>
-                  <p className="text-2xl font-bold text-green-700">0</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-purple-600 font-medium">Transações Importadas</p>
-                  <p className="text-2xl font-bold text-purple-700">0</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <Calendar className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-orange-600 font-medium">Última Importação</p>
-                  <p className="text-2xl font-bold text-orange-700">-</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
       </div>
 
       <div className="mb-8">
@@ -181,12 +124,7 @@ const Imports = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              <Settings className="h-3 w-3 mr-1" />
-              Configurações
-            </Badge>
-          </div>
+          
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -228,17 +166,13 @@ const Imports = () => {
                   </div>
 
                   <div className="pt-3 border-t">
-                    {item.comingSoon ? (
-                      <Button variant="outline" className="w-full" disabled>
+                    {item.comingSoon ? <Button variant="outline" className="w-full" disabled>
                         <Clock className="h-4 w-4 mr-2" />
                         Em Breve
-                      </Button>
-                    ) : (
-                      <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" onClick={() => navigate(item.to)}>
+                      </Button> : <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" onClick={() => navigate(item.to)}>
                         <Upload className="h-4 w-4 mr-2" />
                         Começar Importação
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
                 </div>
               </CardContent>
