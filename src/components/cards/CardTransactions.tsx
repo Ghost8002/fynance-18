@@ -4,9 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { Search, Calendar, ArrowUpDown, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Search, Calendar, ArrowUpDown, FileText, XCircle } from "lucide-react";
 
 interface CardTransactionsProps {
   cardId: string;
@@ -33,13 +36,17 @@ interface Category {
 
 export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
   const { user } = useAuth();
-  const { data: transactions, loading: loadingTransactions } = useSupabaseData('transactions', user?.id);
+  const { toast } = useToast();
+  const { data: transactions, loading: loadingTransactions, refetch: refetchTransactions, remove: removeTransaction } = useSupabaseData('transactions', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: cards, update: updateCard, refetch: refetchCards } = useSupabaseData('cards', user?.id);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [cancelingTransaction, setCancelingTransaction] = useState<Transaction | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -125,6 +132,49 @@ export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
 
     return filtered;
   }, [cardTransactions, searchTerm, selectedCategory, selectedPeriod]);
+
+  const handleCancelTransaction = async () => {
+    if (!cancelingTransaction) return;
+
+    try {
+      const card = cards?.find(c => c.id === cardId);
+      if (!card) {
+        toast({
+          title: "Erro",
+          description: "Cartão não encontrado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Restaurar o limite do cartão
+      const transactionAmount = Math.abs(cancelingTransaction.amount);
+      const newUsedAmount = Math.max(0, Number(card.used_amount) - transactionAmount);
+
+      await updateCard(cardId, { used_amount: newUsedAmount });
+
+      // Deletar a transação
+      await removeTransaction(cancelingTransaction.id);
+
+      await refetchTransactions();
+      await refetchCards();
+
+      toast({
+        title: "Transação cancelada",
+        description: "O limite do cartão foi restaurado com sucesso",
+      });
+
+      setShowCancelDialog(false);
+      setCancelingTransaction(null);
+    } catch (error) {
+      console.error('Erro ao cancelar transação:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar a transação",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Estatísticas
   const totalAmount = filteredTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
@@ -282,6 +332,7 @@ export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
                   <TableHead>Data</TableHead>
                   <TableHead>Parcelas</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -336,6 +387,19 @@ export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
                     <TableCell className="text-right font-medium">
                       {formatCurrency(transaction.amount)}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCancelingTransaction(transaction);
+                          setShowCancelDialog(true);
+                        }}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -343,6 +407,31 @@ export const CardTransactions = ({ cardId }: CardTransactionsProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog de confirmação de cancelamento */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar transação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá cancelar a transação "{cancelingTransaction?.description}" no valor de{" "}
+              {cancelingTransaction && formatCurrency(Math.abs(cancelingTransaction.amount))}.
+              O limite do cartão será restaurado automaticamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelingTransaction(null)}>
+              Voltar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelTransaction}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Cancelar Transação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

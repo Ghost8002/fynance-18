@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Package, CreditCard, Check, Clock } from "lucide-react";
+import { Calendar, Package, CreditCard, Check, Clock, XCircle } from "lucide-react";
 
 interface CardInstallmentsProps {
   cardId: string;
@@ -38,9 +39,12 @@ interface InstallmentItem {
 export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallmentsProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { data: cards, update: updateCard, refetch: refetchCards } = useSupabaseData('cards', user?.id);
   const [installments, setInstallments] = useState<InstallmentData[]>([]);
   const [installmentItems, setInstallmentItems] = useState<InstallmentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelingInstallment, setCancelingInstallment] = useState<InstallmentData | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -134,6 +138,80 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
       fetchInstallments();
     }
   }, [installmentItems.length]);
+
+  const handleCancelInstallment = async () => {
+    if (!cancelingInstallment) return;
+
+    try {
+      const card = cards?.find(c => c.id === cardId);
+      if (!card) {
+        toast({
+          title: "Erro",
+          description: "Cartão não encontrado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Calcular quanto foi realmente usado (parcelas já pagas)
+      const items = installmentItems.filter(item => item.installment_id === cancelingInstallment.id);
+      const paidItems = items.filter(item => item.status === 'paid');
+      const paidAmount = paidItems.reduce((sum, item) => sum + item.amount, 0);
+      
+      // O valor a restaurar é o total menos o que já foi pago
+      const amountToRestore = cancelingInstallment.total_amount - paidAmount;
+
+      // Restaurar o limite do cartão
+      const newUsedAmount = Math.max(0, Number(card.used_amount) - amountToRestore);
+      await updateCard(cardId, { used_amount: newUsedAmount });
+
+      // Deletar os itens do parcelamento
+      const { error: itemsError } = await supabase
+        .from('card_installment_items')
+        .delete()
+        .eq('installment_id', cancelingInstallment.id);
+
+      if (itemsError) throw itemsError;
+
+      // Deletar o parcelamento
+      const { error: installmentError } = await supabase
+        .from('card_installments')
+        .delete()
+        .eq('id', cancelingInstallment.id)
+        .eq('user_id', user?.id);
+
+      if (installmentError) throw installmentError;
+
+      // Deletar dívidas relacionadas
+      await supabase
+        .from('debts')
+        .delete()
+        .eq('installment_id', cancelingInstallment.id)
+        .eq('user_id', user?.id);
+
+      await fetchInstallments();
+      await refetchCards();
+      
+      if (onInstallmentPaid) {
+        onInstallmentPaid();
+      }
+
+      toast({
+        title: "Parcelamento cancelado",
+        description: "O limite do cartão foi restaurado com sucesso",
+      });
+
+      setShowCancelDialog(false);
+      setCancelingInstallment(null);
+    } catch (error) {
+      console.error('Erro ao cancelar parcelamento:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar o parcelamento",
+        variant: "destructive",
+      });
+    }
+  };
 
 
   const getStatusBadge = (status: string) => {
@@ -245,13 +323,26 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-semibold">
-                    {formatCurrency(installment.total_amount)}
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-lg font-semibold">
+                      {formatCurrency(installment.total_amount)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Total do parcelamento
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Total do parcelamento
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setCancelingInstallment(installment);
+                      setShowCancelDialog(true);
+                    }}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -307,6 +398,36 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
           </Card>
         );
       })}
+
+      {/* Dialog de confirmação de cancelamento */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar parcelamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá cancelar o parcelamento "{cancelingInstallment?.description}" no valor total de{" "}
+              {cancelingInstallment && formatCurrency(cancelingInstallment.total_amount)}.
+              {cancelingInstallment && cancelingInstallment.paid_installments > 0 && (
+                <span className="block mt-2 text-amber-600">
+                  Atenção: {cancelingInstallment.paid_installments} parcela(s) já foi(ram) paga(s).
+                  Apenas o valor das parcelas pendentes será restaurado ao limite do cartão.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelingInstallment(null)}>
+              Voltar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelInstallment}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Cancelar Parcelamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
