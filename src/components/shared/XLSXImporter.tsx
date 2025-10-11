@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
+import { convertToLocalDateString } from "@/utils/dateValidation";
 import XLSXDataTreatment from "./XLSXDataTreatment";
 import XLSXValidationModal from "./XLSXValidationModal";
 import XLSXCategoryMappingModal from "./XLSXCategoryMappingModal";
@@ -427,24 +428,24 @@ const XLSXImporter = () => {
 
       for (const format of dateFormats) {
         if (format.test(dateStr)) {
-          // Converter para formato padrão YYYY-MM-DD
+          // Converter para formato padrão YYYY-MM-DD usando função genérica
           if (dateStr.includes('/')) {
             const parts = dateStr.split('/');
             if (parts[0].length === 4) {
-              // YYYY/MM/DD
-              return dateStr.replace(/\//g, '-');
+              // YYYY/MM/DD - usar função genérica para evitar problemas de timezone
+              return convertToLocalDateString(parts[0], parts[1], parts[2]);
             } else {
-              // DD/MM/YYYY
-              return `${parts[2]}-${parts[1]}-${parts[0]}`;
+              // DD/MM/YYYY - usar função genérica para evitar problemas de timezone
+              return convertToLocalDateString(parts[2], parts[1], parts[0]);
             }
           } else if (dateStr.includes('-')) {
             const parts = dateStr.split('-');
             if (parts[0].length === 4) {
-              // YYYY-MM-DD
-              return dateStr;
+              // YYYY-MM-DD - usar função genérica para evitar problemas de timezone
+              return convertToLocalDateString(parts[0], parts[1], parts[2]);
             } else {
-              // DD-MM-YYYY
-              return `${parts[2]}-${parts[1]}-${parts[0]}`;
+              // DD-MM-YYYY - usar função genérica para evitar problemas de timezone
+              return convertToLocalDateString(parts[2], parts[1], parts[0]);
             }
           }
         }

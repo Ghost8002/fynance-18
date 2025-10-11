@@ -3,6 +3,7 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarEvent } from './useCalendarEvents';
+import { getCurrentLocalDateString } from '@/utils/dateValidation';
 
 export const useCalendarActions = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ export const useCalendarActions = () => {
     try {
       const { error } = await updateReceivable(event.rawData.id, {
         status: 'received',
-        received_date: new Date().toISOString().split('T')[0]
+        received_date: getCurrentLocalDateString()
       });
 
       if (error) throw error;
@@ -40,7 +41,7 @@ export const useCalendarActions = () => {
     try {
       const { error } = await updateDebt(event.rawData.id, {
         status: 'paid',
-        paid_date: new Date().toISOString().split('T')[0]
+        paid_date: getCurrentLocalDateString()
       });
 
       if (error) throw error;

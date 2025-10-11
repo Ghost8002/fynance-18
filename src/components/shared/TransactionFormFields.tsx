@@ -123,16 +123,12 @@ const TransactionFormFields = ({
         <Input
           id="amount"
           name="amount"
-          type="text"
-          inputMode="decimal"
+          type="number"
+          step="0.01"
+          min="0"
           placeholder="0,00"
           value={formData.amount}
-          onChange={(e) => {
-            const withDot = e.target.value.replace(/,/g, ".");
-            const cleaned = withDot.replace(/[^\d.]/g, "");
-            const singleDot = cleaned.replace(/(\..*)\./g, "$1");
-            onInputChange({ ...e, target: { ...e.target, value: singleDot } } as React.ChangeEvent<HTMLInputElement>);
-          }}
+          onChange={onInputChange}
           required
         />
       </div>

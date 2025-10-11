@@ -58,11 +58,6 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
   const { data: tags = [] } = useSupabaseData('tags', user?.id);
   const { toast } = useToast();
 
-  const normalizeDecimalInput = (value: string) => {
-    const withDot = value.replace(/,/g, ".");
-    const cleaned = withDot.replace(/[^\d.]/g, "");
-    return cleaned.replace(/(\..*)\./g, "$1");
-  };
 
   // Preencher formulário com dados da transação quando abrir
   useEffect(() => {
@@ -206,11 +201,12 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
             <Label htmlFor="amount">Valor *</Label>
             <Input 
               id="amount" 
-              type="text"
-              inputMode="decimal"
+              type="number"
+              step="0.01"
+              min="0"
               placeholder="0,00" 
               value={formData.amount}
-              onChange={(e) => handleInputChange('amount', normalizeDecimalInput(e.target.value))}
+              onChange={(e) => handleInputChange('amount', e.target.value)}
               required
             />
           </div>

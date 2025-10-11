@@ -32,11 +32,6 @@ const AccountForm = () => {
   const { insert } = useSupabaseData('accounts', user?.id);
   const { toast } = useToast();
 
-  const normalizeDecimalInput = (value: string) => {
-    const withDot = value.replace(/,/g, ".");
-    const cleaned = withDot.replace(/[^\d.]/g, "");
-    return cleaned.replace(/(\..*)\./g, "$1");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,11 +158,11 @@ const AccountForm = () => {
             <Label htmlFor="initialBalance">Saldo Inicial</Label>
             <Input 
               id="initialBalance" 
-              type="text"
-              inputMode="decimal"
+              type="number"
+              step="0.01"
               placeholder="0,00" 
               value={formData.balance}
-              onChange={(e) => handleInputChange('balance', normalizeDecimalInput(e.target.value))}
+              onChange={(e) => handleInputChange('balance', e.target.value)}
             />
           </div>
         </form>

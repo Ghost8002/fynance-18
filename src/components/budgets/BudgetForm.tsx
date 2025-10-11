@@ -18,6 +18,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import CategorySelector from "@/components/shared/CategorySelector";
+import { dateToLocalDateString } from "@/utils/dateValidation";
 import TagSelector from "@/components/shared/TagSelector";
 
 const BudgetForm = () => {
@@ -73,8 +74,8 @@ const BudgetForm = () => {
         category_id: formData.category_id,
         limit_amount: Number(formData.limit_amount),
         period: formData.period,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        start_date: dateToLocalDateString(startDate),
+        end_date: dateToLocalDateString(endDate),
         spent_amount: 0,
         tags: formData.selectedTags,
       };

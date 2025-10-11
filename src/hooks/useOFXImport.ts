@@ -7,6 +7,7 @@ import { useImportWorker } from './useImportWorker';
 import { ImportedTransaction, ImportResult } from './useImport';
 import { useCache } from './useCache';
 import { useDebouncedValidation } from './useDebounce';
+import { convertOFXDate, isValidOFXDate } from '../utils/dateValidation';
 
 export const useOFXImport = () => {
   const { user } = useAuth();
@@ -90,10 +91,19 @@ export const useOFXImport = () => {
             const description = memoMatch[1].trim();
             
             if (!isNaN(amount) && description) {
-              const year = dateStr.substring(0, 4);
-              const month = dateStr.substring(4, 6);
-              const day = dateStr.substring(6, 8);
-              const date = `${year}-${month}-${day}`;
+              // Converter data OFX usando função utilitária com correção de timezone
+              let date: string;
+              try {
+                if (isValidOFXDate(dateStr)) {
+                  date = convertOFXDate(dateStr);
+                } else {
+                  console.warn(`Data OFX inválida: ${dateStr}, usando fallback`);
+                  date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+                }
+              } catch (error) {
+                console.warn(`Erro ao converter data OFX: ${dateStr}, usando fallback`, error);
+                date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+              }
               
               const type: 'income' | 'expense' = amount > 0 ? 'income' : 'expense';
               

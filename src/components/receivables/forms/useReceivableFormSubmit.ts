@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { dateToLocalDateString } from '@/utils/dateValidation';
 
 export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export const useReceivableFormSubmit = (payment: any, onSubmit: () => void) => {
         user_id: user.id,
         description: formData.description,
         amount: amount, // Usar o valor validado
-        due_date: formData.due_date.toISOString().split('T')[0],
+        due_date: dateToLocalDateString(formData.due_date),
         notes: formData.notes || null,
         account_id: formData.account_id || null,
         category_id: formData.category_id || null,

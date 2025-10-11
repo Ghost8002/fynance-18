@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentLocalDateString } from '@/utils/dateValidation';
 
 interface CardBill {
   id: string;
@@ -240,7 +241,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       const { data, error } = await supabase.rpc('sync_debt_payment', {
         p_debt_id: debtId,
         p_payment_amount: paymentAmount,
-        p_payment_date: paymentDate || new Date().toISOString().split('T')[0],
+        p_payment_date: paymentDate || getCurrentLocalDateString(),
       });
 
       if (error) {

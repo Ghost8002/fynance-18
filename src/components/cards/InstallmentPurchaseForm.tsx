@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { dateToLocalDateString } from "@/utils/dateValidation";
 import { ShoppingBag, Calendar, CreditCard } from "lucide-react";
 import CategorySelector from "@/components/shared/CategorySelector";
 import TagSelector from "@/components/shared/TagSelector";
@@ -198,7 +199,7 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
           installment_id: installmentData.id,
           installment_number: i + 1,
           amount: installmentAmount,
-          due_date: installmentDate.toISOString().split('T')[0],
+          due_date: dateToLocalDateString(installmentDate),
           status: 'pending'
         });
       }
@@ -307,15 +308,11 @@ export const InstallmentPurchaseForm = ({ onPurchaseAdded }: InstallmentPurchase
               <Label htmlFor="total_amount">Valor Total *</Label>
               <Input
                 id="total_amount"
-                type="text"
-                inputMode="decimal"
+                type="number"
+                step="0.01"
+                min="0"
                 value={formData.total_amount}
-                onChange={(e) => {
-                  const withDot = e.target.value.replace(/,/g, ".");
-                  const cleaned = withDot.replace(/[^\d.]/g, "");
-                  const singleDot = cleaned.replace(/(\..*)\./g, "$1");
-                  handleInputChange('total_amount', singleDot);
-                }}
+                onChange={(e) => handleInputChange('total_amount', e.target.value)}
                 placeholder="0,00"
               />
             </div>

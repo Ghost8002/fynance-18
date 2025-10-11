@@ -42,11 +42,6 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
   const { update } = useSupabaseData('accounts', user?.id);
   const { toast } = useToast();
 
-  const normalizeDecimalInput = (value: string) => {
-    const withDot = value.replace(/,/g, ".");
-    const cleaned = withDot.replace(/[^\d.]/g, "");
-    return cleaned.replace(/(\..*)\./g, "$1");
-  };
 
   // Preencher formulário com dados da conta quando abrir
   useEffect(() => {
@@ -172,11 +167,11 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
             <Label htmlFor="balance">Saldo Atual</Label>
             <Input 
               id="balance" 
-              type="text"
-              inputMode="decimal"
+              type="number"
+              step="0.01"
               placeholder="0,00" 
               value={formData.balance}
-              onChange={(e) => handleInputChange('balance', normalizeDecimalInput(e.target.value))}
+              onChange={(e) => handleInputChange('balance', e.target.value)}
             />
           </div>
         </form>

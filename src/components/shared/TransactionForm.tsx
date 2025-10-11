@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTransactionFormSubmit } from "@/hooks/useTransactionFormSubmit";
 import TransactionTypeSelector from "./TransactionTypeSelector";
 import TransactionFormFields from "./TransactionFormFields";
+import { getCurrentLocalDateString } from "@/utils/dateValidation";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import TagSelector from "./TagSelector";
 
@@ -53,7 +54,7 @@ const TransactionForm = ({
     category_id: "",
     account_id: defaultAccountId || "",
     card_id: defaultCardId || "",
-    date: new Date().toISOString().split('T')[0],
+    date: getCurrentLocalDateString(),
     notes: "",
   });
 
@@ -144,7 +145,7 @@ const TransactionForm = ({
         category_id: "",
         account_id: defaultAccountId || "",
         card_id: defaultCardId || "",
-        date: new Date().toISOString().split('T')[0],
+        date: getCurrentLocalDateString(),
         notes: "",
       });
       setSelectedTags([]);

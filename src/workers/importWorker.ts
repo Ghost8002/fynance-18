@@ -3,6 +3,7 @@
 
 // Importar o sistema de categorização
 import { CategoryEngine } from '../utils/categorization/CategoryEngine';
+import { convertOFXDate, isValidOFXDate } from '../utils/dateValidation';
 
 interface WorkerMessage {
   type: 'process-xlsx' | 'process-ofx' | 'progress';
@@ -180,11 +181,19 @@ function processOFX(data: OFXData): ProcessedTransaction[] {
         console.log(`Transação ${processedCount} - Data: ${dateStr}, Valor: ${amount}, Descrição: ${description}`);
         
         if (!isNaN(amount) && description && amount !== 0) {
-          // Converter data OFX (YYYYMMDD) para formato padrão
-          const year = dateStr.substring(0, 4);
-          const month = dateStr.substring(4, 6);
-          const day = dateStr.substring(6, 8);
-          const date = `${year}-${month}-${day}`;
+          // Converter data OFX usando função utilitária com correção de timezone
+          let date: string;
+          try {
+            if (isValidOFXDate(dateStr)) {
+              date = convertOFXDate(dateStr);
+            } else {
+              console.warn(`Data OFX inválida: ${dateStr}, usando fallback`);
+              date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+            }
+          } catch (error) {
+            console.warn(`Erro ao converter data OFX: ${dateStr}, usando fallback`, error);
+            date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+          }
           
           // Determinar tipo baseado no TRNTYPE ou valor
           let type: 'income' | 'expense' = 'expense';

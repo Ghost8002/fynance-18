@@ -9,6 +9,7 @@ import { ArrowRightLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { getCurrentLocalDateString } from "@/utils/dateValidation";
 
 interface AccountTransferProps {
   fromAccountId: string;
@@ -95,7 +96,7 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
         type: 'expense',
         amount: amount,
         description: `${formData.description} - para ${toAccount.name}`,
-        date: new Date().toISOString().split('T')[0],
+        date: getCurrentLocalDateString(),
         notes: `Transferência para conta ${toAccount.name}`
       });
 
@@ -106,7 +107,7 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
         type: 'income',
         amount: amount,
         description: `${formData.description} - de ${fromAccountName}`,
-        date: new Date().toISOString().split('T')[0],
+        date: getCurrentLocalDateString(),
         notes: `Transferência da conta ${fromAccountName}`
       });
 

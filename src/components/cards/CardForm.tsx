@@ -276,15 +276,11 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
                 <Label htmlFor="credit_limit">Limite de Crédito *</Label>
                 <Input
                   id="credit_limit"
-                  type="text"
-                  inputMode="decimal"
+                  type="number"
+                  step="0.01"
+                  min="0"
                   value={formData.credit_limit}
-                  onChange={(e) => {
-                    const withDot = e.target.value.replace(/,/g, ".");
-                    const cleaned = withDot.replace(/[^\d.]/g, "");
-                    const singleDot = cleaned.replace(/(\..*)\./g, "$1");
-                    handleInputChange('credit_limit', singleDot);
-                  }}
+                  onChange={(e) => handleInputChange('credit_limit', e.target.value)}
                   placeholder="0,00"
                 />
               </div>

@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { convertToLocalDateString } from '@/utils/dateValidation';
 import { useBalanceUpdates } from '@/hooks/useBalanceUpdates';
 import { useCategoryTagValidation } from '@/hooks/useCategoryTagValidation';
 import { XLSXTemplateGenerator } from '@/utils/xlsxTemplateGenerator';
@@ -156,19 +157,22 @@ const SimpleXLSXImporter: React.FC = () => {
             const parts = data.split('/');
             if (parts.length === 3) {
               if (parts[0].length === 4) {
-                // YYYY/MM/DD
-                formattedDate = data.replace(/\//g, '-');
+                // YYYY/MM/DD - usar função genérica para evitar problemas de timezone
+                formattedDate = convertToLocalDateString(parts[0], parts[1], parts[2]);
               } else {
-                // DD/MM/YYYY
-                formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                // DD/MM/YYYY - usar função genérica para evitar problemas de timezone
+                formattedDate = convertToLocalDateString(parts[2], parts[1], parts[0]);
               }
             }
           } else if (data.includes('-')) {
             // Já está no formato YYYY-MM-DD ou DD-MM-YYYY
             const parts = data.split('-');
             if (parts.length === 3 && parts[0].length === 2) {
-              // DD-MM-YYYY -> YYYY-MM-DD
-              formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              // DD-MM-YYYY -> usar função genérica para evitar problemas de timezone
+              formattedDate = convertToLocalDateString(parts[2], parts[1], parts[0]);
+            } else if (parts.length === 3 && parts[0].length === 4) {
+              // YYYY-MM-DD - usar função genérica para evitar problemas de timezone
+              formattedDate = convertToLocalDateString(parts[0], parts[1], parts[2]);
             }
           }
 
