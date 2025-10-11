@@ -135,31 +135,6 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
     }
   }, [installmentItems.length]);
 
-  const handlePayInstallment = async (itemId: string) => {
-    try {
-      const { error } = await supabase.rpc('process_installment_payment', {
-        p_installment_item_id: itemId,
-        p_amount: 0, // O valor será calculado automaticamente
-        p_account_id: null
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Parcela paga com sucesso!"
-      });
-
-      await fetchInstallments();
-      onInstallmentPaid?.();
-
-    } catch (error) {
-      console.error('Error paying installment:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao pagar parcela"
-      });
-    }
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -290,7 +265,6 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
                       <TableHead>Valor</TableHead>
                       <TableHead>Vencimento</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -313,18 +287,8 @@ export const CardInstallments = ({ cardId, onInstallmentPaid }: CardInstallments
                           </TableCell>
                           <TableCell>
                             {getStatusBadge(status)}
-                          </TableCell>
-                          <TableCell>
-                            {status === 'pending' && (
-                              <Button
-                                size="sm"
-                                onClick={() => handlePayInstallment(item.id)}
-                              >
-                                Pagar
-                              </Button>
-                            )}
                             {status === 'paid' && item.paid_date && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground ml-2">
                                 Pago em {formatDate(item.paid_date)}
                               </p>
                             )}
