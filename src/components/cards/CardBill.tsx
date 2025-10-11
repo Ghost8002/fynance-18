@@ -428,6 +428,18 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
     if (!cancelingInstallmentItem || !user?.id) return;
 
     try {
+      // Buscar TODAS as parcelas do mesmo parcelamento
+      const { data: allItems, error: itemsError } = await supabase
+        .from('card_installment_items')
+        .select('*')
+        .eq('installment_id', cancelingInstallmentItem.installment_id);
+
+      if (itemsError) throw itemsError;
+
+      // Calcular o total a restaurar (apenas parcelas não pagas)
+      const unpaidItems = allItems?.filter(item => item.status !== 'paid') || [];
+      const totalToRestore = unpaidItems.reduce((sum, item) => sum + item.amount, 0);
+
       // Restaurar o limite do cartão
       const { data: card } = await supabase
         .from('cards')
@@ -436,7 +448,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
         .single();
 
       if (card) {
-        const newUsedAmount = Math.max(0, Number(card.used_amount) - cancelingInstallmentItem.amount);
+        const newUsedAmount = Math.max(0, Number(card.used_amount) - totalToRestore);
 
         await supabase
           .from('cards')
@@ -448,38 +460,29 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
           .eq('user_id', user.id);
       }
 
-      // Deletar a parcela
+      // Deletar TODAS as parcelas do parcelamento
       await supabase
         .from('card_installment_items')
         .delete()
-        .eq('id', cancelingInstallmentItem.id);
+        .eq('installment_id', cancelingInstallmentItem.installment_id);
 
-      // Deletar dívida relacionada se existir
+      // Deletar TODAS as dívidas relacionadas ao parcelamento
       await supabase
         .from('debts')
         .delete()
         .eq('installment_id', cancelingInstallmentItem.installment_id)
-        .eq('installment_number', cancelingInstallmentItem.installment_number)
         .eq('user_id', user.id);
 
-      // Verificar se ainda existem parcelas do parcelamento
-      const { data: remainingItems } = await supabase
-        .from('card_installment_items')
-        .select('id')
-        .eq('installment_id', cancelingInstallmentItem.installment_id);
-
-      // Se não há mais parcelas, deletar o parcelamento
-      if (!remainingItems || remainingItems.length === 0) {
-        await supabase
-          .from('card_installments')
-          .delete()
-          .eq('id', cancelingInstallmentItem.installment_id)
-          .eq('user_id', user.id);
-      }
+      // Deletar o parcelamento
+      await supabase
+        .from('card_installments')
+        .delete()
+        .eq('id', cancelingInstallmentItem.installment_id)
+        .eq('user_id', user.id);
 
       toast({
-        title: "Parcela cancelada",
-        description: "O limite do cartão foi restaurado com sucesso"
+        title: "Parcelamento cancelado",
+        description: `Todas as ${allItems?.length || 0} parcelas foram canceladas e o limite do cartão foi restaurado`
       });
 
       setCancelInstallmentDialogOpen(false);
@@ -490,7 +493,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
       console.error('Error canceling installment item:', error);
       toast({
         variant: "destructive",
-        title: "Erro ao cancelar parcela"
+        title: "Erro ao cancelar parcelamento"
       });
     }
   };
@@ -872,17 +875,15 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
       <AlertDialog open={cancelInstallmentDialogOpen} onOpenChange={setCancelInstallmentDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar parcela?</AlertDialogTitle>
+            <AlertDialogTitle>Cancelar parcelamento completo?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá cancelar a parcela "{cancelingInstallmentItem?.description}" 
-              ({cancelingInstallmentItem?.installment_number}/{cancelingInstallmentItem?.installments_count}) 
-              no valor de {cancelingInstallmentItem && formatCurrency(cancelingInstallmentItem.amount)}.
-              O limite do cartão será restaurado automaticamente.
-              {cancelingInstallmentItem && (
-                <span className="block mt-2 text-amber-600">
-                  Atenção: Esta ação não pode ser desfeita.
-                </span>
-              )}
+              Esta ação irá cancelar <strong>TODAS as {cancelingInstallmentItem?.installments_count} parcelas</strong> do parcelamento "{cancelingInstallmentItem?.description}".
+              <span className="block mt-2">
+                Todas as parcelas pendentes serão removidas e o limite do cartão será restaurado automaticamente.
+              </span>
+              <span className="block mt-2 text-amber-600 font-semibold">
+                ⚠️ Atenção: Esta ação não pode ser desfeita e afetará todas as parcelas deste parcelamento!
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -893,7 +894,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
               onClick={handleCancelInstallmentItem}
               className="bg-destructive hover:bg-destructive/90"
             >
-              Cancelar Parcela
+              Cancelar Todas as Parcelas
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
