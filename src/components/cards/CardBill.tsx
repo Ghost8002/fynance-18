@@ -431,7 +431,7 @@ export const CardBill = ({ cardId, onBillUpdate }: CardBillProps) => {
       </Card>
 
       {/* Botões de Ação */}
-      {billData && billData.remaining_amount > 0 && (
+      {billData && totalBillAmount > 0 && (
         <Card>
           <CardContent className="pt-6">
             <div className="flex gap-2 flex-wrap">
