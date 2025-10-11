@@ -379,14 +379,6 @@ NEWFILEUID:NONE
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setFile(null)}
-                className="flex items-center gap-2"
-              >
-                <X className="h-4 w-4" />
-                Remover Arquivo
-              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -422,14 +414,6 @@ NEWFILEUID:NONE
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-md font-medium text-foreground">Preview dos Dados</h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPreview(false)}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Ocultar
-              </Button>
             </div>
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full text-sm">

@@ -567,15 +567,6 @@ const SimpleXLSXImporter: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Seleção da conta */}
-        <AccountSelector
-          accounts={accounts || []}
-          selectedAccountId={selectedAccountId}
-          onSelect={setSelectedAccountId}
-          disabled={isProcessing}
-          colorScheme="blue"
-        />
-
         {/* Upload do arquivo */}
         <div className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${isDragOver ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' : 'border-border hover:border-blue-500/50'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => document.getElementById('file-input')?.click()}>
           <input type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" id="file-input" />
@@ -590,10 +581,6 @@ const SimpleXLSXImporter: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <Button variant="outline" onClick={() => setFile(null)} className="flex items-center gap-2">
-                <X className="h-4 w-4" />
-                Remover Arquivo
-              </Button>
             </div> : <div className="space-y-4">
               <div className="flex justify-center">
                 <div className={`p-4 rounded-full transition-colors duration-300 ${isDragOver ? 'bg-blue-500/10 dark:bg-blue-500/20' : 'bg-muted/50 dark:bg-muted'}`}>
@@ -611,6 +598,15 @@ const SimpleXLSXImporter: React.FC = () => {
             </div>}
         </div>
 
+        {/* Seleção da conta */}
+        <AccountSelector
+          accounts={accounts || []}
+          selectedAccountId={selectedAccountId}
+          onSelect={setSelectedAccountId}
+          disabled={isProcessing}
+          colorScheme="blue"
+        />
+
         {/* Pré-visualização */}
         {showPreview && previewData.length > 0 && <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -618,10 +614,6 @@ const SimpleXLSXImporter: React.FC = () => {
                 <Eye className="h-4 w-4" />
                 Pré-visualização dos Dados ({previewData.length} linhas)
               </h4>
-              <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
-                <X className="h-4 w-4 mr-2" />
-                Ocultar
-              </Button>
             </div>
             <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
               <table className="w-full text-sm">
