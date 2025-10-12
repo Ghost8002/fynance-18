@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useSupabaseData } from './useSupabaseData';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { getRandomColor } from '@/utils/colorGenerator';
 
 interface ValidationItem {
   name: string;
@@ -106,7 +107,7 @@ export const useCategoryTagValidation = () => {
             const categoryData = {
               name: item.name,
               type: 'expense', // Padrão para categorias importadas
-              color: '#6B7280', // Cor padrão
+              color: getRandomColor(), // Cor aleatória
               user_id: user?.id
             };
             
@@ -122,7 +123,7 @@ export const useCategoryTagValidation = () => {
           } else if (item.type === 'tag') {
             const tagData = {
               name: item.name,
-              color: '#6B7280', // Cor padrão
+              color: getRandomColor(), // Cor aleatória
               user_id: user?.id
             };
             

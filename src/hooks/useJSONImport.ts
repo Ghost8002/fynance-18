@@ -114,13 +114,14 @@ export const useJSONImport = () => {
       }
 
       // Criar nova tag
-      const defaultColor = "#8884d8";
+      const { getRandomColor } = await import('@/utils/colorGenerator');
+      const randomColor = getRandomColor();
       const { data, error } = await supabase
         .from("tags")
         .insert([{ 
           user_id: user.id, 
           name: tagName.trim(), // Manter capitalização original
-          color: defaultColor, 
+          color: randomColor,
           is_active: true 
         }])
         .select()

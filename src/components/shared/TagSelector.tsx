@@ -61,10 +61,11 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
     }
 
     try {
-      const defaultColor = "#8884d8";
+      const { getRandomColor } = await import('@/utils/colorGenerator');
+      const randomColor = getRandomColor();
       const { data, error } = await supabase
         .from("tags")
-        .insert([{ user_id: user.id, name: trimmed, color: defaultColor, is_active: true }])
+        .insert([{ user_id: user.id, name: trimmed, color: randomColor, is_active: true }])
         .select()
         .limit(1);
 
