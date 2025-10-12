@@ -3,14 +3,15 @@ import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Loader2 } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Loader2, Check, X } from "lucide-react";
 import { parseLocalDate } from "@/utils/dateValidation";
 import TransactionEditForm from "./TransactionEditForm";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import CategorySelector from "@/components/shared/CategorySelector";
-import TagSelector from "@/components/shared/TagSelector";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TransactionTableRowProps {
   transaction: any;
@@ -47,7 +48,10 @@ const TransactionTableRow = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [tagsPopoverOpen, setTagsPopoverOpen] = useState(false);
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [tagQuery, setTagQuery] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
@@ -73,6 +77,7 @@ const TransactionTableRow = ({
 
       await onUpdate(transaction.id, { category_id: categoryId });
       setCategoryPopoverOpen(false);
+      setCategoryQuery("");
       toast({
         title: "Categoria atualizada",
         description: "A categoria foi atualizada com sucesso.",
@@ -84,6 +89,34 @@ const TransactionTableRow = ({
         description: "Não foi possível atualizar a categoria.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleCreateCategory = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    if (!user?.id) {
+      toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert([{ user_id: user.id, name: trimmed, type: transaction.type }])
+        .select()
+        .limit(1);
+
+      if (error) throw error;
+      const newCat = data?.[0];
+      if (newCat) {
+        await handleCategoryChange(newCat.id);
+        toast({ title: "Categoria criada", description: `"${trimmed}" adicionada com sucesso.` });
+      }
+    } catch (err) {
+      console.error("Erro ao criar categoria:", err);
+      toast({ title: "Erro", description: "Não foi possível criar a categoria.", variant: "destructive" });
     }
   };
 
@@ -105,7 +138,6 @@ const TransactionTableRow = ({
       if (error) throw error;
 
       await onUpdate(transaction.id, { tags: tagsData || [] });
-      setTagsPopoverOpen(false);
       toast({
         title: "Tags atualizadas",
         description: "As tags foram atualizadas com sucesso.",
@@ -119,6 +151,81 @@ const TransactionTableRow = ({
       });
     }
   };
+
+  const handleCreateTag = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    if (!user?.id) {
+      toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const defaultColor = "#8884d8";
+      const { data, error } = await supabase
+        .from("tags")
+        .insert([{ user_id: user.id, name: trimmed, color: defaultColor, is_active: true }])
+        .select()
+        .limit(1);
+
+      if (error) throw error;
+      const newTag = data?.[0];
+      if (newTag) {
+        const currentTagIds = transaction.tags?.map((t: any) => t.id) || [];
+        await handleTagsChange([...currentTagIds, newTag.id]);
+        setTagQuery("");
+        toast({ title: "Tag criada", description: `"${trimmed}" adicionada com sucesso.` });
+      }
+    } catch (err) {
+      console.error("Erro ao criar tag:", err);
+      toast({ title: "Erro", description: "Não foi possível criar a tag.", variant: "destructive" });
+    }
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    const currentTagIds = transaction.tags?.map((t: any) => t.id) || [];
+    if (currentTagIds.includes(tagId)) {
+      handleTagsChange(currentTagIds.filter((id: string) => id !== tagId));
+    } else {
+      handleTagsChange([...currentTagIds, tagId]);
+    }
+  };
+
+  // Filter and sort categories
+  const filteredCategories = categories.filter((category) => 
+    category.type === transaction.type
+  ).sort((a, b) => {
+    if (a.is_default && !b.is_default) return -1;
+    if (!a.is_default && b.is_default) return 1;
+    const sortOrderA = a.sort_order || 0;
+    const sortOrderB = b.sort_order || 0;
+    if (sortOrderA !== sortOrderB) return sortOrderA - sortOrderB;
+    return a.name.localeCompare(b.name);
+  });
+
+  // Get active tags
+  const activeTags = categories.reduce((acc: any[], cat) => {
+    return acc;
+  }, []);
+
+  // Fetch tags for display
+  const [availableTags, setAvailableTags] = useState<any[]>([]);
+  
+  useState(() => {
+    const fetchTags = async () => {
+      if (user?.id) {
+        const { data } = await supabase
+          .from('tags')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('name');
+        if (data) setAvailableTags(data);
+      }
+    };
+    fetchTags();
+  });
 
   return (
     <>
@@ -153,13 +260,67 @@ const TransactionTableRow = ({
             </div>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
-            <CategorySelector
-              value={transaction.category_id || ""}
-              onChange={handleCategoryChange}
-              categories={categories}
-              type={transaction.type}
-              placeholder="Selecione uma categoria"
-            />
+            <Command
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const exists = filteredCategories.some(
+                    (c: any) => c.name.toLowerCase() === categoryQuery.trim().toLowerCase()
+                  );
+                  if (categoryQuery.trim() && !exists) {
+                    handleCreateCategory(categoryQuery);
+                  }
+                }
+              }}
+            >
+              <CommandInput
+                placeholder="Buscar ou criar categoria..."
+                value={categoryQuery}
+                onValueChange={setCategoryQuery}
+              />
+              <CommandList>
+                <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+
+                {categoryQuery.trim() &&
+                  !filteredCategories.some(
+                    (c: any) => c.name.toLowerCase() === categoryQuery.trim().toLowerCase()
+                  ) && (
+                    <CommandGroup>
+                      <CommandItem
+                        value={`__create_${categoryQuery}`}
+                        onSelect={() => handleCreateCategory(categoryQuery)}
+                        className="cursor-pointer"
+                      >
+                        Criar "{categoryQuery.trim()}"
+                      </CommandItem>
+                    </CommandGroup>
+                  )}
+
+                {filteredCategories.length > 0 && (
+                  <CommandGroup>
+                    {filteredCategories.map((category: any) => (
+                      <CommandItem
+                        key={category.id}
+                        value={category.name}
+                        onSelect={() => handleCategoryChange(category.id)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span>{category.name}</span>
+                          {category.is_default && (
+                            <span className="text-xs text-muted-foreground">(Padrão)</span>
+                          )}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
           </PopoverContent>
         </Popover>
       </TableCell>
@@ -187,11 +348,71 @@ const TransactionTableRow = ({
               )}
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-4" align="start">
-            <TagSelector
-              selectedTags={transaction.tags?.map((t: any) => t.id) || []}
-              onTagsChange={handleTagsChange}
-            />
+          <PopoverContent className="w-80 p-0" align="start">
+            <Command
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const exists = availableTags.some(
+                    (t) => t.name.toLowerCase() === tagQuery.trim().toLowerCase()
+                  );
+                  if (tagQuery.trim() && !exists) {
+                    handleCreateTag(tagQuery);
+                  }
+                }
+              }}
+            >
+              <CommandInput
+                placeholder="Buscar ou criar tag..."
+                value={tagQuery}
+                onValueChange={setTagQuery}
+              />
+              <CommandList>
+                <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+
+                {tagQuery.trim() &&
+                  !availableTags.some(
+                    (t) => t.name.toLowerCase() === tagQuery.trim().toLowerCase()
+                  ) && (
+                    <CommandGroup>
+                      <CommandItem
+                        value={`__create_${tagQuery}`}
+                        onSelect={() => handleCreateTag(tagQuery)}
+                        className="cursor-pointer"
+                      >
+                        Criar "{tagQuery.trim()}"
+                      </CommandItem>
+                    </CommandGroup>
+                  )}
+
+                {availableTags.length > 0 && (
+                  <CommandGroup>
+                    {availableTags.map((tag) => (
+                      <CommandItem
+                        key={tag.id}
+                        value={tag.name}
+                        onSelect={() => handleTagToggle(tag.id)}
+                        className="cursor-pointer"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            transaction.tags?.some((t: any) => t.id === tag.id) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          {tag.name}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
           </PopoverContent>
         </Popover>
       </TableCell>
