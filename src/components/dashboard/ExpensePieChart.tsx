@@ -59,7 +59,7 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
           color: categoryMap[categoryId].color,
         };
       }
-      acc[categoryName].value += Number(transaction.amount);
+      acc[categoryName].value += Math.abs(Number(transaction.amount));
     } else {
       // Handle transactions without category
       if (!acc['Sem categoria']) {
@@ -69,7 +69,7 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
           color: '#9CA3AF',
         };
       }
-      acc['Sem categoria'].value += Number(transaction.amount);
+      acc['Sem categoria'].value += Math.abs(Number(transaction.amount));
     }
     return acc;
   }, {} as Record<string, CategoryData>);
