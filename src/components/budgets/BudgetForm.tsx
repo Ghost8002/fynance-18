@@ -19,7 +19,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import CategorySelector from "@/components/shared/CategorySelector";
 import { dateToLocalDateString } from "@/utils/dateValidation";
-import TagSelector from "@/components/shared/TagSelector";
+import { TagSelector } from "@/components/shared/TagSelector";
 
 const BudgetForm = () => {
   const [isOpen, setIsOpen] = useState(false);

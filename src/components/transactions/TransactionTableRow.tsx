@@ -6,12 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Loader2 } from "lucide-react";
 import { parseLocalDate } from "@/utils/dateValidation";
 import TransactionEditForm from "./TransactionEditForm";
+import CategorySelector from "@/components/shared/CategorySelector";
+import { TagSelector } from "@/components/shared/TagSelector";
+import { useTags, Tag } from "@/hooks/useTags";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TransactionTableRowProps {
   transaction: any;
   categoryMap: Record<string, any>;
   accountMap: Record<string, string>;
   cardMap: Record<string, string>;
+  categories: any[];
   onUpdate: (id: string, data: any) => Promise<{ error?: string }>;
   onDelete: (id: string) => Promise<{ error?: string }>;
 }
@@ -32,12 +38,16 @@ const TransactionTableRow = ({
   transaction, 
   categoryMap, 
   accountMap, 
-  cardMap, 
+  cardMap,
+  categories,
   onUpdate, 
   onDelete 
 }: TransactionTableRowProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingField, setUpdatingField] = useState<string | null>(null);
+  const { tags: allTags, fetchTags } = useTags();
+  const { toast } = useToast();
 
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
@@ -52,6 +62,75 @@ const TransactionTableRow = ({
     }
   };
 
+  const handleCategoryChange = async (categoryId: string | null) => {
+    setUpdatingField('category');
+    try {
+      const result = await onUpdate(transaction.id, { category_id: categoryId });
+      if (result.error) {
+        toast({
+          title: "Erro",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sucesso",
+          description: "Categoria atualizada!",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a categoria.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingField(null);
+    }
+  };
+
+  const handleTagsChange = async (selectedTags: Tag[]) => {
+    setUpdatingField('tags');
+    try {
+      // Convert tags to JSON-compatible format
+      const tagsJson = selectedTags.map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        color: tag.color,
+        user_id: tag.user_id,
+        is_active: tag.is_active,
+        created_at: tag.created_at,
+        updated_at: tag.updated_at
+      }));
+
+      // Update transaction with new tags
+      const { error } = await supabase
+        .from('transactions')
+        .update({ tags: tagsJson })
+        .eq('id', transaction.id);
+
+      if (error) throw error;
+
+      // Trigger refetch
+      window.dispatchEvent(new CustomEvent('transactionWithTagsAdded'));
+      
+      toast({
+        title: "Sucesso",
+        description: "Tags atualizadas!",
+      });
+    } catch (error) {
+      console.error("Error updating tags:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar as tags.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingField(null);
+    }
+  };
+
   return (
     <>
       <TableRow>
@@ -62,45 +141,25 @@ const TransactionTableRow = ({
         <TableCell className={transaction.type === "income" ? "text-green-600" : "text-red-600"}>
           {formatCurrency(Number(transaction.amount))}
         </TableCell>
-      <TableCell>
-        {transaction.category_id && categoryMap[transaction.category_id] ? (
-          <Badge 
-            variant="outline"
-            style={{ 
-              backgroundColor: `${categoryMap[transaction.category_id].color}20`, 
-              borderColor: categoryMap[transaction.category_id].color,
-              color: categoryMap[transaction.category_id].color
-            }}
-          >
-            {categoryMap[transaction.category_id].name}
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="text-muted-foreground">
-            Sem categoria
-          </Badge>
-        )}
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <CategorySelector
+          value={transaction.category_id || ""}
+          onChange={handleCategoryChange}
+          categories={categories}
+          type={transaction.type}
+          placeholder="Selecionar categoria..."
+          className="w-full min-w-[150px]"
+        />
       </TableCell>
-      <TableCell>
-        <div className="flex flex-wrap gap-1">
-          {transaction.tags && transaction.tags.length > 0 ? (
-            transaction.tags.map((tag: any) => (
-              <Badge
-                key={tag.id}
-                variant="outline"
-                className="text-xs"
-                style={{
-                  backgroundColor: `${tag.color}20`,
-                  borderColor: tag.color,
-                  color: tag.color
-                }}
-              >
-                {tag.name}
-              </Badge>
-            ))
-          ) : (
-            <span className="text-xs text-muted-foreground">Sem tags</span>
-          )}
-        </div>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <TagSelector
+          value={transaction.tags || []}
+          onChange={handleTagsChange}
+          allTags={allTags}
+          onTagCreated={fetchTags}
+          placeholder="Selecionar tags..."
+          className="w-full min-w-[150px]"
+        />
       </TableCell>
       <TableCell>
         {transaction.account_id 

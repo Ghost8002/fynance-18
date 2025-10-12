@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
-import TagSelector from "@/components/shared/TagSelector";
+import { TagSelector } from "@/components/shared/TagSelector";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";

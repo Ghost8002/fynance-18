@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Plus } from "lucide-react";
-import TagSelector from "@/components/shared/TagSelector";
+import { TagSelector } from "@/components/shared/TagSelector";
 import BankSelector from "@/components/shared/BankSelector";
 import BankLogo from "@/components/shared/BankLogo";
 import { getBankById } from "@/utils/banks/bankDatabase";

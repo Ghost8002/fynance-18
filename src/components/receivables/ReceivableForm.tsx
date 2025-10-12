@@ -18,7 +18,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
  
-import TagSelector from "@/components/shared/TagSelector";
+import { TagSelector } from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
 
 interface Receivable {

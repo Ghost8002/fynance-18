@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
-import TagSelector from "@/components/shared/TagSelector";
+import { TagSelector } from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
 interface TransactionEditFormProps {
   transaction: {
