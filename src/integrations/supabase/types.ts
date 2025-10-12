@@ -1038,6 +1038,10 @@ export type Database = {
         }
         Returns: Json
       }
+      remove_tag_from_transactions: {
+        Args: { p_tag_id: string }
+        Returns: undefined
+      }
       sync_card_debts: {
         Args: Record<PropertyKey, never>
         Returns: Json
