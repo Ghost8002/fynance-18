@@ -15,7 +15,8 @@ import {
   Info,
   Database,
   FileJson,
-  Eye
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 import { useJSONImport } from '@/hooks/useJSONImport';
 import { ImportedTransaction } from '@/hooks/useImport';
@@ -283,6 +284,25 @@ const SimpleJSONImportComponent: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Botão para abrir o ChatGPT */}
+        <Alert className="border-primary/20 bg-primary/5">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-sm">
+              Use o ChatGPT para gerar o arquivo JSON com suas transações
+            </span>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => window.open('https://chatgpt.com/g/g-68eaee304bfc8191a2cacfcc6374e2aa-fynance-ia', '_blank')}
+              className="ml-4 gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Abrir Chat
+            </Button>
+          </AlertDescription>
+        </Alert>
+
         {/* Área de upload */}
         <div
           className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
