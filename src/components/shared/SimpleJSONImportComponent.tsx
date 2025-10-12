@@ -297,13 +297,17 @@ const SimpleJSONImportComponent: React.FC = () => {
             <Button
               variant="default"
               size="sm"
-              onClick={() =>
-                window.open("https://chatgpt.com/g/g-68eaee304bfc8191a2cacfcc6374e2aa-fynance-ia", "_blank")
-              }
               className="ml-4 gap-2"
+              asChild
             >
-              <MessageSquare className="h-4 w-4" />
-              Abrir Chat
+              <a
+                href="https://chatgpt.com/g/g-68eaee304bfc8191a2cacfcc6374e2aa-fynance-ia"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Abrir Chat
+              </a>
             </Button>
           </AlertDescription>
         </Alert>
