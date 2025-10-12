@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseData } from './useSupabaseData';
 import { useBalanceUpdates } from './useBalanceUpdates';
 import { ImportedTransaction, ImportResult } from './useImport';
@@ -17,6 +18,7 @@ export const useJSONImport = () => {
   
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: existingCategories } = useSupabaseData('categories', user?.id);
+  const { data: existingTags } = useSupabaseData('tags', user?.id);
   const { insert: insertTransaction } = useSupabaseData('transactions', user?.id);
   const { updateAccountBalance } = useBalanceUpdates();
 
@@ -94,6 +96,48 @@ export const useJSONImport = () => {
     }
   }, []);
 
+  // Função para criar ou buscar tag
+  const getOrCreateTag = useCallback(async (tagName: string): Promise<string | null> => {
+    if (!user?.id || !tagName || typeof tagName !== 'string') return null;
+
+    const normalizedName = tagName.trim().toLowerCase();
+    if (!normalizedName) return null;
+
+    try {
+      // Verificar se a tag já existe (case-insensitive)
+      const existingTag = existingTags?.find(
+        tag => tag.name.toLowerCase() === normalizedName && tag.is_active
+      );
+
+      if (existingTag) {
+        return existingTag.id;
+      }
+
+      // Criar nova tag
+      const defaultColor = "#8884d8";
+      const { data, error } = await supabase
+        .from("tags")
+        .insert([{ 
+          user_id: user.id, 
+          name: tagName.trim(), // Manter capitalização original
+          color: defaultColor, 
+          is_active: true 
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao criar tag:', error);
+        return null;
+      }
+
+      return data?.id || null;
+    } catch (error) {
+      console.error('Erro ao criar/buscar tag:', error);
+      return null;
+    }
+  }, [user?.id, existingTags]);
+
   // Função para importar transações
   const importTransactions = useCallback(async (
     transactions: ImportedTransaction[], 
@@ -122,6 +166,32 @@ export const useJSONImport = () => {
             categoryId = categoryMapping.get(transaction.category.toLowerCase());
           }
 
+          // Processar tags: criar se não existirem
+          const tagIds: string[] = [];
+          if (transaction.tags && Array.isArray(transaction.tags)) {
+            for (const tagName of transaction.tags) {
+              if (typeof tagName === 'string' && tagName.trim()) {
+                const tagId = await getOrCreateTag(tagName.trim());
+                if (tagId) {
+                  tagIds.push(tagId);
+                }
+              }
+            }
+          }
+
+          // Buscar dados completos das tags para salvar no JSONB
+          let tagsData: any[] = [];
+          if (tagIds.length > 0) {
+            const { data: fetchedTags, error: tagsError } = await supabase
+              .from('tags')
+              .select('*')
+              .in('id', tagIds);
+
+            if (!tagsError && fetchedTags) {
+              tagsData = fetchedTags;
+            }
+          }
+
           // Inserir transação
           const { error } = await insertTransaction({
             user_id: user.id, // CRÍTICO: Necessário para RLS
@@ -131,7 +201,7 @@ export const useJSONImport = () => {
             type: transaction.type,
             category_id: categoryId,
             account_id: accountId,
-            tags: transaction.tags || []
+            tags: tagsData
           });
 
           if (error) {
@@ -169,7 +239,7 @@ export const useJSONImport = () => {
     } finally {
       setImporting(false);
     }
-  }, [user, insertTransaction, updateAccountBalance]);
+  }, [user, insertTransaction, updateAccountBalance, getOrCreateTag]);
 
   // Função principal de importação
   const importFile = useCallback(async (
