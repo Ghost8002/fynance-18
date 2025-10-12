@@ -19,13 +19,21 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Tag } from "@/hooks/useTags";
+import { Tag, useTags } from "@/hooks/useTags";
 
+// Interface para suportar ambos os modos: com Tag objects ou com string IDs
 interface TagSelectorProps {
-  value: Tag[];
-  onChange: (tags: Tag[]) => void;
-  allTags: Tag[];
+  // New interface (with Tag objects)
+  value?: Tag[];
+  onChange?: (tags: Tag[]) => void;
+  allTags?: Tag[];
   onTagCreated?: () => void;
+  
+  // Old interface (with string IDs) - mantido para compatibilidade
+  selectedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
+  
+  // Common props
   placeholder?: string;
   className?: string;
 }
@@ -38,21 +46,40 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export function TagSelector({
-  value,
-  onChange,
-  allTags,
-  onTagCreated,
-  placeholder = "Selecionar tags...",
-  className,
-}: TagSelectorProps) {
+export function TagSelector(props: TagSelectorProps) {
+  const {
+    // New interface props
+    value: valueFromProps,
+    onChange: onChangeFromProps,
+    allTags: allTagsFromProps,
+    onTagCreated: onTagCreatedFromProps,
+    // Old interface props
+    selectedTags,
+    onTagsChange,
+    // Common props
+    placeholder = "Selecionar tags...",
+    className,
+  } = props;
+
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
-
+  
+  // Buscar tags se não foram fornecidas (modo antigo)
+  const { tags: fetchedTags, fetchTags } = useTags();
+  
+  // Determinar qual modo estamos usando
+  const isNewMode = valueFromProps !== undefined && onChangeFromProps !== undefined;
+  const allTags = isNewMode ? (allTagsFromProps || []) : fetchedTags;
   const activeTags = allTags.filter(tag => tag.is_active);
-  const selectedTagIds = value.map(t => t.id);
+  
+  // Converter entre formatos
+  const selectedTagObjects: Tag[] = isNewMode 
+    ? valueFromProps 
+    : activeTags.filter(tag => selectedTags?.includes(tag.id));
+  
+  const selectedTagIds = selectedTagObjects.map(t => t.id);
 
   const handleCreateTag = async (name: string) => {
     if (!user?.id) return;
@@ -71,9 +98,16 @@ export function TagSelector({
 
       if (error) throw error;
 
-      const newTags = [...value, data];
-      onChange(newTags);
-      onTagCreated?.();
+      if (isNewMode) {
+        const newTags = [...selectedTagObjects, data];
+        onChangeFromProps(newTags);
+        onTagCreatedFromProps?.();
+      } else {
+        const newTagIds = [...(selectedTags || []), data.id];
+        onTagsChange?.(newTagIds);
+        fetchTags();
+      }
+      
       setSearchQuery("");
       
       toast({
@@ -92,10 +126,19 @@ export function TagSelector({
 
   const toggleTag = (tag: Tag) => {
     const isSelected = selectedTagIds.includes(tag.id);
-    if (isSelected) {
-      onChange(value.filter(t => t.id !== tag.id));
+    
+    if (isNewMode) {
+      if (isSelected) {
+        onChangeFromProps(selectedTagObjects.filter(t => t.id !== tag.id));
+      } else {
+        onChangeFromProps([...selectedTagObjects, tag]);
+      }
     } else {
-      onChange([...value, tag]);
+      if (isSelected) {
+        onTagsChange?.((selectedTags || []).filter(id => id !== tag.id));
+      } else {
+        onTagsChange?.([...(selectedTags || []), tag.id]);
+      }
     }
   };
 
@@ -124,9 +167,9 @@ export function TagSelector({
           aria-expanded={open}
           className={cn("justify-between", className)}
         >
-          {value.length > 0 ? (
+          {selectedTagObjects.length > 0 ? (
             <div className="flex flex-wrap gap-1">
-              {value.map(tag => (
+              {selectedTagObjects.map(tag => (
                 <Badge
                   key={tag.id}
                   variant="outline"
