@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Upload,
   FileText,
@@ -18,7 +17,6 @@ import {
   FileJson,
   Eye,
   MessageSquare,
-  Plus,
 } from "lucide-react";
 import { useJSONImport } from "@/hooks/useJSONImport";
 import { ImportedTransaction } from "@/hooks/useImport";
@@ -28,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const SimpleJSONImportComponent: React.FC = () => {
-  const { importing, progress, result, accounts, categories, importFile, reset, detectMissingCategories, processJSON } = useJSONImport();
+  const { importing, progress, result, accounts, categories, importFile, reset, processJSON } = useJSONImport();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -37,9 +35,6 @@ const SimpleJSONImportComponent: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<ImportedTransaction[]>([]);
-  const [missingCategories, setMissingCategories] = useState<string[]>([]);
-  const [selectedCategoriesToCreate, setSelectedCategoriesToCreate] = useState<Set<string>>(new Set());
-  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
 
   // Função para processar preview do arquivo JSON
   const handleFilePreview = useCallback(async (selectedFile: File) => {
@@ -128,33 +123,10 @@ const SimpleJSONImportComponent: React.FC = () => {
     if (!file || !selectedAccountId || !user) return;
 
     try {
-      // Processar arquivo e detectar categorias faltantes
+      // Processar arquivo
       const transactions = await processJSON(file);
-      const missing = detectMissingCategories(transactions);
-
-      if (missing.length > 0) {
-        setMissingCategories(missing);
-        setSelectedCategoriesToCreate(new Set(missing)); // Todas selecionadas por padrão
-        setShowCategoryDialog(true);
-      } else {
-        // Se não há categorias faltantes, importar diretamente
-        await importFile(file, selectedAccountId);
-      }
-    } catch (error) {
-      console.error("Erro na importação JSON:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao processar arquivo JSON",
-        variant: "destructive"
-      });
-    }
-  }, [file, selectedAccountId, user, processJSON, detectMissingCategories, importFile, toast]);
-
-  const handleConfirmImport = useCallback(async () => {
-    if (!file || !selectedAccountId || !user) return;
-
-    try {
-      // Criar categorias selecionadas
+      
+      // Criar mapeamento de categorias
       const categoryMapping = new Map<string, string>();
       
       // Mapear categorias existentes
@@ -164,15 +136,28 @@ const SimpleJSONImportComponent: React.FC = () => {
         });
       }
 
-      // Criar novas categorias
-      for (const categoryName of selectedCategoriesToCreate) {
-        // Verificar se já existe (evitar duplicatas)
+      // Detectar e criar categorias faltantes automaticamente
+      const uniqueCategories = new Set<string>();
+      transactions.forEach(transaction => {
+        if (transaction.category) {
+          const categoryNameLower = transaction.category.toLowerCase();
+          if (!categoryMapping.has(categoryNameLower)) {
+            uniqueCategories.add(transaction.category);
+          }
+        }
+      });
+
+      // Criar categorias faltantes sem perguntar
+      for (const categoryName of uniqueCategories) {
+        const categoryNameLower = categoryName.toLowerCase();
+        
+        // Verificar duplicata novamente (caso tenha sido criada entre a verificação)
         const existingCategory = categories?.find(
-          cat => cat.name.toLowerCase() === categoryName.toLowerCase()
+          cat => cat.name.toLowerCase() === categoryNameLower
         );
 
         if (existingCategory) {
-          categoryMapping.set(categoryName.toLowerCase(), existingCategory.id);
+          categoryMapping.set(categoryNameLower, existingCategory.id);
         } else {
           // Criar nova categoria
           const { data, error } = await supabase
@@ -188,47 +173,23 @@ const SimpleJSONImportComponent: React.FC = () => {
 
           if (error) {
             console.error('Erro ao criar categoria:', error);
-            toast({
-              title: "Erro",
-              description: `Erro ao criar categoria "${categoryName}"`,
-              variant: "destructive"
-            });
           } else if (data) {
-            categoryMapping.set(categoryName.toLowerCase(), data.id);
-            toast({
-              title: "Categoria criada",
-              description: `Categoria "${categoryName}" criada com sucesso`,
-            });
+            categoryMapping.set(categoryNameLower, data.id);
           }
         }
       }
 
-      // Fechar diálogo
-      setShowCategoryDialog(false);
-
       // Importar com o mapeamento de categorias
       await importFile(file, selectedAccountId, categoryMapping);
     } catch (error) {
-      console.error("Erro ao criar categorias:", error);
+      console.error("Erro na importação JSON:", error);
       toast({
         title: "Erro",
-        description: "Erro ao criar categorias",
+        description: "Erro ao processar arquivo JSON",
         variant: "destructive"
       });
     }
-  }, [file, selectedAccountId, user, categories, selectedCategoriesToCreate, importFile, toast]);
-
-  const toggleCategorySelection = useCallback((categoryName: string) => {
-    setSelectedCategoriesToCreate(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryName)) {
-        newSet.delete(categoryName);
-      } else {
-        newSet.add(categoryName);
-      }
-      return newSet;
-    });
-  }, []);
+  }, [file, selectedAccountId, user, categories, processJSON, importFile, toast]);
 
   const handleReset = useCallback(() => {
     setFile(null);
@@ -387,87 +348,14 @@ const SimpleJSONImportComponent: React.FC = () => {
   }
 
   return (
-    <>
-      {/* Diálogo de categorias faltantes */}
-      {showCategoryDialog && (
-        <Card className="w-full max-w-4xl mx-auto mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-600">
-              <AlertTriangle className="h-6 w-6" />
-              Categorias não encontradas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950/50">
-              <Info className="h-4 w-4 text-orange-600" />
-              <AlertDescription className="text-orange-700 dark:text-orange-300">
-                As seguintes categorias não existem no sistema. Selecione quais deseja criar:
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {missingCategories.map(categoryName => (
-                <div
-                  key={categoryName}
-                  className="flex items-center space-x-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                >
-                  <Checkbox
-                    id={`category-${categoryName}`}
-                    checked={selectedCategoriesToCreate.has(categoryName)}
-                    onCheckedChange={() => toggleCategorySelection(categoryName)}
-                  />
-                  <label
-                    htmlFor={`category-${categoryName}`}
-                    className="flex-1 text-sm font-medium cursor-pointer"
-                  >
-                    {categoryName}
-                  </label>
-                  <Badge variant="outline" className="text-xs">
-                    <Plus className="h-3 w-3 mr-1" />
-                    Nova
-                  </Badge>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                onClick={handleConfirmImport}
-                disabled={importing}
-                className="flex-1"
-              >
-                {importing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando e importando...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Criar {selectedCategoriesToCreate.size} e Importar
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowCategoryDialog(false)}
-                disabled={importing}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileJson className="h-6 w-6" />
-            Importar do Chat
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileJson className="h-6 w-6" />
+          Importar do Chat
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {/* Botão para abrir o ChatGPT */}
         <Alert className="border-primary/20 bg-primary/5">
           <Info className="h-4 w-4 text-primary" />
@@ -630,7 +518,6 @@ const SimpleJSONImportComponent: React.FC = () => {
         </div>
       </CardContent>
     </Card>
-    </>
   );
 };
 

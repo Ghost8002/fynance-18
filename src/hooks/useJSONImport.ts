@@ -171,25 +171,6 @@ export const useJSONImport = () => {
     }
   }, [user, insertTransaction, updateAccountBalance]);
 
-  // Função para detectar categorias faltantes
-  const detectMissingCategories = useCallback((transactions: ImportedTransaction[]): string[] => {
-    const uniqueCategories = new Set<string>();
-    const existingCategoryNames = new Set(
-      existingCategories?.map(cat => cat.name.toLowerCase()) || []
-    );
-
-    transactions.forEach(transaction => {
-      if (transaction.category) {
-        const categoryName = transaction.category.toLowerCase();
-        if (!existingCategoryNames.has(categoryName)) {
-          uniqueCategories.add(transaction.category);
-        }
-      }
-    });
-
-    return Array.from(uniqueCategories);
-  }, [existingCategories]);
-
   // Função principal de importação
   const importFile = useCallback(async (
     file: File, 
@@ -250,7 +231,6 @@ export const useJSONImport = () => {
     importFile,
     reset,
     fileValidation,
-    detectMissingCategories,
     processJSON,
     accountsCache: accountsCache.data,
     categoriesCache: categoriesCache.data,
