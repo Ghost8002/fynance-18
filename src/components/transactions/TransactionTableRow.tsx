@@ -119,9 +119,12 @@ const TransactionTableRow = ({
     }
 
     try {
+      const { getRandomColor } = await import('@/utils/colorGenerator');
+      const randomColor = getRandomColor();
+      
       const { data, error } = await supabase
         .from("categories")
-        .insert([{ user_id: user.id, name: trimmed, type: transaction.type }])
+        .insert([{ user_id: user.id, name: trimmed, type: transaction.type, color: randomColor }])
         .select()
         .limit(1);
 

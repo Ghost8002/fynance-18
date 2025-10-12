@@ -38,7 +38,7 @@ const CategorySettings = () => {
   const [newCategory, setNewCategory] = useState({
     name: '',
     type: 'expense' as 'income' | 'expense',
-    color: '#3B82F6'
+    color: ''
   });
   const [editingCategory, setEditingCategory] = useState({
     name: '',
@@ -65,10 +65,14 @@ const CategorySettings = () => {
       });
       return;
     }
+    
+    const { getRandomColor } = await import('@/utils/colorGenerator');
+    const categoryColor = newCategory.color || getRandomColor();
+    
     console.log('Criando categoria:', {
       name: newCategory.name.trim(),
       type: newCategory.type,
-      color: newCategory.color,
+      color: categoryColor,
       is_default: false,
       sort_order: 999,
       user_id: user.id
@@ -78,7 +82,7 @@ const CategorySettings = () => {
     } = await insert({
       name: newCategory.name.trim(),
       type: newCategory.type,
-      color: newCategory.color,
+      color: categoryColor,
       is_default: false,
       sort_order: 999,
       user_id: user.id
@@ -99,7 +103,7 @@ const CategorySettings = () => {
       setNewCategory({
         name: '',
         type: 'expense',
-        color: '#3B82F6'
+        color: ''
       });
       setShowAddForm(false);
     }

@@ -75,9 +75,12 @@ const CategorySelector = ({
     }
 
     try {
+      const { getRandomColor } = await import('@/utils/colorGenerator');
+      const randomColor = getRandomColor();
+      
       const { data, error } = await supabase
         .from("categories")
-        .insert([{ user_id: user.id, name: trimmed, type: type }])
+        .insert([{ user_id: user.id, name: trimmed, type: type, color: randomColor }])
         .select()
         .limit(1);
 

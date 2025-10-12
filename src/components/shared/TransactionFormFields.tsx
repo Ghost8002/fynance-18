@@ -83,9 +83,12 @@ const TransactionFormFields = ({
     }
 
     try {
+      const { getRandomColor } = await import('@/utils/colorGenerator');
+      const randomColor = getRandomColor();
+      
       const { data, error } = await supabase
         .from("categories")
-        .insert([{ user_id: user.id, name: trimmed, type: formData.type }])
+        .insert([{ user_id: user.id, name: trimmed, type: formData.type, color: randomColor }])
         .select()
         .limit(1);
 
