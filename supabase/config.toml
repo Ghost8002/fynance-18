@@ -1,4 +1,7 @@
 project_id = "vwactcwdsfkytqmsdkde"
 
+[functions.oauth-token]
+verify_jwt = false
+
 [functions.import-transactions]
 verify_jwt = true
