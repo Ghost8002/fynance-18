@@ -139,28 +139,44 @@ const TransactionTableRow = ({
 
   const handleTagsChange = async (tagIds: string[]) => {
     try {
+      console.log('handleTagsChange called with tagIds:', tagIds);
+      
       // Fetch tag details
       const { data: tagsData, error: tagsError } = await supabase
         .from('tags')
         .select('*')
         .in('id', tagIds);
 
-      if (tagsError) throw tagsError;
+      console.log('Tags fetched:', tagsData, 'Error:', tagsError);
 
-      const { error } = await supabase
+      if (tagsError) {
+        console.error('Error fetching tags:', tagsError);
+        throw tagsError;
+      }
+
+      const tagsToSave = tagsData || [];
+      console.log('Saving tags to transaction:', tagsToSave);
+
+      const { data: updateData, error: updateError } = await supabase
         .from('transactions')
-        .update({ tags: tagsData || [] })
-        .eq('id', transaction.id);
+        .update({ tags: tagsToSave })
+        .eq('id', transaction.id)
+        .select();
 
-      if (error) throw error;
+      console.log('Update result:', updateData, 'Error:', updateError);
 
-      await onUpdate(transaction.id, { tags: tagsData || [] });
+      if (updateError) {
+        console.error('Error updating transaction:', updateError);
+        throw updateError;
+      }
+
+      await onUpdate(transaction.id, { tags: tagsToSave });
       toast({
         title: "Tags atualizadas",
         description: "As tags foram atualizadas com sucesso.",
       });
     } catch (error) {
-      console.error('Error updating tags:', error);
+      console.error('Error in handleTagsChange:', error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar as tags.",
@@ -179,6 +195,7 @@ const TransactionTableRow = ({
     }
 
     try {
+      console.log('Creating new tag:', trimmed);
       const defaultColor = "#8884d8";
       const { data, error } = await supabase
         .from("tags")
@@ -186,10 +203,16 @@ const TransactionTableRow = ({
         .select()
         .limit(1);
 
+      console.log('Tag created:', data, 'Error:', error);
+
       if (error) throw error;
       const newTag = data?.[0];
       if (newTag) {
+        // Update available tags list
+        setAvailableTags(prev => [...prev, newTag]);
+        
         const currentTagIds = transaction.tags?.map((t: any) => t.id) || [];
+        console.log('Current tag IDs:', currentTagIds);
         await handleTagsChange([...currentTagIds, newTag.id]);
         setTagQuery("");
         toast({ title: "Tag criada", description: `"${trimmed}" adicionada com sucesso.` });
@@ -201,10 +224,15 @@ const TransactionTableRow = ({
   };
 
   const handleTagToggle = (tagId: string) => {
+    console.log('Toggling tag:', tagId);
     const currentTagIds = transaction.tags?.map((t: any) => t.id) || [];
+    console.log('Current tags:', currentTagIds);
+    
     if (currentTagIds.includes(tagId)) {
+      console.log('Removing tag');
       handleTagsChange(currentTagIds.filter((id: string) => id !== tagId));
     } else {
+      console.log('Adding tag');
       handleTagsChange([...currentTagIds, tagId]);
     }
   };
