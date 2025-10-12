@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,8 +50,25 @@ const TransactionTableRow = ({
   const [tagsPopoverOpen, setTagsPopoverOpen] = useState(false);
   const [categoryQuery, setCategoryQuery] = useState("");
   const [tagQuery, setTagQuery] = useState("");
+  const [availableTags, setAvailableTags] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Fetch available tags
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (user?.id) {
+        const { data } = await supabase
+          .from('tags')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .order('name');
+        if (data) setAvailableTags(data);
+      }
+    };
+    fetchTags();
+  }, [user?.id]);
 
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
@@ -202,29 +219,6 @@ const TransactionTableRow = ({
     const sortOrderB = b.sort_order || 0;
     if (sortOrderA !== sortOrderB) return sortOrderA - sortOrderB;
     return a.name.localeCompare(b.name);
-  });
-
-  // Get active tags
-  const activeTags = categories.reduce((acc: any[], cat) => {
-    return acc;
-  }, []);
-
-  // Fetch tags for display
-  const [availableTags, setAvailableTags] = useState<any[]>([]);
-  
-  useState(() => {
-    const fetchTags = async () => {
-      if (user?.id) {
-        const { data } = await supabase
-          .from('tags')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_active', true)
-          .order('name');
-        if (data) setAvailableTags(data);
-      }
-    };
-    fetchTags();
   });
 
   return (
