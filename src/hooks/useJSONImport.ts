@@ -124,6 +124,7 @@ export const useJSONImport = () => {
 
           // Inserir transação
           const { error } = await insertTransaction({
+            user_id: user.id, // CRÍTICO: Necessário para RLS
             date: transaction.date,
             description: transaction.description,
             amount: transaction.type === 'expense' ? -transaction.amount : transaction.amount,
