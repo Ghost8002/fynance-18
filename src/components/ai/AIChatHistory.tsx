@@ -1,4 +1,5 @@
 
+import { useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Bot, User, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/hooks/ai/types';
@@ -10,6 +11,13 @@ interface AIChatHistoryProps {
 }
 
 const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
+  const endOfMessagesRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll para a última mensagem
+  useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory, loading]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-4">
       {chatHistory.map((chat) => (
@@ -75,7 +83,10 @@ const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
           </div>
         </div>
       ))}
-      
+
+      {/* Marcador de fim das mensagens para auto-scroll */}
+      <div ref={endOfMessagesRef} />
+
       {loading && (
         <div className="flex items-start gap-4">
           <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm flex-shrink-0 mt-1">

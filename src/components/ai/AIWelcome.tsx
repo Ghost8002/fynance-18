@@ -13,15 +13,51 @@ const AIWelcome = ({ loading, onQuestionSelect }: AIWelcomeProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const suggestedQuestions = [
-    "Como estão meus gastos este mês?",
-    "Qual minha categoria de maior gasto?",
-    "Como posso economizar mais dinheiro?",
-    "Estou progredindo bem nas minhas metas?"
+    {
+      question: "Como estão meus gastos este mês?",
+      icon: "📊",
+      category: "Análise"
+    },
+    {
+      question: "Estou gastando demais em alguma categoria?",
+      icon: "⚠️",
+      category: "Análise"
+    },
+    {
+      question: "Quanto preciso economizar para atingir minhas metas?",
+      icon: "🎯",
+      category: "Metas"
+    },
+    {
+      question: "Quais são minhas maiores despesas recorrentes?",
+      icon: "🔄",
+      category: "Despesas"
+    },
+    {
+      question: "Como posso melhorar minha taxa de poupança?",
+      icon: "💰",
+      category: "Economia"
+    },
+    {
+      question: "Sugira um orçamento ideal baseado nos meus gastos",
+      icon: "📈",
+      category: "Planejamento"
+    }
   ];
 
   const crudCommands = [
-    "Mude a categoria das transações que contém 'uber' para Transporte",
-    "Mostre todas as transações de alimentação deste mês"
+    {
+      command: "Altere todas as transações do Uber para categoria Transporte",
+      icon: "✏️"
+    },
+    {
+      command: "Crie uma categoria nova chamada Investimentos",
+      icon: "➕"
+    },
+    {
+      command: "Exclua transações duplicadas do mês passado",
+      icon: "🗑️"
+    }
   ];
 
   return (
@@ -62,22 +98,27 @@ const AIWelcome = ({ loading, onQuestionSelect }: AIWelcomeProps) => {
           <CollapsibleContent className="space-y-6">
             {/* Suggested Questions */}
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-center mb-6">
-                Perguntas gerais:
+              <h4 className="text-lg font-semibold text-center mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Perguntas Sugeridas
               </h4>
               <div className="grid gap-3 sm:grid-cols-2">
-                {suggestedQuestions.map((question, index) => (
+                {suggestedQuestions.map((item, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="lg"
-                    className="justify-start text-left h-auto py-4 px-4 hover:shadow-md hover:border-primary/50 transition-all duration-200 bg-card/50 backdrop-blur-sm"
-                    onClick={() => onQuestionSelect(question)}
+                    className="justify-start text-left h-auto py-4 px-4 hover:shadow-lg hover:border-primary/50 hover:scale-105 transition-all duration-200 bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-sm group"
+                    onClick={() => onQuestionSelect(item.question)}
                     disabled={loading}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-primary"></div>
-                      <span className="text-sm leading-relaxed">{question}</span>
+                    <div className="flex items-start gap-3 w-full">
+                      <span className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                        {item.icon}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm leading-relaxed block">{item.question}</span>
+                        <span className="text-xs text-muted-foreground mt-1 block">{item.category}</span>
+                      </div>
                     </div>
                   </Button>
                 ))}
@@ -86,22 +127,25 @@ const AIWelcome = ({ loading, onQuestionSelect }: AIWelcomeProps) => {
 
             {/* CRUD Commands Section */}
             <div className="space-y-4 pt-6 border-t border-border/50">
-              <h4 className="text-lg font-semibold text-center mb-4 text-green-600">
-                Comandos para alterar dados:
+              <h4 className="text-lg font-semibold text-center mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                Comandos Avançados
               </h4>
-              <div className="grid gap-2">
-                {crudCommands.map((command, index) => (
+              <p className="text-center text-sm text-muted-foreground mb-4">
+                O assistente pode modificar seus dados com linguagem natural
+              </p>
+              <div className="grid gap-3">
+                {crudCommands.map((item, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     size="sm"
-                    className="justify-start text-left h-auto py-3 px-3 hover:shadow-md hover:border-green-500/50 transition-all duration-200 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200/50 dark:border-green-800/50"
-                    onClick={() => onQuestionSelect(command)}
+                    className="justify-start text-left h-auto py-3 px-4 hover:shadow-lg hover:border-green-500/50 hover:scale-105 transition-all duration-200 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200/50 dark:border-green-800/50 group"
+                    onClick={() => onQuestionSelect(item.command)}
                     disabled={loading}
                   >
-                    <div className="flex items-start gap-2">
-                      <div className="h-3 w-3 bg-green-600 rounded-full mt-1 flex-shrink-0" />
-                      <span className="text-xs leading-relaxed text-green-700 dark:text-green-300">{command}</span>
+                    <div className="flex items-start gap-3 w-full">
+                      <span className="text-xl flex-shrink-0 group-hover:scale-110 transition-transform">{item.icon}</span>
+                      <span className="text-sm leading-relaxed text-green-700 dark:text-green-300 flex-1">{item.command}</span>
                     </div>
                   </Button>
                 ))}
