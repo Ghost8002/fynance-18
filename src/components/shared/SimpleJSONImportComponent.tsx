@@ -301,7 +301,7 @@ const SimpleJSONImportComponent: React.FC = () => {
               asChild
             >
               <a
-                href="https://chatgpt.com/g/g-68eaee304bfc8191a2cacfcc6374e2aa-fynance-ia"
+                href="https://chat.openai.com/g/g-68eaee304bfc8191a2cacfcc6374e2aa-fynance-ia"
                 target="_blank"
                 rel="noopener noreferrer"
               >
