@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +10,6 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import TagSelector from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
-
 interface TransactionEditFormProps {
   transaction: {
     id: string;
@@ -35,8 +27,12 @@ interface TransactionEditFormProps {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: TransactionEditFormProps) => {
+const TransactionEditForm = ({
+  transaction,
+  isOpen,
+  onClose,
+  onSuccess
+}: TransactionEditFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: 'expense' as 'income' | 'expense',
@@ -49,15 +45,27 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
     notes: '',
     tags: [] as string[]
   });
-
-  const { user } = useSupabaseAuth();
-  const { update } = useSupabaseData('transactions', user?.id);
-  const { data: categories = [] } = useSupabaseData('categories', user?.id);
-  const { data: accounts = [] } = useSupabaseData('accounts', user?.id);
-  const { data: cards = [] } = useSupabaseData('cards', user?.id);
-  const { data: tags = [] } = useSupabaseData('tags', user?.id);
-  const { toast } = useToast();
-
+  const {
+    user
+  } = useSupabaseAuth();
+  const {
+    update
+  } = useSupabaseData('transactions', user?.id);
+  const {
+    data: categories = []
+  } = useSupabaseData('categories', user?.id);
+  const {
+    data: accounts = []
+  } = useSupabaseData('accounts', user?.id);
+  const {
+    data: cards = []
+  } = useSupabaseData('cards', user?.id);
+  const {
+    data: tags = []
+  } = useSupabaseData('tags', user?.id);
+  const {
+    toast
+  } = useToast();
 
   // Preencher formulário com dados da transação quando abrir
   useEffect(() => {
@@ -75,39 +83,33 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
       });
     }
   }, [transaction, isOpen]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!user?.id) {
       toast({
         title: "Erro",
         description: "Usuário não autenticado",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (!formData.description || !formData.amount || !formData.date) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     if (!formData.account_id && !formData.card_id) {
       toast({
         title: "Erro",
         description: "Selecione uma conta ou cartão",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setIsLoading(true);
-
     try {
       const transactionData = {
         type: formData.type,
@@ -120,21 +122,23 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
         notes: formData.notes || null,
         tags: formData.tags.length > 0 ? formData.tags.map(tagId => {
           const tag = tags.find(t => t.id === tagId);
-          return tag ? { id: tag.id, name: tag.name, color: tag.color } : null;
+          return tag ? {
+            id: tag.id,
+            name: tag.name,
+            color: tag.color
+          } : null;
         }).filter(Boolean) : []
       };
-
-      const { error } = await update(transaction.id, transactionData);
-
+      const {
+        error
+      } = await update(transaction.id, transactionData);
       if (error) {
         throw new Error(error);
       }
-
       toast({
         title: "Sucesso",
-        description: "Transação atualizada com sucesso!",
+        description: "Transação atualizada com sucesso!"
       });
-
       onSuccess();
       onClose();
     } catch (error) {
@@ -142,29 +146,25 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a transação. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
   const handleTagsChange = (tags: string[]) => {
     setFormData(prev => ({
       ...prev,
       tags
     }));
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Transação</DialogTitle>
@@ -188,122 +188,71 @@ const TransactionEditForm = ({ transaction, isOpen, onClose, onSuccess }: Transa
 
           <div className="grid gap-2">
             <Label htmlFor="description">Descrição *</Label>
-            <Input 
-              id="description" 
-              placeholder="Ex: Salário" 
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              required
-            />
+            <Input id="description" placeholder="Ex: Salário" value={formData.description} onChange={e => handleInputChange('description', e.target.value)} required />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="amount">Valor *</Label>
-            <Input 
-              id="amount" 
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0,00" 
-              value={formData.amount}
-              onChange={(e) => handleInputChange('amount', e.target.value)}
-              required
-            />
+            <Input id="amount" type="number" step="0.01" min="0" placeholder="0,00" value={formData.amount} onChange={e => handleInputChange('amount', e.target.value)} required />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="date">Data *</Label>
-            <Input 
-              id="date" 
-              type="date" 
-              value={formData.date}
-              onChange={(e) => handleInputChange('date', e.target.value)}
-              required
-            />
+            <Input id="date" type="date" value={formData.date} onChange={e => handleInputChange('date', e.target.value)} required />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="category">Categoria</Label>
-            <CategorySelector
-              value={formData.category_id}
-              onChange={(value) => handleInputChange('category_id', value)}
-              categories={categories}
-              type={formData.type}
-              placeholder="Selecione uma categoria..."
-            />
+            <CategorySelector value={formData.category_id} onChange={value => handleInputChange('category_id', value)} categories={categories} type={formData.type} placeholder="Selecione uma categoria..." />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="account">Conta</Label>
-            <Select value={formData.account_id} onValueChange={(value) => handleInputChange('account_id', value)}>
+            <Select value={formData.account_id} onValueChange={value => handleInputChange('account_id', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma conta..." />
               </SelectTrigger>
               <SelectContent>
-                {accounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
+                {accounts.map(account => <SelectItem key={account.id} value={account.id}>
                     {account.name}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="card">Cartão</Label>
-            <Select value={formData.card_id} onValueChange={(value) => handleInputChange('card_id', value)}>
+            <Select value={formData.card_id} onValueChange={value => handleInputChange('card_id', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um cartão..." />
               </SelectTrigger>
               <SelectContent>
-                {cards.map((card) => (
-                  <SelectItem key={card.id} value={card.id}>
+                {cards.map(card => <SelectItem key={card.id} value={card.id}>
                     {card.name}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="notes">Observações</Label>
-            <Textarea 
-              id="notes" 
-              placeholder="Observações adicionais..." 
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              rows={3}
-            />
+            <Textarea id="notes" placeholder="Observações adicionais..." value={formData.notes} onChange={e => handleInputChange('notes', e.target.value)} rows={3} />
           </div>
 
           <div className="grid gap-2">
-            <Label>Tags</Label>
-            <TagSelector
-              selectedTags={formData.tags}
-              onTagsChange={handleTagsChange}
-            />
+            
+            <TagSelector selectedTags={formData.tags} onTagsChange={handleTagsChange} />
           </div>
         </form>
         <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose}
-            disabled={isLoading}
-          >
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button 
-            type="submit"
-            onClick={handleSubmit}
-            disabled={isLoading}
-          >
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
             {isLoading ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default TransactionEditForm;
