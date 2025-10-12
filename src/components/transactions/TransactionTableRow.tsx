@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Check, X, Loader2 } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Loader2 } from "lucide-react";
 import { parseLocalDate } from "@/utils/dateValidation";
+import TransactionEditForm from "./TransactionEditForm";
 
 interface TransactionTableRowProps {
   transaction: any;
@@ -36,44 +36,11 @@ const TransactionTableRow = ({
   onUpdate, 
   onDelete 
 }: TransactionTableRowProps) => {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingData, setEditingData] = useState<any>({});
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleEdit = () => {
-    setEditingId(transaction.id);
-    setEditingData({
-      description: transaction.description,
-      amount: transaction.amount.toString(),
-    });
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingData.description || !editingData.amount) {
-      return;
-    }
-
-    try {
-      setUpdatingId(transaction.id);
-      
-      const { error } = await onUpdate(transaction.id, {
-        description: editingData.description,
-        amount: parseFloat(editingData.amount),
-      });
-
-      if (!error) {
-        setEditingId(null);
-        setEditingData({});
-      }
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditingData({});
+  const handleEditSuccess = () => {
+    setIsEditDialogOpen(false);
   };
 
   const handleDelete = async () => {
@@ -86,32 +53,15 @@ const TransactionTableRow = ({
   };
 
   return (
-    <TableRow>
-      <TableCell className="font-medium">
-        {editingId === transaction.id ? (
-          <Input
-            value={editingData.description}
-            onChange={(e) => setEditingData(prev => ({ ...prev, description: e.target.value }))}
-            className="min-w-40"
-          />
-        ) : (
-          transaction.description
-        )}
-      </TableCell>
-      <TableCell>{formatDate(transaction.date)}</TableCell>
-      <TableCell className={transaction.type === "income" ? "text-green-600" : "text-red-600"}>
-        {editingId === transaction.id ? (
-          <Input
-            type="number"
-            step="0.01"
-            value={editingData.amount}
-            onChange={(e) => setEditingData(prev => ({ ...prev, amount: e.target.value }))}
-            className="min-w-32"
-          />
-        ) : (
-          formatCurrency(Number(transaction.amount))
-        )}
-      </TableCell>
+    <>
+      <TableRow>
+        <TableCell className="font-medium">
+          {transaction.description}
+        </TableCell>
+        <TableCell>{formatDate(transaction.date)}</TableCell>
+        <TableCell className={transaction.type === "income" ? "text-green-600" : "text-red-600"}>
+          {formatCurrency(Number(transaction.amount))}
+        </TableCell>
       <TableCell>
         {transaction.category_id && categoryMap[transaction.category_id] ? (
           <Badge 
@@ -175,59 +125,38 @@ const TransactionTableRow = ({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
-          {editingId === transaction.id ? (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleSaveEdit}
-                disabled={updatingId === transaction.id}
-                className="h-8 w-8 p-0"
-              >
-                {updatingId === transaction.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4 text-green-600" />
-                )}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleCancelEdit}
-                disabled={updatingId === transaction.id}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4 text-gray-600" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleEdit}
-                className="h-8 w-8 p-0"
-              >
-                <Edit className="h-4 w-4 text-blue-600" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleDelete}
-                disabled={deletingId === transaction.id}
-                className="h-8 w-8 p-0"
-              >
-                {deletingId === transaction.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4 text-red-600" />
-                )}
-              </Button>
-            </>
-          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsEditDialogOpen(true)}
+            className="h-8 w-8 p-0"
+          >
+            <Edit className="h-4 w-4 text-blue-600" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleDelete}
+            disabled={deletingId === transaction.id}
+            className="h-8 w-8 p-0"
+          >
+            {deletingId === transaction.id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 text-red-600" />
+            )}
+          </Button>
         </div>
       </TableCell>
     </TableRow>
+
+    <TransactionEditForm
+      transaction={transaction}
+      isOpen={isEditDialogOpen}
+      onClose={() => setIsEditDialogOpen(false)}
+      onSuccess={handleEditSuccess}
+    />
+    </>
   );
 };
 
