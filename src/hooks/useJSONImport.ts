@@ -97,7 +97,8 @@ export const useJSONImport = () => {
   // Função para importar transações
   const importTransactions = useCallback(async (
     transactions: ImportedTransaction[], 
-    accountId: string
+    accountId: string,
+    categoryMapping: Map<string, string>
   ): Promise<ImportResult> => {
     if (!user || !accountId) {
       throw new Error('Usuário ou conta não selecionada');
@@ -115,13 +116,10 @@ export const useJSONImport = () => {
         const transaction = transactions[i];
         
         try {
-          // Buscar categoria existente
+          // Buscar categoria existente ou usar a criada
           let categoryId: string | undefined;
-          if (transaction.category && existingCategories) {
-            const existingCategory = existingCategories.find(cat => 
-              cat.name.toLowerCase() === transaction.category?.toLowerCase()
-            );
-            categoryId = existingCategory?.id;
+          if (transaction.category) {
+            categoryId = categoryMapping.get(transaction.category.toLowerCase());
           }
 
           // Inserir transação
@@ -170,10 +168,33 @@ export const useJSONImport = () => {
     } finally {
       setImporting(false);
     }
-  }, [user, existingCategories, insertTransaction, updateAccountBalance]);
+  }, [user, insertTransaction, updateAccountBalance]);
+
+  // Função para detectar categorias faltantes
+  const detectMissingCategories = useCallback((transactions: ImportedTransaction[]): string[] => {
+    const uniqueCategories = new Set<string>();
+    const existingCategoryNames = new Set(
+      existingCategories?.map(cat => cat.name.toLowerCase()) || []
+    );
+
+    transactions.forEach(transaction => {
+      if (transaction.category) {
+        const categoryName = transaction.category.toLowerCase();
+        if (!existingCategoryNames.has(categoryName)) {
+          uniqueCategories.add(transaction.category);
+        }
+      }
+    });
+
+    return Array.from(uniqueCategories);
+  }, [existingCategories]);
 
   // Função principal de importação
-  const importFile = useCallback(async (file: File, accountId: string): Promise<ImportResult> => {
+  const importFile = useCallback(async (
+    file: File, 
+    accountId: string, 
+    categoryMapping?: Map<string, string>
+  ): Promise<ImportResult> => {
     try {
       // Processar arquivo
       const transactions = await processJSON(file);
@@ -182,8 +203,18 @@ export const useJSONImport = () => {
         throw new Error('Nenhuma transação válida encontrada no arquivo JSON');
       }
 
+      // Se não houver mapeamento, criar um padrão
+      const mapping = categoryMapping || new Map<string, string>();
+      
+      // Mapear categorias existentes
+      if (!categoryMapping && existingCategories) {
+        existingCategories.forEach(cat => {
+          mapping.set(cat.name.toLowerCase(), cat.id);
+        });
+      }
+
       // Importar transações
-      const result = await importTransactions(transactions, accountId);
+      const result = await importTransactions(transactions, accountId, mapping);
       
       toast({
         title: "Importação JSON Concluída",
@@ -201,7 +232,7 @@ export const useJSONImport = () => {
       });
       throw error;
     }
-  }, [processJSON, importTransactions, toast]);
+  }, [processJSON, importTransactions, existingCategories, toast]);
 
   // Função para resetar o estado
   const reset = useCallback(() => {
@@ -214,9 +245,12 @@ export const useJSONImport = () => {
     progress,
     result,
     accounts,
+    categories: existingCategories,
     importFile,
     reset,
     fileValidation,
+    detectMissingCategories,
+    processJSON,
     accountsCache: accountsCache.data,
     categoriesCache: categoriesCache.data,
     cacheSize: accountsCache.cacheSize + categoriesCache.cacheSize
