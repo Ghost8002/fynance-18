@@ -7,6 +7,7 @@ interface TransactionTableProps {
   categoryMap: Record<string, any>;
   accountMap: Record<string, string>;
   cardMap: Record<string, string>;
+  categories: any[];
   onUpdate: (id: string, data: any) => Promise<{ error?: string }>;
   onDelete: (id: string) => Promise<{ error?: string }>;
 }
@@ -15,7 +16,8 @@ const TransactionTable = ({
   transactions, 
   categoryMap, 
   accountMap, 
-  cardMap, 
+  cardMap,
+  categories,
   onUpdate, 
   onDelete 
 }: TransactionTableProps) => {
@@ -42,6 +44,7 @@ const TransactionTable = ({
               categoryMap={categoryMap}
               accountMap={accountMap}
               cardMap={cardMap}
+              categories={categories}
               onUpdate={onUpdate}
               onDelete={onDelete}
             />

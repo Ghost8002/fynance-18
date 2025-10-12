@@ -6,12 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Loader2 } from "lucide-react";
 import { parseLocalDate } from "@/utils/dateValidation";
 import TransactionEditForm from "./TransactionEditForm";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import CategorySelector from "@/components/shared/CategorySelector";
+import TagSelector from "@/components/shared/TagSelector";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface TransactionTableRowProps {
   transaction: any;
   categoryMap: Record<string, any>;
   accountMap: Record<string, string>;
   cardMap: Record<string, string>;
+  categories: any[];
   onUpdate: (id: string, data: any) => Promise<{ error?: string }>;
   onDelete: (id: string) => Promise<{ error?: string }>;
 }
@@ -32,12 +38,16 @@ const TransactionTableRow = ({
   transaction, 
   categoryMap, 
   accountMap, 
-  cardMap, 
+  cardMap,
+  categories,
   onUpdate, 
   onDelete 
 }: TransactionTableRowProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
+  const [tagsPopoverOpen, setTagsPopoverOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
@@ -52,6 +62,64 @@ const TransactionTableRow = ({
     }
   };
 
+  const handleCategoryChange = async (categoryId: string) => {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ category_id: categoryId })
+        .eq('id', transaction.id);
+
+      if (error) throw error;
+
+      await onUpdate(transaction.id, { category_id: categoryId });
+      setCategoryPopoverOpen(false);
+      toast({
+        title: "Categoria atualizada",
+        description: "A categoria foi atualizada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a categoria.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTagsChange = async (tagIds: string[]) => {
+    try {
+      // Fetch tag details
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('tags')
+        .select('*')
+        .in('id', tagIds);
+
+      if (tagsError) throw tagsError;
+
+      const { error } = await supabase
+        .from('transactions')
+        .update({ tags: tagsData || [] })
+        .eq('id', transaction.id);
+
+      if (error) throw error;
+
+      await onUpdate(transaction.id, { tags: tagsData || [] });
+      setTagsPopoverOpen(false);
+      toast({
+        title: "Tags atualizadas",
+        description: "As tags foram atualizadas com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error updating tags:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar as tags.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <TableRow>
@@ -63,44 +131,69 @@ const TransactionTableRow = ({
           {formatCurrency(Number(transaction.amount))}
         </TableCell>
       <TableCell>
-        {transaction.category_id && categoryMap[transaction.category_id] ? (
-          <Badge 
-            variant="outline"
-            style={{ 
-              backgroundColor: `${categoryMap[transaction.category_id].color}20`, 
-              borderColor: categoryMap[transaction.category_id].color,
-              color: categoryMap[transaction.category_id].color
-            }}
-          >
-            {categoryMap[transaction.category_id].name}
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="text-muted-foreground">
-            Sem categoria
-          </Badge>
-        )}
+        <Popover open={categoryPopoverOpen} onOpenChange={setCategoryPopoverOpen}>
+          <PopoverTrigger asChild>
+            <div className="cursor-pointer inline-block">
+              {transaction.category_id && categoryMap[transaction.category_id] ? (
+                <Badge 
+                  variant="outline"
+                  style={{ 
+                    backgroundColor: `${categoryMap[transaction.category_id].color}20`, 
+                    borderColor: categoryMap[transaction.category_id].color,
+                    color: categoryMap[transaction.category_id].color
+                  }}
+                >
+                  {categoryMap[transaction.category_id].name}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-muted-foreground">
+                  Sem categoria
+                </Badge>
+              )}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="start">
+            <CategorySelector
+              value={transaction.category_id || ""}
+              onChange={handleCategoryChange}
+              categories={categories}
+              type={transaction.type}
+              placeholder="Selecione uma categoria"
+            />
+          </PopoverContent>
+        </Popover>
       </TableCell>
       <TableCell>
-        <div className="flex flex-wrap gap-1">
-          {transaction.tags && transaction.tags.length > 0 ? (
-            transaction.tags.map((tag: any) => (
-              <Badge
-                key={tag.id}
-                variant="outline"
-                className="text-xs"
-                style={{
-                  backgroundColor: `${tag.color}20`,
-                  borderColor: tag.color,
-                  color: tag.color
-                }}
-              >
-                {tag.name}
-              </Badge>
-            ))
-          ) : (
-            <span className="text-xs text-muted-foreground">Sem tags</span>
-          )}
-        </div>
+        <Popover open={tagsPopoverOpen} onOpenChange={setTagsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <div className="cursor-pointer flex flex-wrap gap-1">
+              {transaction.tags && transaction.tags.length > 0 ? (
+                transaction.tags.map((tag: any) => (
+                  <Badge
+                    key={tag.id}
+                    variant="outline"
+                    className="text-xs"
+                    style={{
+                      backgroundColor: `${tag.color}20`,
+                      borderColor: tag.color,
+                      color: tag.color
+                    }}
+                  >
+                    {tag.name}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground">Sem tags</span>
+              )}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-4" align="start">
+            <TagSelector
+              selectedTags={transaction.tags?.map((t: any) => t.id) || []}
+              onTagsChange={handleTagsChange}
+            />
+          </PopoverContent>
+        </Popover>
       </TableCell>
       <TableCell>
         {transaction.account_id 
