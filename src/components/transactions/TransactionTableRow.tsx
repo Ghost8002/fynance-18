@@ -141,11 +141,36 @@ const TransactionTableRow = ({
     try {
       console.log('handleTagsChange called with tagIds:', tagIds);
       
+      // Filter out any undefined, null, or empty values
+      const validTagIds = tagIds.filter(id => id && typeof id === 'string');
+      console.log('Valid tag IDs:', validTagIds);
+      
+      if (validTagIds.length === 0) {
+        // If no valid tags, save empty array
+        const { data: updateData, error: updateError } = await supabase
+          .from('transactions')
+          .update({ tags: [] })
+          .eq('id', transaction.id)
+          .select();
+
+        if (updateError) {
+          console.error('Error updating transaction:', updateError);
+          throw updateError;
+        }
+
+        await onUpdate(transaction.id, { tags: [] });
+        toast({
+          title: "Tags atualizadas",
+          description: "As tags foram removidas com sucesso.",
+        });
+        return;
+      }
+      
       // Fetch tag details
       const { data: tagsData, error: tagsError } = await supabase
         .from('tags')
         .select('*')
-        .in('id', tagIds);
+        .in('id', validTagIds);
 
       console.log('Tags fetched:', tagsData, 'Error:', tagsError);
 
@@ -211,7 +236,12 @@ const TransactionTableRow = ({
         // Update available tags list
         setAvailableTags(prev => [...prev, newTag]);
         
-        const currentTagIds = transaction.tags?.map((t: any) => t.id) || [];
+        // Filter out empty or invalid tags
+        const currentTagIds = (transaction.tags || [])
+          .filter((t: any) => t && typeof t === 'object' && t.id)
+          .map((t: any) => t.id)
+          .filter((id: string) => id);
+        
         console.log('Current tag IDs:', currentTagIds);
         await handleTagsChange([...currentTagIds, newTag.id]);
         setTagQuery("");
@@ -225,8 +255,14 @@ const TransactionTableRow = ({
 
   const handleTagToggle = (tagId: string) => {
     console.log('Toggling tag:', tagId);
-    const currentTagIds = transaction.tags?.map((t: any) => t.id) || [];
-    console.log('Current tags:', currentTagIds);
+    
+    // Filter out empty or invalid tags and extract valid IDs
+    const currentTagIds = (transaction.tags || [])
+      .filter((t: any) => t && typeof t === 'object' && t.id)
+      .map((t: any) => t.id)
+      .filter((id: string) => id); // Remove any undefined/null values
+    
+    console.log('Current valid tag IDs:', currentTagIds);
     
     if (currentTagIds.includes(tagId)) {
       console.log('Removing tag');
