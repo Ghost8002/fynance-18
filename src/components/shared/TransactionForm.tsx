@@ -20,7 +20,7 @@ import TransactionTypeSelector from "./TransactionTypeSelector";
 import TransactionFormFields from "./TransactionFormFields";
 import { getCurrentLocalDateString } from "@/utils/dateValidation";
 import PaymentMethodSelector from "./PaymentMethodSelector";
-import { TagSelector } from "./TagSelector";
+import TagSelector from "./TagSelector";
 
 interface TransactionFormProps {
   defaultAccountId?: string;

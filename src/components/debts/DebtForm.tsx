@@ -18,7 +18,7 @@ import { CalendarIcon, AlertCircle, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { TagSelector } from "@/components/shared/TagSelector";
+import TagSelector from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
  
 

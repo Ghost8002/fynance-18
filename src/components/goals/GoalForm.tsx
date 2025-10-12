@@ -16,7 +16,7 @@ import { Target } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
-import { TagSelector } from "@/components/shared/TagSelector";
+import TagSelector from "@/components/shared/TagSelector";
 
 const GoalForm = () => {
   const [isOpen, setIsOpen] = useState(false);

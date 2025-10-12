@@ -183,7 +183,6 @@ const TransactionListAdvanced = () => {
                 categoryMap={categoryMap}
                 accountMap={accountMap}
                 cardMap={cardMap}
-                categories={categories}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}
               />

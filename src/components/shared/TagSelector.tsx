@@ -1,266 +1,227 @@
+
 import { useState } from "react";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, Plus, Tag, X } from "lucide-react";
+import { useTags } from "@/hooks/useTags";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Tag, useTags } from "@/hooks/useTags";
 
-// Interface para suportar ambos os modos: com Tag objects ou com string IDs
 interface TagSelectorProps {
-  // New interface (with Tag objects)
-  value?: Tag[];
-  onChange?: (tags: Tag[]) => void;
-  allTags?: Tag[];
-  onTagCreated?: () => void;
-  
-  // Old interface (with string IDs) - mantido para compatibilidade
-  selectedTags?: string[];
-  onTagsChange?: (tags: string[]) => void;
-  
-  // Common props
-  placeholder?: string;
-  className?: string;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
-const getRandomColor = () => {
-  const colors = [
-    "#EF4444", "#F59E0B", "#10B981", "#3B82F6", 
-    "#6366F1", "#8B5CF6", "#EC4899", "#14B8A6"
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-
-export function TagSelector(props: TagSelectorProps) {
-  const {
-    // New interface props
-    value: valueFromProps,
-    onChange: onChangeFromProps,
-    allTags: allTagsFromProps,
-    onTagCreated: onTagCreatedFromProps,
-    // Old interface props
-    selectedTags,
-    onTagsChange,
-    // Common props
-    placeholder = "Selecionar tags...",
-    className,
-  } = props;
-
+const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
+  const { tags, loading, fetchTags } = useTags();
   const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  // Buscar tags se não foram fornecidas (modo antigo)
-  const { tags: fetchedTags, fetchTags } = useTags();
-  
-  // Determinar qual modo estamos usando
-  const isNewMode = valueFromProps !== undefined && onChangeFromProps !== undefined;
-  const allTags = isNewMode ? (allTagsFromProps || []) : fetchedTags;
-  const activeTags = allTags.filter(tag => tag.is_active);
-  
-  // Converter entre formatos
-  const selectedTagObjects: Tag[] = isNewMode 
-    ? valueFromProps 
-    : activeTags.filter(tag => selectedTags?.includes(tag.id));
-  
-  const selectedTagIds = selectedTagObjects.map(t => t.id);
+  const [tagQuery, setTagQuery] = useState("");
+
+  // Adicionar verificação de segurança para evitar erros
+  const safeTags = tags || [];
+  const activeTags = safeTags.filter(tag => tag && tag.is_active);
+
+  const handleTagToggle = (tagId: string) => {
+    console.log('Toggling tag:', tagId, 'Current selection:', selectedTags);
+    if (selectedTags.includes(tagId)) {
+      const newTags = selectedTags.filter(id => id !== tagId);
+      console.log('Removing tag, new selection:', newTags);
+      onTagsChange(newTags);
+    } else {
+      const newTags = [...selectedTags, tagId];
+      console.log('Adding tag, new selection:', newTags);
+      onTagsChange(newTags);
+    }
+  };
+
+  const removeTag = (tagId: string) => {
+    console.log('Removing tag directly:', tagId);
+    const newTags = selectedTags.filter(id => id !== tagId);
+    onTagsChange(newTags);
+  };
 
   const handleCreateTag = async (name: string) => {
-    if (!user?.id) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("tags")
-        .insert({
-          user_id: user.id,
-          name: name.trim(),
-          color: getRandomColor(),
-          is_active: true,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (isNewMode) {
-        const newTags = [...selectedTagObjects, data];
-        onChangeFromProps(newTags);
-        onTagCreatedFromProps?.();
-      } else {
-        const newTagIds = [...(selectedTags || []), data.id];
-        onTagsChange?.(newTagIds);
-        fetchTags();
-      }
-      
-      setSearchQuery("");
-      
-      toast({
-        title: "Sucesso",
-        description: "Tag criada com sucesso!",
-      });
-    } catch (error) {
-      console.error("Error creating tag:", error);
+    if (!user?.id) {
       toast({
         title: "Erro",
-        description: "Não foi possível criar a tag.",
+        description: "Usuário não autenticado.",
         variant: "destructive",
       });
+      return;
+    }
+
+    try {
+      const defaultColor = "#8884d8";
+      const { data, error } = await supabase
+        .from("tags")
+        .insert([{ user_id: user.id, name: trimmed, color: defaultColor, is_active: true }])
+        .select()
+        .limit(1);
+
+      if (error) throw error;
+      const newTag = data?.[0];
+      if (newTag) {
+        await fetchTags();
+        onTagsChange([...selectedTags, newTag.id]);
+        toast({ title: "Tag criada", description: `“${trimmed}” adicionada com sucesso.` });
+        setOpen(false);
+        setTagQuery("");
+      }
+    } catch (err) {
+      console.error("Erro ao criar tag:", err);
+      toast({ title: "Erro", description: "Não foi possível criar a tag.", variant: "destructive" });
     }
   };
 
-  const toggleTag = (tag: Tag) => {
-    const isSelected = selectedTagIds.includes(tag.id);
-    
-    if (isNewMode) {
-      if (isSelected) {
-        onChangeFromProps(selectedTagObjects.filter(t => t.id !== tag.id));
-      } else {
-        onChangeFromProps([...selectedTagObjects, tag]);
-      }
-    } else {
-      if (isSelected) {
-        onTagsChange?.((selectedTags || []).filter(id => id !== tag.id));
-      } else {
-        onTagsChange?.([...(selectedTags || []), tag.id]);
-      }
-    }
+  const getSelectedTagsInfo = () => {
+    return selectedTags
+      .map(tagId => activeTags.find(tag => tag.id === tagId))
+      .filter(Boolean);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery.trim()) {
-      e.preventDefault();
-      const existingTag = activeTags.find(
-        t => t.name.toLowerCase() === searchQuery.trim().toLowerCase()
-      );
-      
-      if (existingTag) {
-        toggleTag(existingTag);
-        setSearchQuery("");
-      } else {
-        handleCreateTag(searchQuery);
-      }
-    }
-  };
+  if (loading) {
+    return <div className="text-sm text-muted-foreground">Carregando tags...</div>;
+  }
+
+  // Se não há tags, ainda permitir criação dinâmica
+  // Removido o bloqueio que impedia a criação de tags quando não há tags existentes
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn("justify-between", className)}
-        >
-          {selectedTagObjects.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {selectedTagObjects.map(tag => (
-                <Badge
-                  key={tag.id}
-                  variant="outline"
-                  className="text-xs"
-                  style={{
-                    backgroundColor: `${tag.color}20`,
-                    borderColor: tag.color,
-                    color: tag.color
-                  }}
-                >
-                  {tag.name}
-                </Badge>
-              ))}
+    <div className="space-y-2">
+      <Label>Tags</Label>
+      
+      {/* Selected tags display */}
+      {selectedTags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {getSelectedTagsInfo().map((tag) => (
+            <Badge
+              key={tag.id}
+              variant="secondary"
+              className="flex items-center gap-1"
+              style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color }}
+            >
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: tag.color }}
+              />
+              {tag.name}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={() => removeTag(tag.id)}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Tag selector popover */}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+            onClick={() => {
+              console.log('Opening tag selector, available tags:', activeTags.length);
+              setOpen(true);
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              <span>
+                {selectedTags.length > 0
+                  ? `${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''} selecionada${selectedTags.length > 1 ? 's' : ''}`
+                  : "Selecionar tags"
+                }
+              </span>
             </div>
-          ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput
-            placeholder="Buscar ou criar tag..."
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-            onKeyDown={handleKeyDown}
-          />
-          <CommandList>
-            <CommandEmpty>
-              <div className="flex flex-col items-center gap-2 py-2">
-                <p className="text-sm text-muted-foreground">
-                  Nenhuma tag encontrada
-                </p>
-                {searchQuery.trim() && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCreateTag(searchQuery)}
-                    className="gap-1"
-                  >
-                    <Plus className="h-3 w-3" />
-                    Criar "{searchQuery}"
-                  </Button>
-                )}
-              </div>
-            </CommandEmpty>
-            <CommandGroup>
-              {activeTags.map((tag) => {
-                const isSelected = selectedTagIds.includes(tag.id);
-                return (
-                  <CommandItem
-                    key={tag.id}
-                    value={tag.name}
-                    onSelect={() => toggleTag(tag)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        isSelected ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <Badge
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        backgroundColor: `${tag.color}20`,
-                        borderColor: tag.color,
-                        color: tag.color
-                      }}
-                    >
-                      {tag.name}
-                    </Badge>
-                  </CommandItem>
+            <Plus className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-0" align="start" side="bottom">
+          <Command
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const exists = activeTags.some(
+                  (t) => t.name.toLowerCase() === tagQuery.trim().toLowerCase()
                 );
-              })}
-              {searchQuery.trim() && 
-               !activeTags.some(t => t.name.toLowerCase() === searchQuery.trim().toLowerCase()) && (
-                <CommandItem
-                  value={searchQuery}
-                  onSelect={() => handleCreateTag(searchQuery)}
-                  className="gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  Criar "{searchQuery}"
-                </CommandItem>
+                if (tagQuery.trim() && !exists) {
+                  handleCreateTag(tagQuery);
+                }
+              }
+            }}
+          >
+            <CommandInput
+              placeholder="Buscar ou criar tag..."
+              value={tagQuery}
+              onValueChange={setTagQuery}
+            />
+            <CommandList>
+              <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+
+              {tagQuery.trim() &&
+                !activeTags.some(
+                  (t) => t.name.toLowerCase() === tagQuery.trim().toLowerCase()
+                ) && (
+                <CommandGroup>
+                  <CommandItem
+                    value={`__create_${tagQuery}`}
+                    onSelect={() => handleCreateTag(tagQuery)}
+                    className="cursor-pointer"
+                  >
+                    Criar “{tagQuery.trim()}”
+                  </CommandItem>
+                </CommandGroup>
               )}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+
+              {activeTags.length > 0 && (
+                <CommandGroup>
+                  {activeTags.map((tag) => (
+                    <CommandItem
+                      key={tag.id}
+                      value={tag.name}
+                      onSelect={() => {
+                        console.log('Tag selected from command:', tag.name, tag.id);
+                        handleTagToggle(tag.id);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedTags.includes(tag.id) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
-}
+};
+
+export default TagSelector;

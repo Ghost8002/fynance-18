@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { dateToLocalDateString } from "@/utils/dateValidation";
 import { ShoppingBag, Calendar, CreditCard } from "lucide-react";
 import CategorySelector from "@/components/shared/CategorySelector";
-import { TagSelector } from "@/components/shared/TagSelector";
+import TagSelector from "@/components/shared/TagSelector";
 
 interface InstallmentPurchaseFormProps {
   onPurchaseAdded?: () => void;
