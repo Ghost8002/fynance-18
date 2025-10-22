@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import { CardList } from "@/components/cards/CardList";
+import { CardListMobile } from "@/components/cards/mobile/CardListMobile";
+import { CardOverviewMobile } from "@/components/cards/mobile/CardOverviewMobile";
 import { CardForm } from "@/components/cards/CardForm";
 import { InstallmentPurchaseForm } from "@/components/cards/InstallmentPurchaseForm";
 import { CardOverview } from "@/components/cards/CardOverview";
@@ -13,6 +15,7 @@ import { CardTransactions } from "@/components/cards/CardTransactions";
 import { CardLimitManagement } from "@/components/cards/CardLimitManagement";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useCardDebtsIntegration } from "@/hooks/useCardDebtsIntegration";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +24,7 @@ import { CreditCard, RefreshCw } from "lucide-react";
 const Cards = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { data: cards, refetch: refetchCards } = useSupabaseData('cards', user?.id);
   const { syncAllCardDebts, loadingBills } = useCardDebtsIntegration();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
@@ -47,22 +51,25 @@ const Cards = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className={isMobile ? "space-y-3" : "space-y-6"}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">Cartões</h1>
-            <p className="text-muted-foreground">Gerencie seus cartões de crédito e controle seus gastos</p>
+            <h1 className={isMobile ? "text-lg font-bold" : "text-2xl font-bold text-foreground mb-1"}>Cartões</h1>
+            {!isMobile && (
+              <p className="text-muted-foreground">Gerencie seus cartões de crédito e controle seus gastos</p>
+            )}
           </div>
           
-          <div className="flex gap-2">
+          <div className={isMobile ? "flex gap-1.5 w-full" : "flex gap-2"}>
             <Button 
               variant="outline" 
               onClick={() => syncAllCardDebts()}
               disabled={loadingBills}
-              className="flex items-center gap-2"
+              className={isMobile ? "flex items-center gap-1.5 text-xs h-8 flex-1" : "flex items-center gap-2"}
+              size={isMobile ? "sm" : "default"}
             >
-              <RefreshCw className={`w-4 h-4 ${loadingBills ? 'animate-spin' : ''}`} />
-              Sincronizar Dívidas
+              <RefreshCw className={isMobile ? `w-3 h-3 ${loadingBills ? 'animate-spin' : ''}` : `w-4 h-4 ${loadingBills ? 'animate-spin' : ''}`} />
+              {!isMobile && "Sincronizar Dívidas"}
             </Button>
             <InstallmentPurchaseForm onPurchaseAdded={handlePurchaseAdded} />
             <CardForm />
@@ -70,53 +77,77 @@ const Cards = () => {
         </div>
 
         {/* Cards Overview */}
-        <CardList onCardSelect={setSelectedCard} selectedCard={selectedCard} />
+        {isMobile ? (
+          <CardListMobile onCardSelect={setSelectedCard} selectedCard={selectedCard} />
+        ) : (
+          <CardList onCardSelect={setSelectedCard} selectedCard={selectedCard} />
+        )}
 
         {/* Selected Card Details */}
         {selectedCardData && (
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className={`grid w-full ${selectedCardData.type === 'credit' ? 'grid-cols-5' : 'grid-cols-2'}`}>
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <Tabs defaultValue="overview" className={isMobile ? "space-y-3" : "space-y-4"}>
+            <TabsList className={`grid w-full ${
+              isMobile 
+                ? (selectedCardData.type === 'credit' ? 'grid-cols-3 text-xs' : 'grid-cols-2 text-xs')
+                : (selectedCardData.type === 'credit' ? 'grid-cols-5' : 'grid-cols-2')
+            }`}>
+              <TabsTrigger value="overview" className={isMobile ? "text-xs px-2" : ""}>
+                {isMobile ? "Visão" : "Visão Geral"}
+              </TabsTrigger>
               {selectedCardData.type === 'credit' && (
                 <>
-                  <TabsTrigger value="bill">Fatura</TabsTrigger>
-                  <TabsTrigger value="limit">Limite</TabsTrigger>
-                  <TabsTrigger value="installments">Parcelamentos</TabsTrigger>
+                  <TabsTrigger value="bill" className={isMobile ? "text-xs px-2" : ""}>Fatura</TabsTrigger>
+                  {!isMobile && (
+                    <>
+                      <TabsTrigger value="limit">Limite</TabsTrigger>
+                      <TabsTrigger value="installments">Parcelamentos</TabsTrigger>
+                    </>
+                  )}
                 </>
               )}
-              <TabsTrigger value="transactions">Transações</TabsTrigger>
+              <TabsTrigger value="transactions" className={isMobile ? "text-xs px-2" : ""}>
+                {isMobile ? "Trans." : "Transações"}
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-4">
-              <CardOverview card={selectedCardData} />
+            <TabsContent value="overview" className={isMobile ? "space-y-3" : "space-y-4"}>
+              {isMobile ? (
+                <CardOverviewMobile card={selectedCardData} />
+              ) : (
+                <CardOverview card={selectedCardData} />
+              )}
             </TabsContent>
 
             {selectedCardData.type === 'credit' && (
               <>
-                <TabsContent value="bill" className="space-y-4">
+                <TabsContent value="bill" className={isMobile ? "space-y-3" : "space-y-4"}>
                   <CardBill 
                     cardId={selectedCard!} 
                     onBillUpdate={handlePurchaseAdded}
                   />
                 </TabsContent>
 
-                <TabsContent value="limit" className="space-y-4">
-                  <CardLimitManagement 
-                    card={selectedCardData} 
-                    onUpdate={handlePurchaseAdded}
-                  />
-                </TabsContent>
+                {!isMobile && (
+                  <>
+                    <TabsContent value="limit" className="space-y-4">
+                      <CardLimitManagement 
+                        card={selectedCardData} 
+                        onUpdate={handlePurchaseAdded}
+                      />
+                    </TabsContent>
 
-                <TabsContent value="installments" className="space-y-4">
-                  <CardInstallments 
-                    cardId={selectedCard!} 
-                    onInstallmentPaid={handlePurchaseAdded}
-                  />
-                </TabsContent>
+                    <TabsContent value="installments" className="space-y-4">
+                      <CardInstallments 
+                        cardId={selectedCard!} 
+                        onInstallmentPaid={handlePurchaseAdded}
+                      />
+                    </TabsContent>
+                  </>
+                )}
               </>
             )}
 
-            <TabsContent value="transactions" className="space-y-4">
+            <TabsContent value="transactions" className={isMobile ? "space-y-3" : "space-y-4"}>
               <CardTransactions cardId={selectedCard!} />
             </TabsContent>
           </Tabs>
@@ -125,12 +156,14 @@ const Cards = () => {
         {/* No cards message */}
         {(!cards || cards.length === 0) && (
           <Card>
-            <CardContent className="py-8">
+            <CardContent className={isMobile ? "py-6" : "py-8"}>
               <div className="text-center">
-                <CreditCard size={48} className="mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Nenhum cartão cadastrado</h3>
-                <p className="text-muted-foreground mb-4">
-                  Adicione seu primeiro cartão para começar a controlar seus gastos
+                <CreditCard size={isMobile ? 40 : 48} className="mx-auto mb-4 opacity-50" />
+                <h3 className={isMobile ? "text-base font-medium mb-2" : "text-lg font-medium mb-2"}>
+                  Nenhum cartão cadastrado
+                </h3>
+                <p className={isMobile ? "text-sm text-muted-foreground mb-3" : "text-muted-foreground mb-4"}>
+                  Adicione seu primeiro cartão
                 </p>
                 <CardForm />
               </div>
