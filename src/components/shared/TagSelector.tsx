@@ -15,9 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 interface TagSelectorProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
+  isMobile?: boolean;
 }
 
-const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
+const TagSelector = ({ selectedTags, onTagsChange, isMobile = false }: TagSelectorProps) => {
   const { tags, loading, fetchTags } = useTags();
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
@@ -98,26 +99,26 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
   // Removido o bloqueio que impedia a criação de tags quando não há tags existentes
 
   return (
-    <div className="space-y-2">
-      <Label>Tags</Label>
+    <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+      <Label className={`${isMobile ? 'text-xs' : ''}`}>Tags</Label>
       
       {/* Selected tags display */}
       {selectedTags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className={`flex flex-wrap gap-1 mb-2 ${isMobile ? 'gap-0.5 sm:gap-1' : ''}`}>
           {getSelectedTagsInfo().map((tag) => (
             <Badge
               key={tag.id}
               variant="secondary"
-              className="flex items-center gap-1"
+              className={`flex items-center gap-1 ${isMobile ? 'text-xs px-2 py-0.5' : ''}`}
               style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color }}
             >
               <div
-                className="w-2 h-2 rounded-full"
+                className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} rounded-full`}
                 style={{ backgroundColor: tag.color }}
               />
               {tag.name}
               <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                className={`${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'} cursor-pointer hover:text-destructive`}
                 onClick={() => removeTag(tag.id)}
               />
             </Badge>
@@ -133,25 +134,25 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className={`w-full justify-between ${isMobile ? 'h-8 text-xs' : ''}`}
             onClick={() => {
               console.log('Opening tag selector, available tags:', activeTags.length);
               setOpen(true);
             }}
           >
             <div className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              <span>
+              <Tag className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              <span className={`${isMobile ? 'text-xs' : ''}`}>
                 {selectedTags.length > 0
                   ? `${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''} selecionada${selectedTags.length > 1 ? 's' : ''}`
                   : "Selecionar tags"
                 }
               </span>
             </div>
-            <Plus className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <Plus className={`ml-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'} shrink-0 opacity-50`} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0" align="start" side="bottom">
+        <PopoverContent className={`${isMobile ? 'w-72 max-h-48' : 'w-80'} p-0`} align="start" side="bottom">
           <Command
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -169,9 +170,10 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
               placeholder="Buscar ou criar tag..."
               value={tagQuery}
               onValueChange={setTagQuery}
+              className={`${isMobile ? 'h-8 text-xs' : ''}`}
             />
-            <CommandList>
-              <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+            <CommandList className={`${isMobile ? 'max-h-32' : ''}`}>
+              <CommandEmpty className={`${isMobile ? 'text-xs py-2' : ''}`}>Nenhuma tag encontrada.</CommandEmpty>
 
               {tagQuery.trim() &&
                 !activeTags.some(
@@ -181,9 +183,9 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
                   <CommandItem
                     value={`__create_${tagQuery}`}
                     onSelect={() => handleCreateTag(tagQuery)}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                   >
-                    Criar “{tagQuery.trim()}”
+                    Criar "{tagQuery.trim()}"
                   </CommandItem>
                 </CommandGroup>
               )}
@@ -198,17 +200,17 @@ const TagSelector = ({ selectedTags, onTagsChange }: TagSelectorProps) => {
                         console.log('Tag selected from command:', tag.name, tag.id);
                         handleTagToggle(tag.id);
                       }}
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                     >
                       <Check
                         className={cn(
-                          "mr-2 h-4 w-4",
+                          `mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`,
                           selectedTags.includes(tag.id) ? "opacity-100" : "opacity-0"
                         )}
                       />
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full"
+                          className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`}
                           style={{ backgroundColor: tag.color }}
                         />
                         {tag.name}

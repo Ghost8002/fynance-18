@@ -22,6 +22,7 @@ interface TransactionFormFieldsProps {
   categories: any[];
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (name: string, value: string) => void;
+  isMobile?: boolean;
 }
 
 const TransactionFormFields = ({
@@ -29,6 +30,7 @@ const TransactionFormFields = ({
   categories,
   onInputChange,
   onSelectChange,
+  isMobile = false,
 }: TransactionFormFieldsProps) => {
   // Local state to support dynamic category creation and search
   const { user } = useAuth();
@@ -108,8 +110,8 @@ const TransactionFormFields = ({
 
   return (
     <>
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição *</Label>
+      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+        <Label htmlFor="description" className={`${isMobile ? 'text-xs' : ''}`}>Descrição *</Label>
         <Input
           id="description"
           name="description"
@@ -118,11 +120,12 @@ const TransactionFormFields = ({
           value={formData.description}
           onChange={onInputChange}
           required
+          className={`${isMobile ? 'h-8 text-xs' : ''}`}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="amount">Valor *</Label>
+      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+        <Label htmlFor="amount" className={`${isMobile ? 'text-xs' : ''}`}>Valor *</Label>
         <Input
           id="amount"
           name="amount"
@@ -133,11 +136,12 @@ const TransactionFormFields = ({
           value={formData.amount}
           onChange={onInputChange}
           required
+          className={`${isMobile ? 'h-8 text-xs' : ''}`}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category_id">Categoria *</Label>
+      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+        <Label htmlFor="category_id" className={`${isMobile ? 'text-xs' : ''}`}>Categoria *</Label>
         <Popover open={openCategory} onOpenChange={setOpenCategory}>
           <PopoverTrigger asChild>
             <Button
@@ -145,7 +149,7 @@ const TransactionFormFields = ({
               variant="outline"
               role="combobox"
               aria-expanded={openCategory}
-              className="w-full justify-between"
+              className={`w-full justify-between ${isMobile ? 'h-8 text-xs' : ''}`}
            >
               {selectedCategory
                 ? selectedCategory.name
@@ -158,7 +162,7 @@ const TransactionFormFields = ({
                       : "Selecione o tipo de transação primeiro"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom">
+          <PopoverContent className={`w-[--radix-popover-trigger-width] p-0 ${isMobile ? 'max-h-48' : ''}`} align="start" side="bottom">
             <Command
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -176,9 +180,10 @@ const TransactionFormFields = ({
                 placeholder="Buscar ou criar categoria..."
                 value={categoryQuery}
                 onValueChange={setCategoryQuery}
+                className={`${isMobile ? 'h-8 text-xs' : ''}`}
               />
-              <CommandList>
-                <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+              <CommandList className={`${isMobile ? 'max-h-32' : ''}`}>
+                <CommandEmpty className={`${isMobile ? 'text-xs py-2' : ''}`}>Nenhuma categoria encontrada.</CommandEmpty>
 
                 {categoryQuery.trim() &&
                   !sortedCategories.some(
@@ -188,9 +193,9 @@ const TransactionFormFields = ({
                       <CommandItem
                         value={`__create_${categoryQuery}`}
                         onSelect={() => handleCreateCategory(categoryQuery)}
-                        className="cursor-pointer"
+                        className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                       >
-                        Criar “{categoryQuery.trim()}”
+                        Criar "{categoryQuery.trim()}"
                       </CommandItem>
                     </CommandGroup>
                   )}
@@ -205,16 +210,16 @@ const TransactionFormFields = ({
                           onSelectChange("category_id", category.id);
                           setOpenCategory(false);
                         }}
-                        className="cursor-pointer"
+                        className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                       >
                         <div className="flex items-center gap-2">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`}
                             style={{ backgroundColor: category.color }}
                           />
                           <span>{category.name}</span>
                           {category.is_default && (
-                            <span className="text-xs text-muted-foreground">(Padrão)</span>
+                            <span className={`text-xs text-muted-foreground ${isMobile ? 'text-[10px]' : ''}`}>(Padrão)</span>
                           )}
                         </div>
                       </CommandItem>
@@ -227,8 +232,8 @@ const TransactionFormFields = ({
         </Popover>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="date">Data *</Label>
+      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+        <Label htmlFor="date" className={`${isMobile ? 'text-xs' : ''}`}>Data *</Label>
         <Input
           id="date"
           name="date"
@@ -236,18 +241,20 @@ const TransactionFormFields = ({
           value={formData.date}
           onChange={onInputChange}
           required
+          className={`${isMobile ? 'h-8 text-xs' : ''}`}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">Observações</Label>
+      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+        <Label htmlFor="notes" className={`${isMobile ? 'text-xs' : ''}`}>Observações</Label>
         <Textarea
           id="notes"
           name="notes"
           placeholder="Observações adicionais (opcional)"
           value={formData.notes}
           onChange={onInputChange}
-          rows={3}
+          rows={isMobile ? 2 : 3}
+          className={`${isMobile ? 'text-xs min-h-[60px]' : ''}`}
         />
       </div>
     </>

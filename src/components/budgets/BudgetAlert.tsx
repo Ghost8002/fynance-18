@@ -97,33 +97,64 @@ const BudgetAlert = ({ budgets, categories }: BudgetAlertProps) => {
   }
 
   return (
-    <div className="space-y-4 mb-6">
-      <h3 className="text-lg font-semibold">Alertas de Orçamento</h3>
+    <div className="space-y-2 md:space-y-4 mb-4 md:mb-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm md:text-lg font-semibold">Alertas de Orçamento</h3>
+        <Badge variant="secondary" className="text-xs">
+          {alertBudgets.length} alerta{alertBudgets.length > 1 ? 's' : ''}
+        </Badge>
+      </div>
       {alertBudgets.map((budget) => {
         const status = getBudgetStatus(budget);
         const Icon = status.icon;
+        const categoryName = getCategoryName(budget.category_id);
 
         return (
-          <Alert key={budget.id} variant={status.variant} className={status.color}>
-            <Icon className="h-4 w-4" />
+          <Alert key={budget.id} variant={status.variant} className={`${status.color} p-3 md:p-4 hover:shadow-md transition-shadow`}>
+            <Icon className="h-3 w-3 md:h-4 md:w-4" />
             <AlertDescription>
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <div className="flex justify-between items-center">
-                  <p className="font-medium">{status.title}</p>
-                  <Badge variant={status.status === 'exceeded' ? 'destructive' : 'outline'}>
-                    {status.percentage.toFixed(0)}%
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-xs md:text-sm">{status.title}</p>
+                    <Badge 
+                      variant={status.status === 'exceeded' ? 'destructive' : 'outline'} 
+                      className={`text-xs ${
+                        status.status === 'exceeded' ? 'bg-red-100 text-red-800' :
+                        status.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {status.percentage.toFixed(0)}%
+                    </Badge>
+                  </div>
                 </div>
-                <p className="text-sm">{status.message}</p>
+                <p className="text-xs md:text-sm font-medium text-gray-700">{categoryName}</p>
+                <p className="text-xs md:text-sm">{status.message}</p>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span>Gasto: {formatCurrency(Number(budget.spent_amount))}</span>
-                    <span>Limite: {formatCurrency(Number(budget.limit_amount))}</span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                      Gasto: {formatCurrency(Number(budget.spent_amount))}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      Limite: {formatCurrency(Number(budget.limit_amount))}
+                    </span>
                   </div>
                   <Progress 
                     value={Math.min(status.percentage, 100)} 
-                    className="h-2"
+                    className="h-1.5 md:h-2"
+                    indicatorClassName={
+                      status.status === 'exceeded' ? 'bg-red-600' :
+                      status.status === 'warning' ? 'bg-yellow-600' :
+                      'bg-blue-600'
+                    }
                   />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Restante: {formatCurrency(Number(budget.limit_amount) - Number(budget.spent_amount))}</span>
+                    <span>Período: {budget.period}</span>
+                  </div>
                 </div>
               </div>
             </AlertDescription>

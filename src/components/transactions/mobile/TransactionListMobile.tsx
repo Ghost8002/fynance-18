@@ -151,16 +151,16 @@ const TransactionListMobile = () => {
         
         <Sheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen}>
           <SheetTrigger asChild>
-            <Button size="sm" className="h-8 text-xs">
-              <Plus className="h-3.5 w-3.5 mr-1" />
+            <Button size="sm" className="h-7 text-xs px-3">
+              <Plus className="h-3 w-3 mr-1" />
               Nova
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl">
-            <SheetHeader className="mb-4">
-              <SheetTitle className="text-base">Nova Transação</SheetTitle>
+          <SheetContent side="bottom" className="h-[90vh] max-h-[90vh] rounded-t-xl px-2 sm:px-3 md:px-4 flex flex-col">
+            <SheetHeader className="mb-2 sm:mb-3 pb-2 border-b flex-shrink-0">
+              <SheetTitle className="text-sm font-medium">Nova Transação</SheetTitle>
             </SheetHeader>
-            <div className="overflow-y-auto h-[calc(90vh-80px)]">
+            <div className="overflow-y-auto flex-1 -mx-1 sm:-mx-2 px-1 sm:px-2 pb-2 sm:pb-4">
               <TransactionForm 
                 key={newTransactionKey}
                 onTransactionAdded={handleTransactionAdded}
@@ -184,9 +184,9 @@ const TransactionListMobile = () => {
                 size="sm" 
                 variant="outline"
                 onClick={() => setIsAddSheetOpen(true)}
-                className="h-8 text-xs"
+                className="h-7 text-xs px-3"
               >
-                <Plus className="h-3.5 w-3.5 mr-1" />
+                <Plus className="h-3 w-3 mr-1" />
                 Adicionar primeira transação
               </Button>
             </div>
@@ -216,7 +216,7 @@ const TransactionListMobile = () => {
                 size="sm"
                 onClick={pagination.goToPrevPage}
                 disabled={!pagination.hasPrevPage}
-                className="h-8 text-xs"
+                className="h-7 text-xs px-3"
               >
                 Anterior
               </Button>
@@ -230,7 +230,7 @@ const TransactionListMobile = () => {
                 size="sm"
                 onClick={pagination.goToNextPage}
                 disabled={!pagination.hasNextPage}
-                className="h-8 text-xs"
+                className="h-7 text-xs px-3"
               >
                 Próxima
               </Button>

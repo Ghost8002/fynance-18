@@ -13,6 +13,7 @@ interface CategorySelectorProps {
   type?: 'income' | 'expense' | 'all';
   placeholder?: string;
   className?: string;
+  isMobile?: boolean;
 }
 
 const CategorySelector = ({
@@ -21,7 +22,8 @@ const CategorySelector = ({
   categories,
   type = 'all',
   placeholder = "Selecione uma categoria",
-  className = ""
+  className = "",
+  isMobile = false
 }: CategorySelectorProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -106,7 +108,7 @@ const CategorySelector = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={`w-full justify-between ${className}`}
+          className={`w-full justify-between ${isMobile ? 'h-8 text-xs' : ''} ${className}`}
         >
           {selectedCategory
             ? selectedCategory.name
@@ -119,7 +121,7 @@ const CategorySelector = ({
                   : "Selecione uma categoria"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom">
+      <PopoverContent className={`w-[--radix-popover-trigger-width] p-0 ${isMobile ? 'max-h-48' : ''}`} align="start" side="bottom">
         <Command
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -137,9 +139,10 @@ const CategorySelector = ({
             placeholder="Buscar ou criar categoria..."
             value={query}
             onValueChange={setQuery}
+            className={`${isMobile ? 'h-8 text-xs' : ''}`}
           />
-          <CommandList>
-            <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+          <CommandList className={`${isMobile ? 'max-h-32' : ''}`}>
+            <CommandEmpty className={`${isMobile ? 'text-xs py-2' : ''}`}>Nenhuma categoria encontrada.</CommandEmpty>
 
             {query.trim() &&
               !sortedCategories.some(
@@ -149,7 +152,7 @@ const CategorySelector = ({
                   <CommandItem
                     value={`__create_${query}`}
                     onSelect={() => handleCreateCategory(query)}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                   >
                     Criar "{query.trim()}"
                   </CommandItem>
@@ -166,16 +169,16 @@ const CategorySelector = ({
                       onChange(category.id);
                       setOpen(false);
                     }}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`}
                         style={{ backgroundColor: category.color }}
                       />
                       <span>{category.name}</span>
                       {category.is_default && (
-                        <span className="text-xs text-muted-foreground">(Padrão)</span>
+                        <span className={`text-xs text-muted-foreground ${isMobile ? 'text-[10px]' : ''}`}>(Padrão)</span>
                       )}
                     </div>
                   </CommandItem>

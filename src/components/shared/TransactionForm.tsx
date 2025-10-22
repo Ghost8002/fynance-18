@@ -195,16 +195,83 @@ const TransactionForm = ({
 
   const isSubmitDisabled = loading || !!balanceError;
 
+  // Se está sendo usado em modo forceOpen (mobile), renderizar apenas o conteúdo do formulário
+  if (forceOpen) {
+    return (
+      <div className="space-y-2 sm:space-y-3">
+        <form onSubmit={onSubmit} className="space-y-2 sm:space-y-3">
+          <TransactionTypeSelector
+            formData={formData}
+            onSelectChange={handleSelectChange}
+            isGoalTransaction={!!defaultGoalId}
+            isMobile={true}
+          />
+
+          <TransactionFormFields
+            formData={formData}
+            categories={categories || []}
+            onInputChange={handleInputChange}
+            onSelectChange={handleSelectChange}
+            isMobile={true}
+          />
+
+          <PaymentMethodSelector
+            formData={formData}
+            accounts={accounts || []}
+            cards={cards || []}
+            onSelectChange={handleSelectChange}
+            defaultAccountId={defaultAccountId}
+            defaultCardId={defaultCardId}
+            isMobile={true}
+          />
+
+          {balanceError && (
+            <Alert variant="destructive" className="py-2">
+              <AlertTriangle className="h-3 w-3" />
+              <AlertDescription className="text-xs">{balanceError}</AlertDescription>
+            </Alert>
+          )}
+
+          <TagSelector
+            selectedTags={selectedTags}
+            onTagsChange={handleTagsChange}
+            isMobile={true}
+          />
+        </form>
+
+        {/* Footer para mobile */}
+        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t flex flex-col gap-2 sticky bottom-0 bg-background">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleCancel}
+            className="h-8 text-xs w-full"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitDisabled} 
+            onClick={onSubmit}
+            className={`${balanceError ? "opacity-50 cursor-not-allowed" : ""} h-8 text-xs w-full`}
+          >
+            {loading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+            Salvar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Versão desktop com Dialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {!forceOpen && (
-        <DialogTrigger asChild>
-          <Button className="bg-finance-blue hover:bg-finance-blue/90 flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            <span>{defaultGoalId ? 'Adicionar à Meta' : 'Nova Transação'}</span>
-          </Button>
-        </DialogTrigger>
-      )}
+      <DialogTrigger asChild>
+        <Button className="bg-finance-blue hover:bg-finance-blue/90 flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          <span>{defaultGoalId ? 'Adicionar à Meta' : 'Nova Transação'}</span>
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
@@ -218,12 +285,13 @@ const TransactionForm = ({
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <ScrollArea className="max-h-[60vh] pr-2">
           <form onSubmit={onSubmit} className="space-y-4">
             <TransactionTypeSelector
               formData={formData}
               onSelectChange={handleSelectChange}
               isGoalTransaction={!!defaultGoalId}
+              isMobile={false}
             />
 
             <TransactionFormFields
@@ -231,6 +299,7 @@ const TransactionForm = ({
               categories={categories || []}
               onInputChange={handleInputChange}
               onSelectChange={handleSelectChange}
+              isMobile={false}
             />
 
             <PaymentMethodSelector
@@ -240,6 +309,7 @@ const TransactionForm = ({
               onSelectChange={handleSelectChange}
               defaultAccountId={defaultAccountId}
               defaultCardId={defaultCardId}
+              isMobile={false}
             />
 
             {balanceError && (
@@ -252,19 +322,25 @@ const TransactionForm = ({
             <TagSelector
               selectedTags={selectedTags}
               onTagsChange={handleTagsChange}
+              isMobile={false}
             />
           </form>
         </ScrollArea>
 
-        <DialogFooter className="mt-4">
-          <Button type="button" variant="outline" onClick={handleCancel}>
+        <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleCancel}
+            className="w-full sm:w-auto"
+          >
             Cancelar
           </Button>
           <Button 
             type="submit" 
             disabled={isSubmitDisabled} 
             onClick={onSubmit}
-            className={balanceError ? "opacity-50 cursor-not-allowed" : ""}
+            className={`${balanceError ? "opacity-50 cursor-not-allowed" : ""} w-full sm:w-auto`}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar
