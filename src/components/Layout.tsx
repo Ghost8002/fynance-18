@@ -29,9 +29,9 @@ export const Layout = ({ children }: LayoutProps) => {
           <MobileHeader />
           
           {/* Main Content */}
-          <main className="flex-1 overflow-auto pb-20 md:pb-0">
+          <main className="flex-1 overflow-auto pb-16 md:pb-0">
             <div className="section-padding">
-              <div className="max-w-7xl mx-auto py-4 md:py-8">
+              <div className="max-w-7xl mx-auto py-3 md:py-8">
                 <div className="animate-fade-in">
                   {children}
                 </div>

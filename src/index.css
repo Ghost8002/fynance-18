@@ -173,19 +173,36 @@
   /* Mobile optimizations */
   @media (max-width: 768px) {
     .finance-card {
-      @apply p-4;
+      @apply p-3 rounded-lg;
     }
 
     h1 {
-      @apply text-2xl;
-    }
-
-    h2 {
       @apply text-xl;
     }
 
-    h3 {
+    h2 {
       @apply text-lg;
+    }
+
+    h3 {
+      @apply text-base;
+    }
+
+    h4 {
+      @apply text-sm;
+    }
+
+    /* Button adjustments for mobile */
+    .btn-primary,
+    .btn-secondary,
+    .btn-outline,
+    .btn-ghost {
+      @apply px-4 py-2 text-sm;
+    }
+
+    /* Input adjustments for mobile */
+    .input-finance {
+      @apply px-3 py-2 text-sm;
     }
   }
 
