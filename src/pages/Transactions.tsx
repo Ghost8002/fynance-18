@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import TransactionListAdvanced from "@/components/transactions/TransactionListAdvanced";
+import TransactionListMobile from "@/components/transactions/mobile/TransactionListMobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const Transactions = () => {
   const {
@@ -15,7 +16,8 @@ const Transactions = () => {
     }
   }, [isAuthenticated, navigate]);
   return <AppLayout>
-      <div className="space-y-6">
+      {/* Desktop version */}
+      <div className="hidden md:block space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-1">Transações</h1>
@@ -24,12 +26,15 @@ const Transactions = () => {
         </div>
 
         <Tabs defaultValue="lista" className="space-y-6">
-          
-          
           <TabsContent value="lista">
             <TransactionListAdvanced />
           </TabsContent>
         </Tabs>
+      </div>
+
+      {/* Mobile version */}
+      <div className="md:hidden">
+        <TransactionListMobile />
       </div>
     </AppLayout>;
 };
