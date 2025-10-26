@@ -264,7 +264,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
         }
         
         // Adicionar tags ao novo recebível
-        const newReceivableId = data[0].id;
+        const newReceivableId = (data[0] as any).id;
         if (formData.selectedTags.length > 0) {
           const tagInsertions = formData.selectedTags.map(tagId => ({
             receivable_payment_id: newReceivableId,

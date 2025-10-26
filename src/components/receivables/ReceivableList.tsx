@@ -244,7 +244,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
         
         // Buscar os detalhes das tags
         if (receivableTagsData && receivableTagsData.length > 0) {
-          const tagIds = [...new Set(receivableTagsData.map(rpt => rpt.tag_id))];
+          const tagIds = [...new Set((receivableTagsData as any[]).map((rpt: any) => rpt.tag_id))];
           const { data: tagsData, error: tagsError } = await supabase
             .from('tags' as any)
             .select('*')
@@ -257,11 +257,11 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
           
           // Mapear tags para cada recebível
           const updatedReceivables = receivables.map(receivable => {
-            const receivableTagIds = receivableTagsData
-              .filter(rpt => rpt.receivable_payment_id === receivable.id)
-              .map(rpt => rpt.tag_id);
+            const receivableTagIds = (receivableTagsData as any[])
+              .filter((rpt: any) => rpt.receivable_payment_id === receivable.id)
+              .map((rpt: any) => rpt.tag_id);
             
-            const receivableTags = tagsData?.filter(tag => receivableTagIds.includes(tag.id)) || [];
+            const receivableTags = (tagsData as any[])?.filter((tag: any) => receivableTagIds.includes(tag.id)) || [];
             
             return {
               ...receivable,
