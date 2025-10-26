@@ -20,7 +20,8 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import GoalProgressModal from "./GoalProgressModal";
+import AddMoneyToGoalModal from "./AddMoneyToGoalModal";
+import WithdrawMoneyFromGoalModal from "./WithdrawMoneyFromGoalModal";
 
 interface Goal {
   id: string;
@@ -45,8 +46,9 @@ const GoalProgress = ({ goals, onAddProgress, onEdit, onDelete }: GoalProgressPr
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedGoal, setSelectedGoal] = useState<{id: string, title: string} | null>(null);
-  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<{id: string, title: string, currentAmount: number} | null>(null);
+  const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
+  const [showWithdrawMoneyModal, setShowWithdrawMoneyModal] = useState(false);
 
   const handleDelete = async (id: string, title: string) => {
     try {
@@ -70,13 +72,17 @@ const GoalProgress = ({ goals, onAddProgress, onEdit, onDelete }: GoalProgressPr
     }
   };
 
-  const handleAddProgressClick = (goalId: string, goalTitle: string) => {
-    setSelectedGoal({ id: goalId, title: goalTitle });
-    setShowProgressModal(true);
+  const handleAddMoneyClick = (goalId: string, goalTitle: string, currentAmount: number) => {
+    setSelectedGoal({ id: goalId, title: goalTitle, currentAmount });
+    setShowAddMoneyModal(true);
   };
 
-  const handleProgressAdded = () => {
-    // Recarregar dados ou executar qualquer ação necessária após adicionar progresso
+  const handleWithdrawMoneyClick = (goalId: string, goalTitle: string, currentAmount: number) => {
+    setSelectedGoal({ id: goalId, title: goalTitle, currentAmount });
+    setShowWithdrawMoneyModal(true);
+  };
+
+  const handleMoneyOperationSuccess = () => {
     window.dispatchEvent(new CustomEvent('goalProgressAdded'));
   };
 
@@ -326,15 +332,27 @@ const GoalProgress = ({ goals, onAddProgress, onEdit, onDelete }: GoalProgressPr
                       )}
 
                       {progress < 100 && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-2 text-xs md:text-sm"
-                          onClick={() => handleAddProgressClick(goal.id, goal.title)}
-                        >
-                          <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          Adicionar Progresso
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full text-xs md:text-sm text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700"
+                            onClick={() => handleAddMoneyClick(goal.id, goal.title, Number(goal.current_amount))}
+                          >
+                            <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                            Adicionar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full text-xs md:text-sm text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => handleWithdrawMoneyClick(goal.id, goal.title, Number(goal.current_amount))}
+                            disabled={Number(goal.current_amount) <= 0}
+                          >
+                            <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 rotate-180" />
+                            Retirar
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </CardContent>
@@ -433,13 +451,24 @@ const GoalProgress = ({ goals, onAddProgress, onEdit, onDelete }: GoalProgressPr
       )}
 
       {selectedGoal && (
-        <GoalProgressModal
-          goalId={selectedGoal.id}
-          goalTitle={selectedGoal.title}
-          open={showProgressModal}
-          onOpenChange={setShowProgressModal}
-          onProgressAdded={handleProgressAdded}
-        />
+        <>
+          <AddMoneyToGoalModal
+            goalId={selectedGoal.id}
+            goalTitle={selectedGoal.title}
+            open={showAddMoneyModal}
+            onOpenChange={setShowAddMoneyModal}
+            onSuccess={handleMoneyOperationSuccess}
+          />
+          
+          <WithdrawMoneyFromGoalModal
+            goalId={selectedGoal.id}
+            goalTitle={selectedGoal.title}
+            currentAmount={selectedGoal.currentAmount}
+            open={showWithdrawMoneyModal}
+            onOpenChange={setShowWithdrawMoneyModal}
+            onSuccess={handleMoneyOperationSuccess}
+          />
+        </>
       )}
     </div>
   );
