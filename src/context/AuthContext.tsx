@@ -138,7 +138,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      // Don't show toast here - let the component handle the UI feedback
+      toast.success('Cadastro realizado com sucesso! Verifique seu email.');
+      
+      // If email confirmation is disabled, redirect immediately
+      if (data.user && !data.user.email_confirmed_at) {
+        toast.info('Aguarde a confirmação do email ou verifique as configurações de autenticação.');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao criar conta');
       throw error;
@@ -166,7 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
 
-      // Don't show toast here - let the component handle the UI feedback
+      toast.success('Cadastro realizado com sucesso! Verifique seu email.');
       return { error: null };
     } catch (error: any) {
       setIsLoading(false);
