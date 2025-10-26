@@ -25,6 +25,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: cards } = useSupabaseData('cards', user?.id);
   const { data: tags } = useSupabaseData('tags', user?.id);
+  const { data: subcategories } = useSupabaseData('subcategories', user?.id);
 
   // Listen for transaction events
   useEffect(() => {
@@ -113,6 +114,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
     accounts: accounts || [],
     cards: cards || [],
     tags: tags || [],
+    subcategories: subcategories || [],
     pagination: paginationInfo,
   };
 };

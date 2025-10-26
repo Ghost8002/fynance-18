@@ -16,6 +16,7 @@ import CategoryTagValidationModal from './CategoryTagValidationModal';
 import { AccountSelector } from './AccountSelector';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
+
 interface XLSXRow {
   data: string;
   descricao: string;
@@ -24,18 +25,24 @@ interface XLSXRow {
   categoria: string;
   categoria_id?: string;
   tags: string;
+  // Adicionando suporte para subcategoria
+  subcategoria?: string;
+  subcategoria_id?: string;
 }
+
 interface ImportResult {
   success: number;
   errors: number;
   total: number;
 }
+
 interface ValidationItem {
   name: string;
   type: 'category' | 'tag';
   count: number;
   action: 'create' | 'ignore';
 }
+
 const SimpleXLSXImporter: React.FC = () => {
   const {
     user
@@ -58,6 +65,10 @@ const SimpleXLSXImporter: React.FC = () => {
     data: tags,
     refetch: refetchTags
   } = useSupabaseData('tags', user?.id);
+  const {
+    data: subcategories,
+    refetch: refetchSubcategories
+  } = useSupabaseData('subcategories', user?.id);
   const {
     updateAccountBalance
   } = useBalanceUpdates();
@@ -292,7 +303,7 @@ const SimpleXLSXImporter: React.FC = () => {
     const insertedTransactions: any[] = [];
     try {
       // Preparar todas as transações para inserção
-      const transactionsToInsert = dataToImport.map(row => {
+      const transactionsToInsert = await Promise.all(dataToImport.map(async row => {
         const isIncome = row.tipo === 'receita' || row.valor > 0;
         const amount = Math.abs(row.valor);
         const type = isIncome ? 'income' : 'expense';
@@ -305,6 +316,25 @@ const SimpleXLSXImporter: React.FC = () => {
           const category = findCategoryByName(row.categoria.trim());
           if (category) {
             category_id = category.id;
+          }
+        }
+
+        // Processar subcategoria - usar subcategoria_id se disponível, senão buscar por nome
+        let subcategory_id = null;
+        if (row.subcategoria_id) {
+          subcategory_id = row.subcategoria_id;
+        } else if (row.subcategoria && row.subcategoria.trim() && category_id) {
+          // Buscar subcategoria pelo nome e categoria
+          const { data: subcategories, error: subcategoryError } = await supabase
+            .from('subcategories')
+            .select('id')
+            .eq('user_id', user?.id)
+            .eq('category_id', category_id)
+            .eq('name', row.subcategoria.trim())
+            .single();
+          
+          if (!subcategoryError && subcategories) {
+            subcategory_id = subcategories.id;
           }
         }
 
@@ -330,6 +360,7 @@ const SimpleXLSXImporter: React.FC = () => {
           amount: amount,
           type: type,
           category_id: category_id,
+          subcategory_id: subcategory_id,  // ✅ Incluindo subcategory_id
           tags: tags.length > 0 ? tags : [],
           // Garantir que tags seja sempre um array
           user_id: user?.id
@@ -339,8 +370,11 @@ const SimpleXLSXImporter: React.FC = () => {
         if (!transactionData.category_id) {
           delete transactionData.category_id;
         }
+        if (!transactionData.subcategory_id) {
+          delete transactionData.subcategory_id;
+        }
         return transactionData;
-      });
+      }));
 
       // Inserir todas as transações em lote
       for (const transaction of transactionsToInsert) {
@@ -686,4 +720,5 @@ const SimpleXLSXImporter: React.FC = () => {
       </CardContent>
     </Card>;
 };
+
 export default SimpleXLSXImporter;

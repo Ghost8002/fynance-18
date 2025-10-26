@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CategorySelector from "@/components/shared/CategorySelector";
+import SubcategorySelector from "@/components/shared/SubcategorySelector";
 
 interface ReceivableFormFieldsProps {
   formData: any;
@@ -39,6 +39,11 @@ const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
+    
+    // Reset subcategory when category changes
+    if (name === "category_id") {
+      setFormData((prev: any) => ({ ...prev, subcategory_id: "" }));
+    }
   };
 
   const handleDateChange = (date: Date | undefined) => {
@@ -121,6 +126,18 @@ const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
             categories={incomeCategories}
             type="income"
             placeholder="Selecione uma categoria"
+          />
+        </div>
+      )}
+
+      {formData.category_id && (
+        <div className="space-y-2">
+          <Label htmlFor="subcategory_id">Subcategoria</Label>
+          <SubcategorySelector
+            categoryId={formData.category_id}
+            value={formData.subcategory_id}
+            onChange={(value) => handleSelectChange("subcategory_id", value)}
+            placeholder="Selecione uma subcategoria (opcional)"
           />
         </div>
       )}

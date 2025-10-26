@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { 
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from "recharts";
-import { DollarSign, TrendingUp, TrendingDown, Calendar, Tag } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Calendar, Tag, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 interface CostCenter {
   id: string;
@@ -45,6 +46,7 @@ interface TagDetail {
 const CostCentersReport = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedCostCenter, setSelectedCostCenter] = useState<CostCenter | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   
@@ -225,6 +227,38 @@ const CostCentersReport = () => {
       refetchCategories();
     } catch (err) {
       console.error('Erro ao marcar categoria como centro de custo:', err);
+    }
+  };
+  
+  // Função para remover uma categoria dos centros de custo
+  const handleRemoveCostCenter = async (categoryId: string, categoryName: string) => {
+    if (!window.confirm(`Tem certeza que deseja remover "${categoryName}" dos centros de custo?`)) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('categories' as any)
+        .update({ is_cost_center: false } as any)
+        .eq('id', categoryId)
+        .eq('user_id', user?.id);
+        
+      if (error) throw error;
+      
+      // Atualizar os dados
+      refetchCategories();
+      
+      toast({
+        title: "Sucesso",
+        description: `"${categoryName}" foi removido dos centros de custo.`
+      });
+    } catch (err) {
+      console.error('Erro ao remover centro de custo:', err);
+      toast({
+        title: "Erro",
+        description: `Erro ao remover centro de custo: ${err.message}`,
+        variant: "destructive"
+      });
     }
   };
   
@@ -451,6 +485,7 @@ const CostCentersReport = () => {
                 <TableHead className="text-right">Total Receita</TableHead>
                 <TableHead className="text-right">Saldo</TableHead>
                 <TableHead>Última Movimentação</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -494,6 +529,19 @@ const CostCentersReport = () => {
                     ) : (
                       'N/A'
                     )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveCostCenter(costCenter.id, costCenter.name);
+                      }}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
  
 import TagSelector from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
+import SubcategorySelector from "@/components/shared/SubcategorySelector";
 
 interface Receivable {
   id: string;
@@ -30,8 +31,12 @@ interface Receivable {
   notes?: string;
   account_id?: string;
   category_id?: string;
+  subcategory_id?: string;
   is_recurring?: boolean;
   recurrence_type?: 'weekly' | 'monthly' | 'yearly';
+  max_occurrences?: number;
+  recurrence_end_date?: string;
+  tags?: Array<{id: string, name: string, color: string}>;
 }
 
 interface ReceivableFormProps {
@@ -55,6 +60,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
     notes: '',
     account_id: '',
     category_id: '',
+    subcategory_id: '',
     is_recurring: false,
     recurrence_type: 'monthly' as 'weekly' | 'monthly' | 'yearly',
     max_occurrences: '',
@@ -73,11 +79,12 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
         notes: receivable.notes || '',
         account_id: receivable.account_id || '',
         category_id: receivable.category_id || '',
+        subcategory_id: receivable.subcategory_id || '',
         is_recurring: receivable.is_recurring || false,
         recurrence_type: receivable.recurrence_type || 'monthly',
-        max_occurrences: (receivable as any).max_occurrences?.toString() || '',
-        recurrence_end_date: (receivable as any).recurrence_end_date ? new Date((receivable as any).recurrence_end_date) : undefined,
-        selectedTags: []
+        max_occurrences: receivable.max_occurrences?.toString() || '',
+        recurrence_end_date: receivable.recurrence_end_date ? new Date(receivable.recurrence_end_date) : undefined,
+        selectedTags: receivable.tags ? receivable.tags.map((tag: any) => tag.id) : []
       });
     }
   }, [receivable]);
@@ -180,6 +187,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
           notes: formData.notes || null,
           account_id: formData.account_id || null,
           category_id: formData.category_id || null,
+          subcategory_id: formData.subcategory_id || null,
           is_recurring: formData.is_recurring,
           recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
           max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
@@ -187,7 +195,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
         };
 
         const { error } = await supabase
-          .from('receivable_payments')
+          .from('receivable_payments' as any)
           .update(receivableData)
           .eq('id', receivable.id);
 
@@ -195,6 +203,32 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
           console.error('Error updating receivable:', error);
           throw error;
         }
+        
+        // Atualizar tags
+        if (formData.selectedTags.length > 0) {
+          // Primeiro remover todas as tags existentes
+          await supabase
+            .from('receivable_payment_tags' as any)
+            .delete()
+            .eq('receivable_payment_id', receivable.id);
+          
+          // Depois adicionar as novas tags
+          const tagInsertions = formData.selectedTags.map(tagId => ({
+            receivable_payment_id: receivable.id,
+            tag_id: tagId
+          }));
+          
+          await supabase
+            .from('receivable_payment_tags' as any)
+            .insert(tagInsertions);
+        } else {
+          // Se não há tags selecionadas, remover todas as existentes
+          await supabase
+            .from('receivable_payment_tags' as any)
+            .delete()
+            .eq('receivable_payment_id', receivable.id);
+        }
+        
         toast({
           title: "Sucesso",
           description: "Pagamento atualizado com sucesso",
@@ -202,7 +236,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
       } else {
         // Create new receivable directly using insert
         const { data, error } = await supabase
-          .from('receivable_payments')
+          .from('receivable_payments' as any)
           .insert({
             user_id: user.id,
             description: formData.description,
@@ -210,6 +244,7 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
             due_date: format(formData.due_date, 'yyyy-MM-dd'),
             account_id: formData.account_id || null,
             category_id: formData.category_id || null,
+            subcategory_id: formData.subcategory_id || null,
             notes: formData.notes || null,
             is_recurring: formData.is_recurring,
             recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
@@ -227,9 +262,28 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
         if (!data || data.length === 0) {
           throw new Error('Erro ao criar pagamento');
         }
+        
+        // Adicionar tags ao novo recebível
+        const newReceivableId = data[0].id;
+        if (formData.selectedTags.length > 0) {
+          const tagInsertions = formData.selectedTags.map(tagId => ({
+            receivable_payment_id: newReceivableId,
+            tag_id: tagId
+          }));
+          
+          await supabase
+            .from('receivable_payment_tags' as any)
+            .insert(tagInsertions);
+        }
 
         // If receivable is created as received, create a transaction
         if (formData.status === 'received' && formData.account_id) {
+          // Obter as tags para a transação
+          const { data: tagData } = await supabase
+            .from('tags' as any)
+            .select('*')
+            .in('id', formData.selectedTags);
+            
           const transactionData = {
             user_id: user.id,
             description: `Recebimento: ${formData.description}`,
@@ -237,7 +291,9 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
             type: 'income',
             date: format(formData.due_date, 'yyyy-MM-dd'), // ✅ Usar data de vencimento
             account_id: formData.account_id,
-            category_id: formData.category_id || null
+            category_id: formData.category_id || null,
+            subcategory_id: formData.subcategory_id || null,  // ✅ Adicionando subcategory_id
+            tags: tagData || []
           };
 
           console.log('Creating transaction:', transactionData);
@@ -376,6 +432,19 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
               />
             </div>
 
+            {/* Added Subcategory Selector */}
+            {formData.category_id && (
+              <div className="space-y-2">
+                <Label htmlFor="subcategory_id">Subcategoria</Label>
+                <SubcategorySelector
+                  categoryId={formData.category_id}
+                  value={formData.subcategory_id}
+                  onChange={(value) => setFormData({...formData, subcategory_id: value})}
+                  placeholder="Selecione uma subcategoria (opcional)"
+                />
+              </div>
+            )}
+
             <TagSelector
               selectedTags={formData.selectedTags}
               onTagsChange={handleTagsChange}
@@ -509,4 +578,4 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
   );
 };
 
-export default ReceivableForm; 
+export default ReceivableForm;

@@ -10,6 +10,8 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import TagSelector from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
+import SubcategorySelect from "./SubcategorySelect";
+
 interface TransactionEditFormProps {
   transaction: {
     id: string;
@@ -40,6 +42,7 @@ const TransactionEditForm = ({
     amount: '',
     date: '',
     category_id: '',
+    subcategory_id: '',
     account_id: '',
     card_id: '',
     notes: '',
@@ -76,6 +79,7 @@ const TransactionEditForm = ({
         amount: transaction.amount.toString(),
         date: transaction.date,
         category_id: transaction.category_id || '',
+        subcategory_id: (transaction as any).subcategory_id || '',
         account_id: transaction.account_id || '',
         card_id: transaction.card_id || '',
         notes: transaction.notes || '',
@@ -83,6 +87,7 @@ const TransactionEditForm = ({
       });
     }
   }, [transaction, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) {
@@ -117,6 +122,7 @@ const TransactionEditForm = ({
         amount: Number(formData.amount),
         date: formData.date,
         category_id: formData.category_id || null,
+        subcategory_id: formData.subcategory_id || null,
         account_id: formData.account_id || null,
         card_id: formData.card_id || null,
         notes: formData.notes || null,
@@ -152,18 +158,21 @@ const TransactionEditForm = ({
       setIsLoading(false);
     }
   };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
+
   const handleTagsChange = (tags: string[]) => {
     setFormData(prev => ({
       ...prev,
       tags
     }));
   };
+
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -205,6 +214,15 @@ const TransactionEditForm = ({
             <Label htmlFor="category">Categoria</Label>
             <CategorySelector value={formData.category_id} onChange={value => handleInputChange('category_id', value)} categories={categories} type={formData.type} placeholder="Selecione uma categoria..." />
           </div>
+
+          {/* Added Subcategory Select */}
+          {formData.category_id && (
+            <SubcategorySelect
+              categoryId={formData.category_id}
+              value={formData.subcategory_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, subcategory_id: value || '' }))}
+            />
+          )}
 
           <div className="grid gap-2">
             <Label htmlFor="account">Conta</Label>
@@ -248,11 +266,12 @@ const TransactionEditForm = ({
           <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+          <Button type="submit" onClick={handleSubmit as any} disabled={isLoading}>
             {isLoading ? "Salvando..." : "Salvar"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>;
 };
+
 export default TransactionEditForm;

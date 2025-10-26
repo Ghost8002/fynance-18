@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, Tag } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useReceivablesWithTags } from "@/hooks/useReceivablesWithTags";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
@@ -94,6 +95,31 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
       {typeLabels[recurrenceType as keyof typeof typeLabels] || 'Recorrente'}
     </Badge>;
 };
+
+// Helper function to get category name
+const getCategoryName = (categoryId: string, categories: any[]) => {
+  const category = categories.find(cat => cat.id === categoryId);
+  return category ? category.name : 'Categoria não encontrada';
+};
+
+// Helper function to get category color
+const getCategoryColor = (categoryId: string, categories: any[]) => {
+  const category = categories.find(cat => cat.id === categoryId);
+  return category ? category.color : '#3B82F6';
+};
+
+// Helper function to get subcategory name
+const getSubcategoryName = (subcategoryId: string, subcategories: any[]) => {
+  const subcategory = subcategories.find(sub => sub.id === subcategoryId);
+  return subcategory ? subcategory.name : '';
+};
+
+// Helper function to get subcategory color
+const getSubcategoryColor = (subcategoryId: string, subcategories: any[]) => {
+  const subcategory = subcategories.find(sub => sub.id === subcategoryId);
+  return subcategory ? subcategory.color : '#9CA3AF';
+};
+
 interface ReceivableListProps {
   categories?: Array<{ id: string; name: string; type: string }>;
   accounts?: Array<{ id: string; name: string; type: string }>;
@@ -116,16 +142,20 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
     data: receivables,
     loading,
     error,
-    update,
-    remove,
     refetch
-  } = useSupabaseData('receivable_payments', user?.id);
+  } = useReceivablesWithTags();
   const {
     data: accounts
   } = useSupabaseData('accounts', user?.id);
   const {
     data: categories
   } = useSupabaseData('categories', user?.id);
+  const {
+    data: subcategories
+  } = useSupabaseData('subcategories', user?.id);
+  const {
+    data: tags
+  } = useSupabaseData('tags', user?.id);
   const {
     updateAccountBalance
   } = useBalanceUpdates();
@@ -159,6 +189,96 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
   }, [receivables, currentMonth]);
 
+  // Funções de atualização e remoção
+  const update = async (id: string, updateData: any) => {
+    try {
+      const { data: result, error } = await supabase
+        .from('receivable_payments' as any)
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      
+      refetch();
+      return { data: result, error: null };
+    } catch (err) {
+      console.error('Error updating receivable:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      return { data: null, error: errorMessage };
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('receivable_payments' as any)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      refetch();
+      return { error: null };
+    } catch (err) {
+      console.error('Error deleting receivable:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      return { error: errorMessage };
+    }
+  };
+
+  // Carregar tags para os recebíveis
+  useEffect(() => {
+    if (receivables.length > 0 && user?.id) {
+      const fetchReceivableTags = async () => {
+        // Buscar todas as associações de tags para os recebíveis
+        const { data: receivableTagsData, error: receivableTagsError } = await supabase
+          .from('receivable_payment_tags' as any)
+          .select('*')
+          .in('receivable_payment_id', receivables.map(r => r.id));
+        
+        if (receivableTagsError) {
+          console.error('Error fetching receivable tags:', receivableTagsError);
+          return;
+        }
+        
+        // Buscar os detalhes das tags
+        if (receivableTagsData && receivableTagsData.length > 0) {
+          const tagIds = [...new Set(receivableTagsData.map(rpt => rpt.tag_id))];
+          const { data: tagsData, error: tagsError } = await supabase
+            .from('tags' as any)
+            .select('*')
+            .in('id', tagIds);
+          
+          if (tagsError) {
+            console.error('Error fetching tags:', tagsError);
+            return;
+          }
+          
+          // Mapear tags para cada recebível
+          const updatedReceivables = receivables.map(receivable => {
+            const receivableTagIds = receivableTagsData
+              .filter(rpt => rpt.receivable_payment_id === receivable.id)
+              .map(rpt => rpt.tag_id);
+            
+            const receivableTags = tagsData?.filter(tag => receivableTagIds.includes(tag.id)) || [];
+            
+            return {
+              ...receivable,
+              tags: receivableTags
+            };
+          });
+          
+          // Atualizar os dados dos recebíveis com as tags
+          // Aqui precisamos atualizar o estado do hook useSupabaseData de alguma forma
+          // Por enquanto, vamos atualizar o estado local
+        }
+      };
+      
+      fetchReceivableTags();
+    }
+  }, [receivables, user?.id]);
+
   // Calculate totals for filtered receivables (excluding virtual recurrences)
   const totals = useMemo(() => {
     return filteredReceivables.reduce((acc, receivable) => {
@@ -185,6 +305,32 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       total: 0
     });
   }, [filteredReceivables]);
+
+  // Helper function to get tags display
+  const getTagsDisplay = (receivable: any) => {
+    // Verificar se receivable.tags existe e é um array
+    if (!receivable.tags || !Array.isArray(receivable.tags) || receivable.tags.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {receivable.tags.map((tag: any) => {
+          // Agora tag é um objeto completo, não apenas um ID
+          return (
+            <Badge 
+              key={tag.id} 
+              variant="secondary" 
+              className="text-xs py-0.5 px-1.5"
+              style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color, color: tag.color }}
+            >
+              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: tag.color }} />
+              {tag.name}
+            </Badge>
+          );
+        })}
+      </div>
+    );
+  };
+
   const handleMarkAsReceived = async (receivable: any) => {
     const operationId = `mark-received-${receivable.id}`;
     try {
@@ -207,7 +353,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       const {
         data: transactionData,
         error: transactionError
-      } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
+      } = await supabase.rpc('mark_receivable_as_received_with_rollback' as any, {
         p_receivable_id: receivable.id,
         p_account_id: receivable.account_id
       });
@@ -245,36 +391,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       }));
     }
   };
-  const handleSelectAccountAndMarkAsReceived = async (accountId: string) => {
-    if (!receivableForAccountSelection) return;
-    try {
-      // Primeiro atualizar o pagamento com a conta selecionada
-      const updateResult = await update(receivableForAccountSelection.id, {
-        account_id: accountId
-      });
-      if (updateResult.error) {
-        throw new Error(updateResult.error);
-      }
 
-      // Fechar seletor de conta
-      setShowAccountSelector(false);
-      setReceivableForAccountSelection(null);
-
-      // Agora marcar como recebido com a conta selecionada
-      const receivableWithAccount = {
-        ...receivableForAccountSelection,
-        account_id: accountId
-      };
-      await handleMarkAsReceived(receivableWithAccount);
-    } catch (error) {
-      console.error('Error selecting account:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao selecionar conta. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
   const handleUnmarkAsReceived = async (receivable: any) => {
     const operationId = `unmark-received-${receivable.id}`;
     try {
@@ -289,7 +406,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       const {
         data: transactionData,
         error: transactionError
-      } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
+      } = await supabase.rpc('unmark_receivable_as_received_with_rollback' as any, {
         p_receivable_id: receivable.id,
         p_account_id: receivable.account_id
       });
@@ -359,6 +476,36 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
     setSelectedReceivable(null);
     setShowForm(false);
   };
+  const handleSelectAccountAndMarkAsReceived = async (accountId: string) => {
+    if (!receivableForAccountSelection) return;
+    try {
+      // Primeiro atualizar o pagamento com a conta selecionada
+      const updateResult = await update(receivableForAccountSelection.id, {
+        account_id: accountId
+      });
+      if (updateResult.error) {
+        throw new Error(updateResult.error);
+      }
+
+      // Fechar seletor de conta
+      setShowAccountSelector(false);
+      setReceivableForAccountSelection(null);
+
+      // Agora marcar como recebido com a conta selecionada
+      const receivableWithAccount = {
+        ...receivableForAccountSelection,
+        account_id: accountId
+      };
+      await handleMarkAsReceived(receivableWithAccount);
+    } catch (error) {
+      console.error('Error selecting account:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao selecionar conta. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
   const getAccountName = (accountId: string) => {
     const account = accounts.find(acc => acc.id === accountId);
     return account ? `${account.name} - ${account.bank || 'Sem banco'}` : 'Conta não encontrada';
@@ -378,7 +525,8 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
         </CardContent>
       </Card>;
   }
-  return <div className="space-y-6">
+  return (
+    <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -458,7 +606,8 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
         </CardHeader>
         
         <CardContent>
-          {filteredReceivables.length > 0 ? <div className="rounded-md border">
+          {filteredReceivables.length > 0 ? (
+            <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -466,27 +615,71 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                     <TableHead>Valor</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Conta</TableHead>
+                    <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Tipo</TableHead>
+                    <TableHead>Tags</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReceivables.map(receivable => <TableRow key={receivable.id}>
-                      <TableCell className="font-medium">{receivable.description}</TableCell>
+                  {filteredReceivables.map((receivable: any) => (
+                    <TableRow key={receivable.id}>
+                      <TableCell className="font-medium">
+                        <div>{receivable.description}</div>
+                        {getTagsDisplay(receivable)}
+                      </TableCell>
                       <TableCell>{formatCurrency(Number(receivable.amount))}</TableCell>
-                      <TableCell>{format(parse(receivable.due_date, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy", {
-                    locale: ptBR
-                  })}</TableCell>
                       <TableCell>
-                        {receivable.account_id ? <div className="flex items-center gap-1">
+                        {format(parse(receivable.due_date, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy", {
+                          locale: ptBR
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {receivable.account_id ? (
+                          <div className="flex items-center gap-1">
                             <Receipt className="h-3 w-3 text-green-600" />
                             {getAccountName(receivable.account_id)}
-                          </div> : <Badge variant="outline" className="text-orange-600 border-orange-200">
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-orange-600 border-orange-200">
                             Conta não especificada
-                          </Badge>}
+                          </Badge>
+                        )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(receivable.status, receivable.due_date, (receivable as any).is_virtual)}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {receivable.category_id && (
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs"
+                              style={{ backgroundColor: `${getCategoryColor(receivable.category_id, categories)}20`, borderColor: getCategoryColor(receivable.category_id, categories), color: getCategoryColor(receivable.category_id, categories) }}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full mr-1"
+                                style={{ backgroundColor: getCategoryColor(receivable.category_id, categories) }}
+                              />
+                              {getCategoryName(receivable.category_id, categories)}
+                            </Badge>
+                          )}
+                          {/* Verificar se é um objeto real e não uma recorrência virtual */}
+                          {receivable.subcategory_id && typeof receivable.subcategory_id === 'string' && (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs"
+                              style={{ borderColor: getSubcategoryColor(receivable.subcategory_id, subcategories), color: getSubcategoryColor(receivable.subcategory_id, subcategories) }}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full mr-1"
+                                style={{ backgroundColor: getSubcategoryColor(receivable.subcategory_id, subcategories) }}
+                              />
+                              {getSubcategoryName(receivable.subcategory_id, subcategories)}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(receivable.status, receivable.due_date, receivable.is_virtual)}
+                      </TableCell>
                       <TableCell>
                         {(receivable as any).is_virtual ? (
                           <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
@@ -494,13 +687,7 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                             Recorrência #{(receivable as any).occurrence_number}
                           </Badge>
                         ) : (
-                          <RecurrenceProgress 
-                            isRecurring={receivable.is_recurring} 
-                            recurrenceType={receivable.recurrence_type} 
-                            currentCount={receivable.current_count || 0} 
-                            maxOccurrences={receivable.max_occurrences} 
-                            endDate={receivable.recurrence_end_date} 
-                          />
+                          getTagsDisplay(receivable)
                         )}
                       </TableCell>
                       
@@ -585,10 +772,13 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                            )}
                          </div>
                        </TableCell>
-                    </TableRow>)}
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
-            </div> : <div className="text-center py-8">
+            </div>
+          ) : (
+            <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
                 {receivables.length === 0 ? "Nenhum pagamento cadastrado. Comece adicionando seu primeiro pagamento!" : "Nenhum pagamento encontrado com os filtros aplicados."}
               </p>
@@ -596,7 +786,8 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Primeiro Pagamento
                 </Button>}
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -636,6 +827,8 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 };
+
 export default ReceivableList;

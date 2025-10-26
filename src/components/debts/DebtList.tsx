@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard, ChevronLeft, ChevronRight, Tag } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useDebitsWithTags } from "@/hooks/useDebitsWithTags";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { RecurrenceProgress } from "@/components/shared/RecurrenceProgress";
@@ -98,6 +99,31 @@ const getRecurrenceBadge = (isRecurring: boolean, recurrenceType?: string) => {
       {typeLabels[recurrenceType as keyof typeof typeLabels] || 'Recorrente'}
     </Badge>;
 };
+
+// Helper function to get category name
+const getCategoryName = (categoryId: string, categories: any[]) => {
+  const category = categories.find(cat => cat.id === categoryId);
+  return category ? category.name : 'Categoria não encontrada';
+};
+
+// Helper function to get category color
+const getCategoryColor = (categoryId: string, categories: any[]) => {
+  const category = categories.find(cat => cat.id === categoryId);
+  return category ? category.color : '#3B82F6';
+};
+
+// Helper function to get subcategory name
+const getSubcategoryName = (subcategoryId: string, subcategories: any[]) => {
+  const subcategory = subcategories.find(sub => sub.id === subcategoryId);
+  return subcategory ? subcategory.name : '';
+};
+
+// Helper function to get subcategory color
+const getSubcategoryColor = (subcategoryId: string, subcategories: any[]) => {
+  const subcategory = subcategories.find(sub => sub.id === subcategoryId);
+  return subcategory ? subcategory.color : '#9CA3AF';
+};
+
 interface DebtListProps {
   categories?: Array<{ id: string; name: string; type: string }>;
   accounts?: Array<{ id: string; name: string; type: string }>;
@@ -120,16 +146,20 @@ const DebtList: React.FC<DebtListProps> = ({
     data: debts,
     loading,
     error,
-    update,
-    remove,
     refetch
-  } = useSupabaseData('debts', user?.id);
+  } = useDebitsWithTags();
   const {
     data: accounts
   } = useSupabaseData('accounts', user?.id);
   const {
     data: categories
   } = useSupabaseData('categories', user?.id);
+  const {
+    data: subcategories
+  } = useSupabaseData('subcategories', user?.id);
+  const {
+    data: tags
+  } = useSupabaseData('tags', user?.id);
   const {
     data: cards
   } = useSupabaseData('cards', user?.id);
@@ -165,6 +195,44 @@ const DebtList: React.FC<DebtListProps> = ({
       return dueDate >= monthStart && dueDate <= monthEnd;
     }).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
   }, [debts, currentMonth]);
+
+  // Funções de atualização e remoção
+  const update = async (id: string, updateData: any) => {
+    try {
+      const { data: result, error } = await supabase
+        .from('debts' as any)
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      
+      refetch();
+      return { data: result, error: null };
+    } catch (err) {
+      console.error('Error updating debt:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      return { data: null, error: errorMessage };
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('debts' as any)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      refetch();
+      return { error: null };
+    } catch (err) {
+      console.error('Error deleting debt:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      return { error: errorMessage };
+    }
+  };
 
   // Calculate totals for filtered debts (excluding virtual recurrences)
   const totals = useMemo(() => {
@@ -214,7 +282,7 @@ const DebtList: React.FC<DebtListProps> = ({
       const {
         data: transactionData,
         error: transactionError
-      } = await supabase.rpc('mark_debt_as_paid_with_rollback', {
+      } = await supabase.rpc('mark_debt_as_paid_with_rollback' as any, {
         p_debt_id: debt.id,
         p_account_id: debt.account_id
       });
@@ -296,7 +364,7 @@ const DebtList: React.FC<DebtListProps> = ({
       const {
         data: transactionData,
         error: transactionError
-      } = await supabase.rpc('unmark_debt_as_paid_with_rollback', {
+      } = await supabase.rpc('unmark_debt_as_paid_with_rollback' as any, {
         p_debt_id: debt.id,
         p_account_id: debt.account_id
       });
@@ -375,6 +443,32 @@ const DebtList: React.FC<DebtListProps> = ({
     const card = cards?.find(card => card.id === cardId);
     return card;
   };
+
+  // Helper function to get tags display
+  const getTagsDisplay = (debt: any) => {
+    // Verificar se debt.tags existe e é um array
+    if (!debt.tags || !Array.isArray(debt.tags) || debt.tags.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {debt.tags.map((tag: any) => {
+          // Agora tag é um objeto completo, não apenas um ID
+          return (
+            <Badge 
+              key={tag.id} 
+              variant="secondary" 
+              className="text-xs py-0.5 px-1.5"
+              style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color, color: tag.color }}
+            >
+              <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: tag.color }} />
+              {tag.name}
+            </Badge>
+          );
+        })}
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-8">
         <div className="text-center">
@@ -390,7 +484,8 @@ const DebtList: React.FC<DebtListProps> = ({
         </CardContent>
       </Card>;
   }
-  return <div className="space-y-6">
+  return (
+    <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -473,7 +568,8 @@ const DebtList: React.FC<DebtListProps> = ({
         </CardHeader>
         
         <CardContent>
-          {filteredDebts.length > 0 ? <div className="rounded-md border">
+          {filteredDebts.length > 0 ? (
+            <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -482,25 +578,36 @@ const DebtList: React.FC<DebtListProps> = ({
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Conta</TableHead>
                     <TableHead>Cartão</TableHead>
+                    <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Tipo</TableHead>
+                    <TableHead>Tags</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDebts.map(debt => <TableRow key={debt.id}>
-                      <TableCell className="font-medium">{debt.description}</TableCell>
+                  {filteredDebts.map(debt => (
+                    <TableRow key={debt.id}>
+                      <TableCell className="font-medium">
+                        <div>{debt.description}</div>
+                        {getTagsDisplay(debt)}
+                      </TableCell>
                       <TableCell>{formatCurrency(Number(debt.amount))}</TableCell>
-                      <TableCell>{format(parse(debt.due_date, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy", {
-                    locale: ptBR
-                  })}</TableCell>
                       <TableCell>
-                        {debt.account_id ? <div className="flex items-center gap-1">
+                        {format(parse(debt.due_date, 'yyyy-MM-dd', new Date()), "dd/MM/yyyy", {
+                          locale: ptBR
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {debt.account_id ? (
+                          <div className="flex items-center gap-1">
                             <Receipt className="h-3 w-3 text-green-600" />
                             {getAccountName(debt.account_id)}
-                          </div> : <Badge variant="outline" className="text-orange-600 border-orange-200">
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-orange-600 border-orange-200">
                             Conta não especificada
-                          </Badge>}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         {debt.card_id ? (
@@ -527,35 +634,60 @@ const DebtList: React.FC<DebtListProps> = ({
                           <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
-                       <TableCell>{getStatusBadge(debt.status, debt.due_date, (debt as any).is_virtual)}</TableCell>
-                       <TableCell>
-                         {(debt as any).is_virtual ? (
-                           <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
-                             <Repeat className="h-3 w-3" />
-                             Recorrência #{(debt as any).occurrence_number}
-                           </Badge>
-                         ) : (
-                           <RecurrenceProgress 
-                             isRecurring={debt.is_recurring} 
-                             recurrenceType={debt.recurrence_type} 
-                             currentCount={debt.current_count || 0} 
-                             maxOccurrences={debt.max_occurrences} 
-                             endDate={debt.recurrence_end_date}
-                           />
-                         )}
-                       </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {debt.category_id && (
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs"
+                              style={{ backgroundColor: `${getCategoryColor(debt.category_id, categories)}20`, borderColor: getCategoryColor(debt.category_id, categories), color: getCategoryColor(debt.category_id, categories) }}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full mr-1"
+                                style={{ backgroundColor: getCategoryColor(debt.category_id, categories) }}
+                              />
+                              {getCategoryName(debt.category_id, categories)}
+                            </Badge>
+                          )}
+                          {/* Verificar se é um objeto real e não uma recorrência virtual */}
+                          {(debt as any).subcategory_id && typeof (debt as any).subcategory_id === 'string' && (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs"
+                              style={{ borderColor: getSubcategoryColor((debt as any).subcategory_id, subcategories), color: getSubcategoryColor((debt as any).subcategory_id, subcategories) }}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full mr-1"
+                                style={{ backgroundColor: getSubcategoryColor((debt as any).subcategory_id, subcategories) }}
+                              />
+                              {getSubcategoryName((debt as any).subcategory_id, subcategories)}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(debt.status, debt.due_date, (debt as any).is_virtual)}</TableCell>
+                      <TableCell>
+                        {(debt as any).is_virtual ? (
+                          <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                            <Repeat className="h-3 w-3" />
+                            Recorrência #{(debt as any).occurrence_number}
+                          </Badge>
+                        ) : (
+                          getTagsDisplay(debt)
+                        )}
+                      </TableCell>
                       
-                       <TableCell className="text-right">
-                         <div className="flex items-center justify-end gap-2">
-                           {(debt as any).is_virtual ? (
-                             <span className="text-xs text-muted-foreground">Recorrência futura</span>
-                           ) : (
-                             <>
-                               {debt.status === 'pending' ? <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(debt)} disabled={loadingOperations[`mark-paid-${debt.id}`]} className="text-green-600 hover:text-green-700">
-                                   {loadingOperations[`mark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                                 </Button> : debt.status === 'paid' ? <Button variant="outline" size="sm" onClick={() => handleUnmarkAsPaid(debt)} disabled={loadingOperations[`unmark-paid-${debt.id}`]} className="text-orange-600 hover:text-orange-700">
-                                   {loadingOperations[`unmark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                                 </Button> : null}
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {(debt as any).is_virtual ? (
+                            <span className="text-xs text-muted-foreground">Recorrência futura</span>
+                          ) : (
+                            <>
+                              {debt.status === 'pending' ? <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(debt)} disabled={loadingOperations[`mark-paid-${debt.id}`]} className="text-green-600 hover:text-green-700">
+                                  {loadingOperations[`mark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                </Button> : debt.status === 'paid' ? <Button variant="outline" size="sm" onClick={() => handleUnmarkAsPaid(debt)} disabled={loadingOperations[`unmark-paid-${debt.id}`]} className="text-orange-600 hover:text-orange-700">
+                                  {loadingOperations[`unmark-paid-${debt.id}`] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                                </Button> : null}
                                
                                <Button variant="outline" size="sm" onClick={() => setSelectedDebt(debt)} disabled={Object.values(loadingOperations).some(Boolean)}>
                                  <Edit className="h-4 w-4" />
@@ -587,10 +719,13 @@ const DebtList: React.FC<DebtListProps> = ({
                            )}
                          </div>
                        </TableCell>
-                    </TableRow>)}
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
-            </div> : <div className="text-center py-8">
+            </div>
+          ) : (
+            <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">
                 {debts.length === 0 ? "Nenhuma dívida cadastrada. Comece adicionando sua primeira dívida!" : "Nenhuma dívida encontrada com os filtros aplicados."}
               </p>
@@ -598,7 +733,8 @@ const DebtList: React.FC<DebtListProps> = ({
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Primeira Dívida
                 </Button>}
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -638,6 +774,7 @@ const DebtList: React.FC<DebtListProps> = ({
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 };
 export default DebtList;

@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import TransactionTableRow from "./TransactionTableRow";
 
@@ -7,6 +6,7 @@ interface TransactionTableProps {
   categoryMap: Record<string, any>;
   accountMap: Record<string, string>;
   cardMap: Record<string, string>;
+  subcategoryMap: Record<string, any>;
   categories: any[];
   onUpdate: (id: string, data: any) => Promise<{ error?: string }>;
   onDelete: (id: string) => Promise<{ error?: string }>;
@@ -17,6 +17,7 @@ const TransactionTable = ({
   categoryMap, 
   accountMap, 
   cardMap,
+  subcategoryMap,
   categories,
   onUpdate, 
   onDelete 
@@ -30,6 +31,7 @@ const TransactionTable = ({
             <TableHead>Data</TableHead>
             <TableHead>Valor</TableHead>
             <TableHead>Categoria</TableHead>
+            <TableHead>Subcategoria</TableHead>
             <TableHead>Tags</TableHead>
             <TableHead>Conta/Cartão</TableHead>
             <TableHead>Tipo</TableHead>
@@ -44,6 +46,7 @@ const TransactionTable = ({
               categoryMap={categoryMap}
               accountMap={accountMap}
               cardMap={cardMap}
+              subcategoryMap={subcategoryMap}
               categories={categories}
               onUpdate={onUpdate}
               onDelete={onDelete}

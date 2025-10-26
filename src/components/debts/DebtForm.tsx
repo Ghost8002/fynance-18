@@ -20,7 +20,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import TagSelector from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
- 
+import SubcategorySelector from "@/components/shared/SubcategorySelector";
+
 
 interface Debt {
   id: string;
@@ -61,6 +62,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
     notes: '',
     account_id: '',
     category_id: '',
+    subcategory_id: '',
     is_recurring: false,
     recurrence_type: 'monthly' as 'weekly' | 'monthly' | 'yearly',
     max_occurrences: '',
@@ -86,6 +88,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
         notes: debt.notes || '',
         account_id: debt.account_id || '',
         category_id: debt.category_id || '',
+        subcategory_id: (debt as any).subcategory_id || '',
         is_recurring: debt.is_recurring || false,
         recurrence_type: debt.recurrence_type || 'monthly',
         max_occurrences: (debt as any).max_occurrences?.toString() || '',
@@ -199,6 +202,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
           notes: formData.notes || null,
           account_id: formData.account_id || null,
           category_id: formData.category_id || null,
+          subcategory_id: formData.subcategory_id || null,
           is_recurring: formData.is_recurring,
           recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
           max_occurrences: formData.is_recurring && formData.max_occurrences ? parseInt(formData.max_occurrences) : null,
@@ -235,6 +239,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
             due_date: format(formData.due_date, 'yyyy-MM-dd'),
             account_id: formData.account_id || null,
             category_id: formData.category_id || null,
+            subcategory_id: formData.subcategory_id || null,
             notes: formData.notes || null,
             is_recurring: formData.is_recurring,
             recurrence_type: formData.is_recurring ? formData.recurrence_type : null,
@@ -262,7 +267,8 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
             type: 'expense',
             date: format(formData.due_date, 'yyyy-MM-dd'), // ✅ Usar data de vencimento
             account_id: formData.account_id,
-            category_id: formData.category_id || null
+            category_id: formData.category_id || null,
+            subcategory_id: formData.subcategory_id || null  // ✅ Adicionando subcategory_id
           };
 
           console.log('Creating transaction:', transactionData);
@@ -400,6 +406,19 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
                 placeholder="Selecione uma categoria"
               />
             </div>
+
+            {/* Added Subcategory Selector */}
+            {formData.category_id && (
+              <div className="space-y-2">
+                <Label htmlFor="subcategory_id">Subcategoria</Label>
+                <SubcategorySelector
+                  categoryId={formData.category_id}
+                  value={formData.subcategory_id}
+                  onChange={(value) => setFormData({...formData, subcategory_id: value})}
+                  placeholder="Selecione uma subcategoria (opcional)"
+                />
+              </div>
+            )}
 
             <TagSelector
               selectedTags={formData.selectedTags}

@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Target } from "lucide-react";
+import { Target, Edit } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
@@ -112,26 +112,30 @@ const GoalEditForm = ({ goal, onSuccess, onCancel }: GoalEditFormProps) => {
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Meta</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-base md:text-lg flex items-center">
+            <Edit className="mr-2 h-4 w-4 md:h-5 md:w-5 text-blue-600" />
+            Editar Meta
+          </DialogTitle>
+          <DialogDescription className="text-xs md:text-sm">
             Atualize os dados da sua meta financeira
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="title">Título da Meta *</Label>
+        <form onSubmit={handleSubmit} className="grid gap-3 md:gap-4 py-2 md:py-4">
+          <div className="grid gap-1.5 md:gap-2">
+            <Label htmlFor="title" className="text-xs md:text-sm">Título da Meta *</Label>
             <Input 
               id="title" 
               placeholder="Ex: Viagem, Carro novo, etc." 
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               required
+              className="h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="target">Valor Total *</Label>
+          <div className="grid gap-1.5 md:gap-2">
+            <Label htmlFor="target" className="text-xs md:text-sm">Valor Total *</Label>
             <Input 
               id="target" 
               type="number" 
@@ -140,10 +144,11 @@ const GoalEditForm = ({ goal, onSuccess, onCancel }: GoalEditFormProps) => {
               value={formData.target_amount}
               onChange={(e) => handleInputChange('target_amount', e.target.value)}
               required
+              className="h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="initialAmount">Valor Atual</Label>
+          <div className="grid gap-1.5 md:gap-2">
+            <Label htmlFor="initialAmount" className="text-xs md:text-sm">Valor Atual</Label>
             <Input 
               id="initialAmount" 
               type="number" 
@@ -151,47 +156,53 @@ const GoalEditForm = ({ goal, onSuccess, onCancel }: GoalEditFormProps) => {
               placeholder="0,00" 
               value={formData.current_amount}
               onChange={(e) => handleInputChange('current_amount', e.target.value)}
+              className="h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="deadline">Data Limite</Label>
+          <div className="grid gap-1.5 md:gap-2">
+            <Label htmlFor="deadline" className="text-xs md:text-sm">Data Limite</Label>
             <Input 
               id="deadline" 
               type="date" 
               value={formData.deadline}
               onChange={(e) => handleInputChange('deadline', e.target.value)}
+              className="h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="category">Categoria</Label>
+          <div className="grid gap-1.5 md:gap-2">
+            <Label htmlFor="category" className="text-xs md:text-sm">Categoria</Label>
             <Input 
               id="category" 
               placeholder="Ex: Viagem, Emergência, etc." 
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
+              className="h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">Descrição (opcional)</Label>
+          <div className="grid gap-1.5 md:gap-2">
+            <Label htmlFor="description" className="text-xs md:text-sm">Descrição (opcional)</Label>
             <Input 
               id="description" 
               placeholder="Descreva sua meta..." 
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
+              className="h-8 md:h-10 text-xs md:text-sm"
             />
           </div>
 
           <TagSelector
             selectedTags={formData.selectedTags}
             onTagsChange={handleTagsChange}
+            isMobile={true}
           />
         </form>
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button 
             type="button" 
             variant="outline" 
             onClick={onCancel}
             disabled={isLoading}
+            className="w-full sm:w-auto h-8 md:h-10 text-xs md:text-sm"
           >
             Cancelar
           </Button>
@@ -199,8 +210,9 @@ const GoalEditForm = ({ goal, onSuccess, onCancel }: GoalEditFormProps) => {
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
+            className="w-full sm:w-auto h-8 md:h-10 text-xs md:text-sm"
           >
-            {isLoading ? "Salvando..." : "Salvar"}
+            {isLoading ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </DialogFooter>
       </DialogContent>

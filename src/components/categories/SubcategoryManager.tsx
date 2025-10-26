@@ -20,11 +20,13 @@ import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useSubcategories } from '@/hooks/useSubcategories';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Tables } from '@/integrations/supabase/types';
+import type { Database } from '@/types/database';
+
+type Subcategory = Database['public']['Tables']['subcategories']['Row'];
 
 interface SubcategoryManagerProps {
   categoryId: string;
-  onSubcategorySelect?: (subcategory: Tables<'subcategories'> | null) => void;
+  onSubcategorySelect?: (subcategory: Subcategory | null) => void;
 }
 
 const SubcategoryManager: React.FC<SubcategoryManagerProps> = ({ 
@@ -44,7 +46,7 @@ const SubcategoryManager: React.FC<SubcategoryManagerProps> = ({
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentSubcategory, setCurrentSubcategory] = useState<Tables<'subcategories'> | null>(null);
+  const [currentSubcategory, setCurrentSubcategory] = useState<Subcategory | null>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#9CA3AF');
 
@@ -136,7 +138,7 @@ const SubcategoryManager: React.FC<SubcategoryManagerProps> = ({
     setIsDialogOpen(true);
   };
 
-  const openEditDialog = (subcategory: Tables<'subcategories'>) => {
+  const openEditDialog = (subcategory: Subcategory) => {
     setIsEditing(true);
     setCurrentSubcategory(subcategory);
     setName(subcategory.name);

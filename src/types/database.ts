@@ -261,6 +261,7 @@ export type Database = {
           account_id: string | null;
           card_id: string | null;
           category_id: string | null;
+          subcategory_id: string | null;
           type: 'income' | 'expense';
           amount: number;
           description: string;
@@ -279,6 +280,7 @@ export type Database = {
           account_id?: string | null;
           card_id?: string | null;
           category_id?: string | null;
+          subcategory_id?: string | null;
           type: 'income' | 'expense';
           amount: number;
           description: string;
@@ -295,6 +297,7 @@ export type Database = {
           account_id?: string | null;
           card_id?: string | null;
           category_id?: string | null;
+          subcategory_id?: string | null;
           type?: 'income' | 'expense';
           amount?: number;
           description?: string;
@@ -501,6 +504,97 @@ export type Database = {
           message?: string;
           ai_response?: string;
           tokens_used?: number;
+        };
+      };
+      subcategories: {
+        Row: {
+          id: string;
+          user_id: string;
+          category_id: string;
+          name: string;
+          color: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          category_id: string;
+          name: string;
+          color?: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          category_id?: string;
+          name?: string;
+          color?: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      receivable_payments: {
+        Row: {
+          id: string;
+          user_id: string;
+          description: string;
+          amount: number;
+          due_date: string;
+          status: string;
+          notes: string | null;
+          account_id: string | null;
+          category_id: string | null;
+          subcategory_id: string | null;
+          is_recurring: boolean;
+          recurrence_type: string | null;
+          received_date: string | null;
+          updated_at: string;
+          max_occurrences: number | null;
+          recurrence_end_date: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          description: string;
+          amount: number;
+          due_date: string;
+          status?: string;
+          notes?: string | null;
+          account_id?: string | null;
+          category_id?: string | null;
+          subcategory_id?: string | null;
+          is_recurring?: boolean;
+          recurrence_type?: string | null;
+          received_date?: string | null;
+          updated_at?: string;
+          max_occurrences?: number | null;
+          recurrence_end_date?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          description?: string;
+          amount?: number;
+          due_date?: string;
+          status?: string;
+          notes?: string | null;
+          account_id?: string | null;
+          category_id?: string | null;
+          subcategory_id?: string | null;
+          is_recurring?: boolean;
+          recurrence_type?: string | null;
+          received_date?: string | null;
+          updated_at?: string;
+          max_occurrences?: number | null;
+          recurrence_end_date?: string | null;
+          created_at?: string;
         };
       };
     };

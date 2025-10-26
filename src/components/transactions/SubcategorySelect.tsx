@@ -11,7 +11,7 @@ import { Plus, Check } from 'lucide-react';
 import { useSubcategories } from '@/hooks/useSubcategories';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Tables } from '@/integrations/supabase/types';
+import type { Database } from '@/types/database';
 import { 
   Popover, 
   PopoverContent, 
@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+
+type Subcategory = Database['public']['Tables']['subcategories']['Row'];
 
 interface SubcategorySelectProps {
   categoryId: string;

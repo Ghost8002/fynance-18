@@ -40,6 +40,7 @@ const TransactionListAdvanced = () => {
     accounts,
     cards,
     tags,
+    subcategories,
     pagination,
   } = useTransactionsPaginated(filters);
 
@@ -58,6 +59,11 @@ const TransactionListAdvanced = () => {
     acc[card.id] = card.name;
     return acc;
   }, {} as Record<string, string>);
+
+  const subcategoryMap = subcategories.reduce((acc, sub) => {
+    acc[sub.id] = sub;
+    return acc;
+  }, {} as Record<string, any>);
 
   const handleUpdate = async (transactionId: string, data: any) => {
     try {
@@ -183,6 +189,7 @@ const TransactionListAdvanced = () => {
                 categoryMap={categoryMap}
                 accountMap={accountMap}
                 cardMap={cardMap}
+                subcategoryMap={subcategoryMap}
                 categories={categories}
                 onUpdate={handleUpdate}
                 onDelete={handleDelete}

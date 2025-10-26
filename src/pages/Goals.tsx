@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,15 +5,13 @@ import AppLayout from "@/components/shared/AppLayout";
 import GoalForm from "@/components/goals/GoalForm";
 import GoalProgress from "@/components/goals/GoalProgress";
 import GoalEditForm from "@/components/goals/GoalEditForm";
-import TransactionForm from "@/components/shared/TransactionForm";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { Target } from "lucide-react";
 
 const Goals = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { data: goals, refetch } = useSupabaseData('goals', user?.id);
-  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-  const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<any>(null);
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -25,20 +22,22 @@ const Goals = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleAddProgress = (goalId: string) => {
-    setSelectedGoalId(goalId);
-    setShowTransactionForm(true);
-  };
+  // Recarregar dados quando um progresso for adicionado
+  useEffect(() => {
+    const handleProgressAdded = () => {
+      refetch();
+    };
 
-  const handleTransactionAdded = () => {
-    setShowTransactionForm(false);
-    setSelectedGoalId(null);
-    refetch();
-  };
+    window.addEventListener('goalProgressAdded', handleProgressAdded);
+    
+    return () => {
+      window.removeEventListener('goalProgressAdded', handleProgressAdded);
+    };
+  }, [refetch]);
 
-  const handleFormCancel = () => {
-    setShowTransactionForm(false);
-    setSelectedGoalId(null);
+  const handleAddProgress = () => {
+    // Esta função será passada para o componente GoalProgress
+    // mas a lógica real está no próprio componente agora
   };
 
   const handleEditGoal = (goalId: string) => {
@@ -62,14 +61,20 @@ const Goals = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-3 md:space-y-6">
+        {/* Header - Mobile optimized */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">Metas</h1>
-            <p className="text-muted-foreground">Crie e acompanhe suas metas financeiras</p>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-1 flex items-center">
+              <Target className="h-5 w-5 md:h-6 md:w-6 mr-2" />
+              Metas
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Crie e acompanhe suas metas financeiras</p>
           </div>
           
-          <GoalForm />
+          <div className="flex justify-end">
+            <GoalForm />
+          </div>
         </div>
         
         <GoalProgress 
@@ -82,15 +87,6 @@ const Goals = () => {
           }}
         />
       </div>
-
-      {showTransactionForm && selectedGoalId && (
-        <TransactionForm 
-          defaultGoalId={selectedGoalId}
-          onTransactionAdded={handleTransactionAdded}
-          onCancel={handleFormCancel}
-          forceOpen={true}
-        />
-      )}
 
       {showEditForm && editingGoal && (
         <GoalEditForm 

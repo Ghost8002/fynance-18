@@ -44,6 +44,8 @@ interface ImportedTransaction {
   amount: number;
   type: 'income' | 'expense';
   reference?: string;
+  // Adicionando suporte para subcategoria
+  subcategory_id?: string;
 }
 
 interface TreatedTransaction extends ImportedTransaction {
@@ -63,9 +65,12 @@ interface OFXDataTreatmentProps {
 const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXDataTreatmentProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: categories, refetch: refetchCategories } = useSupabaseData('categories', user?.id);
-
+  // Usar 'transactions' como workaround e buscar categorias diretamente
+  const { data: accountsData } = useSupabaseData('accounts', user?.id);
+  const accounts = accountsData as any[] | undefined;
+  
   // Estados principais
+  const [categories, setCategories] = useState<any[]>([]);
   const [autoCreateCategories, setAutoCreateCategories] = useState(false);
   const [creatingCategories, setCreatingCategories] = useState(false);
 
@@ -86,10 +91,27 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
   const initializedRef = useRef(false);
 
+  // Carregar categorias
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user.id);
+        
+      if (!error && data) {
+        setCategories(data);
+      }
+    };
+    
+    fetchCategories();
+  }, [user?.id]);
 
   // Inicializar transações
   useEffect(() => {
-    if (categories && !categoriesLoaded && treatedTransactions.length === 0 && !initializedRef.current) {
+    if (categories.length > 0 && !categoriesLoaded && treatedTransactions.length === 0 && !initializedRef.current) {
       const initializeTransactions = async () => {
         initializedRef.current = true;
         const initializedTransactions = await Promise.all(
@@ -110,13 +132,11 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       
       initializeTransactions();
     }
-  }, [categories, categoriesLoaded, treatedTransactions.length, transactions]);
-
-  
+  }, [categories.length, categoriesLoaded, treatedTransactions.length, transactions]);
 
   // Função para categorização automática
   async function getAutoCategory(transaction: ImportedTransaction): Promise<string> {
-    if (!categories || categories.length === 0) return '';
+    if (categories.length === 0) return '';
     
     const description = transaction.description.toLowerCase();
     const availableCategories = categories.filter(cat => cat.type === transaction.type);
@@ -367,10 +387,10 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
     // Dupla verificação antes de criar - verificar novamente se não foi criada por outro processo
     const { data: doubleCheckCategories } = await supabase
-              .from('categories')
-              .select('id, name, type')
-              .eq('user_id', user.id)
-              .eq('type', transaction.type)
+      .from('categories')
+      .select('id, name, type')
+      .eq('user_id', user.id)
+      .eq('type', transaction.type)
       .eq('name', categoryName);
 
     if (doubleCheckCategories && doubleCheckCategories.length > 0) {
@@ -388,19 +408,19 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
     console.log(`🔄 Criando nova categoria: "${categoryName}" (${transaction.type})`);
             
-            const { data: newCategory, error } = await supabase
-              .from('categories')
-              .insert({
-                name: categoryName,
-                type: transaction.type,
-                user_id: user.id,
+    const { data: newCategory, error } = await supabase
+      .from('categories')
+      .insert({
+        name: categoryName,
+        type: transaction.type,
+        user_id: user.id,
         color: randomColor,
-                sort_order: 999
-              })
-              .select()
-              .single();
+        sort_order: 999
+      })
+      .select()
+      .single();
 
-            if (error) {
+    if (error) {
       console.error(`❌ Erro ao criar categoria "${categoryName}":`, error);
       
       // Se erro de constraint (categoria já existe), tentar buscar a categoria existente
@@ -408,7 +428,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
         console.log(`🔍 Tentando encontrar categoria existente após erro de duplicata...`);
         
         const { data: existingCategory } = await supabase
-                .from('categories')
+          .from('categories')
           .select('id, name, type')
           .eq('user_id', user.id)
           .eq('type', transaction.type)
@@ -426,15 +446,15 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
     if (newCategory) {
       console.log(`✅ Nova categoria criada com sucesso: "${categoryName}" (ID: ${newCategory.id}, ${transaction.type})`);
-              return newCategory.id;
-            }
+      return newCategory.id;
+    }
 
     return '';
   }
 
   // Aplicar categorização automática com categorias existentes
   const applyAutoCategorization = async () => {
-    if (!categories || categories.length === 0) {
+    if (categories.length === 0) {
       toast({
         title: "Nenhuma Categoria Disponível",
         description: "Crie categorias primeiro ou use 'Criar Categorias' para criar baseadas na descrição.",
@@ -461,8 +481,14 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       
       setTreatedTransactions(updatedTransactions);
       
-      if (user) {
-        await refetchCategories();
+      // Recarregar categorias
+      const { data } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user?.id);
+        
+      if (data) {
+        setCategories(data);
       }
       
       if (categorizedCount > 0) {
@@ -517,12 +543,19 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
           const newCategoryId = await createCategoryFromDescription(transaction);
           if (newCategoryId) {
             // Verificar se esta é uma categoria nova ou existente
-            const isNewCategory = !categories?.find(cat => cat.id === newCategoryId);
+            const isNewCategory = !categories.find(cat => cat.id === newCategoryId);
             
             if (isNewCategory) {
               createdCount++;
               // Recarregar categorias após criar uma nova para evitar duplicatas
-              await refetchCategories();
+              const { data } = await supabase
+                .from('categories')
+                .select('*')
+                .eq('user_id', user.id);
+                
+              if (data) {
+                setCategories(data);
+              }
             }
             
             categorizedCount++;
@@ -536,7 +569,14 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       setTreatedTransactions(updatedTransactions);
       
       // Recarregar categorias final para garantir sincronização
-      await refetchCategories();
+      const { data } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user.id);
+        
+      if (data) {
+        setCategories(data);
+      }
       
       if (categorizedCount > 0) {
         toast({
@@ -565,7 +605,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
 
   // Aplicar categorização automática quando autoCreateCategories for ativado
   useEffect(() => {
-    if (autoCreateCategories && categories && categories.length > 0 && treatedTransactions.length > 0) {
+    if (autoCreateCategories && categories.length > 0 && treatedTransactions.length > 0) {
       // Aplicar categorização automaticamente após um pequeno delay
       const timer = setTimeout(() => {
         applyAutoCategorization();
@@ -573,7 +613,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       
       return () => clearTimeout(timer);
     }
-  }, [autoCreateCategories, categories?.length, treatedTransactions.length]);
+  }, [autoCreateCategories, categories.length, treatedTransactions.length]);
 
   // Funções de manipulação
   const handleTransactionChange = (id: string, field: string, value: any) => {
@@ -639,35 +679,90 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     setSaveStatus('Iniciando salvamento...');
 
     try {
-      // Simular progresso em tempo real
-      const totalSteps = transactionsToSave.length;
-      let currentStep = 0;
+      let successCount = 0;
+      let errorCount = 0;
 
-      const updateProgress = () => {
-        currentStep++;
-        const progress = Math.round((currentStep / totalSteps) * 100);
-        setSaveProgress(progress);
+      for (let i = 0; i < transactionsToSave.length; i++) {
+        const transaction = transactionsToSave[i];
         
-        if (currentStep <= totalSteps) {
-          setSaveStatus(`Salvando transação ${currentStep} de ${totalSteps}...`);
-        }
-      };
+        try {
+          // Preparar dados da transação
+          const transactionData = {
+            user_id: user!.id,
+            type: transaction.type,
+            description: transaction.description,
+            amount: transaction.amount,
+            category_id: transaction.category_id || null,
+            subcategory_id: transaction.subcategory_id || null,  // ✅ Incluindo subcategory_id
+            account_id: accountId,
+            date: transaction.date,
+            notes: `Importado de OFX - Ref: ${transaction.reference || 'N/A'}`,
+            tags: transaction.tags || []
+          };
 
-      // Criar uma versão modificada do onSave que atualiza o progresso
-      const saveWithProgress = async (transactions: TreatedTransaction[]) => {
-        // Simular o processo de salvamento com progresso
-        for (let i = 0; i < transactions.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 100)); // Simular delay
-          updateProgress();
-        }
-        
-        // Chamar o onSave original
-        await onSave(transactions);
-      };
+          // Remover campos undefined/null desnecessários
+          if (!transactionData.category_id) {
+            delete transactionData.category_id;
+          }
+          if (!transactionData.subcategory_id) {
+            delete transactionData.subcategory_id;
+          }
 
-      await saveWithProgress(transactionsToSave);
+          const { error } = await supabase
+            .from('transactions')
+            .insert(transactionData);
+          
+          if (error) {
+            console.error('Erro ao inserir transação:', error);
+            errorCount++;
+          } else {
+            // Atualizar saldo da conta
+            const { data: account } = await supabase
+              .from('accounts')
+              .select('balance')
+              .eq('id', accountId)
+              .single();
+              
+            if (account) {
+              const newBalance = transaction.type === 'income' 
+                ? account.balance + transaction.amount 
+                : account.balance - transaction.amount;
+                
+              await supabase
+                .from('accounts')
+                .update({ balance: newBalance })
+                .eq('id', accountId);
+            }
+            
+            successCount++;
+          }
+
+        } catch (error) {
+          console.error('Erro ao processar transação:', error);
+          errorCount++;
+        }
+
+        setSaveProgress(Math.round(((i + 1) / transactionsToSave.length) * 100));
+        setSaveStatus(`Salvando transação ${i + 1} de ${transactionsToSave.length}...`);
+      }
+
       setSaveStatus('Salvamento concluído com sucesso!');
       
+      if (successCount > 0) {
+        toast({
+          title: "Importação Concluída",
+          description: `${successCount} transações importadas com sucesso!`,
+        });
+
+        window.dispatchEvent(new CustomEvent('transactionWithTagsAdded'));
+      } else {
+        toast({
+          title: "Nenhuma Transação Importada",
+          description: "Todas as transações falharam durante a importação.",
+          variant: "destructive",
+        });
+      }
+
     } catch (error) {
       console.error('Erro ao salvar:', error);
       setSaveStatus('Erro durante o salvamento');
@@ -679,8 +774,9 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     } finally {
       setSaving(false);
       setTimeout(() => {
-      setSaveProgress(0);
+        setSaveProgress(0);
         setSaveStatus('');
+        onSave(transactionsToSave);
       }, 2000);
     }
   };
@@ -870,7 +966,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todas as categorias</SelectItem>
-                        {categories?.map((category) => (
+                        {categories.map(category => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
@@ -993,7 +1089,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
           )}
 
           {/* Informação sobre falta de categorias */}
-          {(!categories || categories.length === 0) && (
+          {categories.length === 0 && (
             <Alert className="bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800">
               <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <AlertDescription className="text-blue-700 dark:text-blue-300">
@@ -1081,8 +1177,8 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                         </SelectTrigger>
                         <SelectContent>
                           {categories
-                            ?.filter(cat => cat.type === transaction.type)
-                            .map((category) => (
+                            .filter(cat => cat.type === transaction.type)
+                            .map(category => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
                             </SelectItem>
@@ -1173,8 +1269,8 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
                         </SelectTrigger>
                         <SelectContent>
                           {categories
-                            ?.filter(cat => cat.type === transaction.type)
-                            .map((category) => (
+                            .filter(cat => cat.type === transaction.type)
+                            .map(category => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
                             </SelectItem>

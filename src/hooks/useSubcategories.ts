@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
+import type { Database } from '@/types/database';
+import { useToast } from '@/hooks/use-toast';
 
-export type Subcategory = Tables<'subcategories'>;
+type Subcategory = Database['public']['Tables']['subcategories']['Row'];
 
 interface UseSubcategoriesProps {
   userId: string | undefined;

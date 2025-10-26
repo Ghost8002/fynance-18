@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +21,7 @@ const ReceivablePaymentForm: React.FC<ReceivablePaymentFormProps> = ({
 }) => {
   const { user } = useAuth();
   const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: categories } = useSupabaseData('categories' as any, user?.id);
 
   const [formData, setFormData] = useState({
     description: payment?.description || '',
@@ -31,6 +30,7 @@ const ReceivablePaymentForm: React.FC<ReceivablePaymentFormProps> = ({
     notes: payment?.notes || '',
     account_id: payment?.account_id || '',
     category_id: payment?.category_id || '',
+    subcategory_id: payment?.subcategory_id || '',
     is_recurring: payment?.is_recurring || false,
     recurrence_type: payment?.recurrence_type || '',
   });

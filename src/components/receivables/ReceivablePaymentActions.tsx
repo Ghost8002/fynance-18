@@ -17,8 +17,12 @@ interface ReceivablePaymentActionsProps {
 
 const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaymentActionsProps) => {
   const { user } = useAuth();
-  const { update, remove } = useSupabaseData('receivable_payments', user?.id);
+  const { update, remove } = useSupabaseData('receivable_payments' as any, user?.id);
   const [loadingOperations, setLoadingOperations] = useState<{[key: string]: boolean}>({});
+  
+  // Fetch categories and subcategories for display
+  const { data: categories } = useSupabaseData('categories' as any, user?.id);
+  const { data: subcategories } = useSupabaseData('subcategories' as any, user?.id);
 
   const handleMarkAsReceived = async () => {
     if (!user?.id) {
@@ -31,17 +35,13 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
 
     try {
       // Usar a nova função de rollback
-      const { data, error } = await supabase.rpc('mark_receivable_as_received_with_rollback', {
+      const { data, error } = await supabase.rpc('mark_receivable_as_received_with_rollback' as any, {
         p_receivable_id: payment.id,
         p_account_id: payment.account_id
       });
 
       if (error) {
         throw new Error(error.message);
-      }
-
-      if (data && typeof data === 'object' && 'success' in data && !data.success) {
-        throw new Error((data as any).message || 'Erro ao processar pagamento');
       }
 
       // Feedback de sucesso
@@ -71,17 +71,13 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
 
     try {
       // Usar a nova função de rollback
-      const { data, error } = await supabase.rpc('unmark_receivable_as_received_with_rollback', {
+      const { data, error } = await supabase.rpc('unmark_receivable_as_received_with_rollback' as any, {
         p_receivable_id: payment.id,
         p_account_id: payment.account_id
       });
 
       if (error) {
         throw new Error(error.message);
-      }
-
-      if (data && typeof data === 'object' && 'success' in data && !data.success) {
-        throw new Error((data as any).message || 'Erro ao processar pagamento');
       }
 
       toast.success('Pagamento desmarcado como recebido!');
@@ -141,6 +137,23 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
     }
   };
 
+  // Get category name
+  const getCategoryName = () => {
+    if (!payment.category_id || !categories) return null;
+    const category = categories.find((c: any) => c.id === payment.category_id);
+    return category ? category.name : null;
+  };
+
+  // Get subcategory name
+  const getSubcategoryName = () => {
+    if (!payment.subcategory_id || !subcategories) return null;
+    const subcategory = subcategories.find((s: any) => s.id === payment.subcategory_id);
+    return subcategory ? subcategory.name : null;
+  };
+
+  const categoryName = getCategoryName();
+  const subcategoryName = getSubcategoryName();
+
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
       <div className="flex-1">
@@ -175,6 +188,21 @@ const ReceivablePaymentActions = ({ payment, onEdit, onRefresh }: ReceivablePaym
             </div>
           )}
         </div>
+        
+        {(categoryName || subcategoryName) && (
+          <div className="flex items-center gap-2 mt-2">
+            {categoryName && (
+              <Badge variant="secondary" className="text-xs">
+                {categoryName}
+              </Badge>
+            )}
+            {subcategoryName && (
+              <Badge variant="outline" className="text-xs">
+                {subcategoryName}
+              </Badge>
+            )}
+          </div>
+        )}
         
         {payment.notes && (
           <p className="text-sm text-muted-foreground mt-2">
