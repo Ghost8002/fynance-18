@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, PieChart, Calendar as CalendarIcon, TrendingUp, Target, CreditCard, Wallet, Tags, Brain, Heart, Star, BarChart, Filter } from "lucide-react";
+import { BarChart3, PieChart, Calendar as CalendarIcon, TrendingUp, Target, CreditCard, Wallet, Brain, Heart, Star, BarChart, Filter, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import IncomeExpenseReport from "@/components/reports/IncomeExpenseReport";
@@ -23,11 +23,8 @@ import AdvancedAnalyticsReport from "@/components/reports/AdvancedAnalyticsRepor
 import PredictiveAnalysisReport from "@/components/reports/PredictiveAnalysisReport";
 import FinancialHealthReport from "@/components/reports/FinancialHealthReport";
 import ExecutiveDashboard from "@/components/reports/ExecutiveDashboard";
-import TagsOverview from "@/components/tags/TagsOverview";
-import TagsIncomeExpenseChart from "@/components/tags/TagsIncomeExpenseChart";
-import TagsTransactionsList from "@/components/tags/TagsTransactionsList";
-import TagsStatsCards from "@/components/tags/TagsStatsCards";
-import CategoriesTagsAnalysis from "@/components/tags/CategoriesTagsAnalysis";
+
+import CostCentersReport from "@/components/reports/CostCentersReport";
 
 // Contexto para o filtro de período global
 interface PeriodFilterContextType {
@@ -146,12 +143,13 @@ const Reports = () => {
       icon: CreditCard,
       color: "bg-gradient-to-br from-teal-500 to-teal-600"
     },
+
     {
-      id: "tags",
-      title: "Dashboard de Tags",
-      description: "Análise por tags",
-      icon: Tags,
-      color: "bg-gradient-to-br from-cyan-500 to-cyan-600"
+      id: "cost-centers",
+      title: "Centros de Custo",
+      description: "Gerencie e analise seus centros de custo",
+      icon: DollarSign,
+      color: "bg-gradient-to-br from-emerald-500 to-emerald-600"
     }
   ];
 
@@ -485,23 +483,11 @@ const Reports = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="tags" className="p-0">
+
+              
+              <TabsContent value="cost-centers" className="p-0">
                 <div className="p-6">
-                  <div className="space-y-8">
-                    <div className="mb-6">
-                      <h2 className="text-2xl font-semibold text-finance-text-primary mb-2 text-gradient">
-                        Dashboard de Tags
-                      </h2>
-                      <p className="text-finance-text-secondary">
-                        Visualize suas receitas e despesas organizadas por tags e categorias
-                      </p>
-                    </div>
-                    <TagsStatsCards />
-                    <CategoriesTagsAnalysis />
-                    <TagsOverview />
-                    <TagsIncomeExpenseChart />
-                    <TagsTransactionsList />
-                  </div>
+                  <CostCentersReport />
                 </div>
               </TabsContent>
             </div>

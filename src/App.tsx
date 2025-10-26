@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -32,6 +31,10 @@ import ImportsXLSX from "./pages/ImportsXLSX";
 import ImportsJSON from "./pages/ImportsJSON";
 import BankSelectorDemo from "./pages/BankSelectorDemo";
 import UploadBankLogos from "./pages/UploadBankLogos";
+import Subcategories from "./pages/Subcategories";
+import SubcategoryTest from "./components/categories/SubcategoryTest";
+import TestSubcategoryCreation from "./components/categories/TestSubcategoryCreation";
+import CostCenterAnalysis from "./pages/CostCenterAnalysis";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,11 +72,15 @@ const AppRoutes = () => {
       <Route path="/importacoes/json" element={<ImportsJSON />} />
       <Route path="/demo-bancos" element={<BankSelectorDemo />} />
       <Route path="/upload-logos" element={<UploadBankLogos />} />
+      <Route path="/centro-custo/:categoryId" element={<CostCenterAnalysis />} />
       {/* Manter rotas antigas em inglês para compatibilidade */}
       <Route path="/transactions" element={<Transactions />} />
       <Route path="/cards" element={<Cards />} />
       <Route path="/accounts" element={<Accounts />} />
       <Route path="/categories" element={<Categories />} />
+      <Route path="/subcategories" element={<Subcategories />} />
+      <Route path="/subcategory-test" element={<SubcategoryTest />} />
+      <Route path="/test-subcategory-creation" element={<TestSubcategoryCreation />} />
       <Route path="/budgets" element={<Budgets />} />
       <Route path="/goals" element={<Goals />} />
       <Route path="/settings" element={<Settings />} />

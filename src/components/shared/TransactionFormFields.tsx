@@ -9,12 +9,14 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import SubcategorySelect from "@/components/transactions/SubcategorySelect";
 
 interface TransactionFormFieldsProps {
   formData: {
     description: string;
     amount: string;
     category_id: string;
+    subcategory_id: string | null;
     date: string;
     notes: string;
     type: string;
@@ -125,22 +127,6 @@ const TransactionFormFields = ({
       </div>
 
       <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
-        <Label htmlFor="amount" className={`${isMobile ? 'text-xs' : ''}`}>Valor *</Label>
-        <Input
-          id="amount"
-          name="amount"
-          type="number"
-          step="0.01"
-          min="0"
-          placeholder="0,00"
-          value={formData.amount}
-          onChange={onInputChange}
-          required
-          className={`${isMobile ? 'h-8 text-xs' : ''}`}
-        />
-      </div>
-
-      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
         <Label htmlFor="category_id" className={`${isMobile ? 'text-xs' : ''}`}>Categoria *</Label>
         <Popover open={openCategory} onOpenChange={setOpenCategory}>
           <PopoverTrigger asChild>
@@ -230,6 +216,30 @@ const TransactionFormFields = ({
             </Command>
           </PopoverContent>
         </Popover>
+      </div>
+
+      {formData.category_id && (
+        <SubcategorySelect
+          categoryId={formData.category_id}
+          value={formData.subcategory_id}
+          onValueChange={(value) => onSelectChange("subcategory_id", value || "")}
+        />
+      )}
+
+      <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>
+        <Label htmlFor="amount" className={`${isMobile ? 'text-xs' : ''}`}>Valor *</Label>
+        <Input
+          id="amount"
+          name="amount"
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="0,00"
+          value={formData.amount}
+          onChange={onInputChange}
+          required
+          className={`${isMobile ? 'h-8 text-xs' : ''}`}
+        />
       </div>
 
       <div className={`${isMobile ? 'space-y-1 sm:space-y-1.5' : 'space-y-2'}`}>

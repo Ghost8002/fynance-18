@@ -232,6 +232,7 @@ export type Database = {
           name: string;
           type: string;
           color: string;
+          is_cost_center: boolean;
           created_at: string;
         };
         Insert: {
@@ -240,6 +241,7 @@ export type Database = {
           name: string;
           type: string;
           color?: string;
+          is_cost_center?: boolean;
           created_at?: string;
         };
         Update: {
@@ -248,6 +250,7 @@ export type Database = {
           name?: string;
           type?: string;
           color?: string;
+          is_cost_center?: boolean;
           created_at?: string;
         };
       };
