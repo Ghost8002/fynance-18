@@ -25,6 +25,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { usePeriodFilter } from "@/pages/Reports";
 import { useState, useMemo } from "react";
+import React from "react";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -107,7 +108,7 @@ const ExecutiveDashboard = () => {
     const despesas = periodTransactions.filter(t => t.type === 'expense');
 
     const totalReceitas = receitas.reduce((sum, t) => sum + Number(t.amount), 0);
-    const totalDespesas = despesas.reduce((sum, t) => sum + Number(t.amount), 0);
+    const totalDespesas = despesas.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
     const saldoLiquido = totalReceitas - totalDespesas;
     const totalAccountBalance = accounts.reduce((sum, a) => sum + Number(a.balance || 0), 0);
 
@@ -127,7 +128,8 @@ const ExecutiveDashboard = () => {
     const previousReceitas = previousTransactions.filter(t => t.type === 'income');
     const previousDespesas = previousTransactions.filter(t => t.type === 'expense');
     const previousTotalReceitas = previousReceitas.reduce((sum, t) => sum + Number(t.amount), 0);
-    const previousTotalDespesas = previousDespesas.reduce((sum, t) => sum + Number(t.amount), 0);
+    // Corrigido: Usar Math.abs para garantir que despesas sejam tratadas como valores positivos
+    const previousTotalDespesas = previousDespesas.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
     const variacaoReceitas = previousTotalReceitas > 0 ? 
       ((totalReceitas - previousTotalReceitas) / previousTotalReceitas) * 100 : 0;
@@ -467,11 +469,13 @@ const ExecutiveDashboard = () => {
                 }`}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <alert.icon className={`h-5 w-5 ${
-                        alert.type === 'critical' ? 'text-red-600 dark:text-red-400' :
-                        alert.type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
-                        'text-blue-600 dark:text-blue-400'
-                      }`} />
+                      {React.createElement(alert.icon, {
+                        className: `h-5 w-5 ${
+                          alert.type === 'critical' ? 'text-red-600 dark:text-red-400' :
+                          alert.type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' :
+                          'text-blue-600 dark:text-blue-400'
+                        }`
+                      })}
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold text-sm">{alert.title}</h4>
@@ -527,7 +531,8 @@ const ExecutiveDashboard = () => {
                   <p className="text-sm font-medium text-red-700 dark:text-red-300">Total Despesas</p>
                 </div>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {formatCurrency(kpis.totalDespesas)}
+                  {/* Corrigido: Mostrar despesas como valor negativo para consistência */}
+                  {formatCurrency(-Math.abs(kpis.totalDespesas))}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   {kpis.variacaoDespesas <= 0 ? (

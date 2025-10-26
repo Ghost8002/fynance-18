@@ -104,12 +104,13 @@ const IncomeExpenseReport = () => {
         
         const despesas = monthTransactions
           .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + Number(t.amount), 0);
+          // Corrigido: Usar Math.abs para garantir que despesas sejam tratadas como valores positivos
+          .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
         monthsData.push({
           month: monthName,
           receitas,
-          despesas
+          despesas // Removido Math.abs pois já estamos garantindo que seja positivo
         });
 
         // Avançar para o próximo mês
@@ -139,7 +140,7 @@ const IncomeExpenseReport = () => {
         monthsData.push({
           month: monthName,
           receitas,
-          despesas
+          despesas: Math.abs(despesas) // Garantir que despesas sejam exibidas como valor positivo
         });
       }
     }

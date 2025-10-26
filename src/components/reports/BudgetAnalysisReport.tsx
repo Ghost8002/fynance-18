@@ -87,7 +87,7 @@ const BudgetAnalysisReport = () => {
       const category = categories.find(c => c.id === budget.category_id);
       const spent = periodTransactions
         .filter(t => t.category_id === budget.category_id)
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+        .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
       
       const percentage = (spent / Number(budget.limit_amount)) * 100;
       const remaining = Number(budget.limit_amount) - spent;

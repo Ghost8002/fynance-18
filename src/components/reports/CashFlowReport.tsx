@@ -88,7 +88,7 @@ const CashFlowReport = () => {
         
         const saidas = monthTransactions
           .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + Number(t.amount), 0);
+          .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
         const saldoLiquido = entradas - saidas;
         runningBalance += saldoLiquido;
@@ -123,7 +123,7 @@ const CashFlowReport = () => {
         
         const saidas = monthTransactions
           .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + Number(t.amount), 0);
+          .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
         const saldoLiquido = entradas - saidas;
         runningBalance += saldoLiquido;

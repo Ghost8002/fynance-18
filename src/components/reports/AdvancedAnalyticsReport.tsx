@@ -183,7 +183,7 @@ const AdvancedAnalyticsReport = () => {
     const despesas = periodTransactions.filter(t => t.type === 'expense');
 
     const totalReceitas = receitas.reduce((sum, t) => sum + Number(t.amount), 0);
-    const totalDespesas = despesas.reduce((sum, t) => sum + Number(t.amount), 0);
+    const totalDespesas = despesas.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
     const totalAccountBalance = accounts.reduce((sum, a) => sum + Number(a.balance || 0), 0);
 
     // Margem de Lucro
