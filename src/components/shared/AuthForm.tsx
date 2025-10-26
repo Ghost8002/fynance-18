@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react";
+import { EmailVerificationDialog } from "@/components/auth/EmailVerificationDialog";
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -16,6 +17,8 @@ const AuthForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const {
     signIn,
     signUp
@@ -62,10 +65,9 @@ const AuthForm = () => {
           console.error('Signup error:', error);
           throw error;
         }
-        toast({
-          title: "Sucesso",
-          description: "Conta criada com sucesso! Verifique seu email."
-        });
+        // Show verification dialog instead of toast
+        setRegisteredEmail(email);
+        setShowVerificationDialog(true);
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -79,7 +81,14 @@ const AuthForm = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+  return (
+    <>
+      <EmailVerificationDialog 
+        open={showVerificationDialog}
+        onOpenChange={setShowVerificationDialog}
+        email={registeredEmail}
+      />
+      <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Background Decorativo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
@@ -258,6 +267,8 @@ const AuthForm = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+    </>
+  );
 };
 export default AuthForm;
