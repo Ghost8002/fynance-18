@@ -112,7 +112,18 @@ const AccountList = () => {
     refetch();
   };
 
-  const getBankInfo = (bankId: string) => {
+  const getBankInfo = (bankId: string | null) => {
+    // Retornar fallback se bankId for nulo
+    if (!bankId) {
+      return {
+        name: 'Sem banco',
+        shortName: 'N/A',
+        logoPath: '',
+        primaryColor: undefined,
+        secondaryColor: undefined
+      };
+    }
+    
     // Verificar se é um banco customizado
     if (bankId.startsWith('custom_')) {
       const customBankId = bankId.replace('custom_', '');
