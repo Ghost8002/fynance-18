@@ -23,8 +23,39 @@ const Navbar = () => {
   return (
     <header className="bg-background/80 backdrop-blur-xl border-b border-border fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo - Hidden on larger screens when sidebar is visible */}
-        <Link to="/" className="md:hidden flex items-center space-x-3 group">
+        {/* Logo and Brand */}
+        <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6"
+              >
+                <path d="M12 1v22" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                Fynance
+              </span>
+              <div className="hidden sm:block">
+                <span className="text-xs text-muted-foreground font-medium">
+                  Controle Inteligente
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Mobile Logo - Kept for backward compatibility but hidden */}
+        <Link to="/" className="hidden flex items-center space-x-3 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-finance-primary to-finance-secondary text-white transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"

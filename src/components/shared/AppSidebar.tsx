@@ -103,17 +103,9 @@ export function AppSidebar() {
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
               </svg>
             </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary/80 group-hover:to-primary transition-all duration-500">
-                Fynance
-              </span>
-              <div className="flex items-center gap-1">
-                
-                <span className="text-xs text-muted-foreground font-medium">
-                  Controle Inteligente
-                </span>
-              </div>
-            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary/80 group-hover:to-primary transition-all duration-500">
+              Fynance
+            </span>
           </Link>
         </div>
         
