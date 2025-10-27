@@ -79,181 +79,252 @@ const AuthForm = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Background Decorativo */}
+  return <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Background Decorativo Animado */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/3 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
 
       {/* Seção Esquerda - Formulário de Login */}
-      <div className="w-full lg:w-3/5 flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-md">
-          {/* Header com Logo */}
-          <div className="text-center mb-8">
+      <div className="w-full lg:w-3/5 flex items-center justify-center p-4 sm:p-8 relative z-10">
+        <div className="w-full max-w-md animate-fade-in">
+          {/* Header com Logo Animado */}
+          <div className="text-center mb-8 space-y-4">
+            <div className="flex justify-center mb-4">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl transform group-hover:scale-110 transition-transform duration-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-9 w-9"
+                  >
+                    <path d="M12 1v22" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
             
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Bem-vindo ao Fynance
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              {isLogin ? 'Entre com suas credenciais' : 'Crie sua conta gratuitamente'}
-            </p>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
+                Fynance
+              </h1>
+              <p className="text-sm text-muted-foreground font-medium">
+                Controle Inteligente
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <h2 className="text-xl font-semibold text-foreground mb-1">
+                {isLogin ? 'Bem-vindo de volta!' : 'Comece sua jornada'}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {isLogin ? 'Entre para acessar sua conta' : 'Crie sua conta gratuitamente'}
+              </p>
+            </div>
           </div>
 
-          {/* Card de Login com Glassmorphism Aprimorado */}
+          {/* Card de Login Modernizado */}
           <div className="relative group">
-            {/* Background com Glassmorphism Aprimorado */}
-            <div className="absolute inset-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-2xl rounded-3xl border border-white/20 dark:border-gray-700/50 shadow-2xl"></div>
+            {/* Glow Effect */}
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary/80 rounded-3xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-500"></div>
             
-            {/* Efeito de borda sutil */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-3xl"></div>
-            
-            {/* Conteúdo */}
-            <div className="relative p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                  {isLogin ? 'Entrar na conta' : 'Criar nova conta'}
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  {isLogin ? 'Digite suas credenciais para acessar' : 'Preencha os dados para começar'}
-                </p>
-              </div>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {!isLogin && <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {/* Card */}
+            <div className="relative bg-card/95 backdrop-blur-xl rounded-3xl border border-border/50 shadow-2xl p-8 transition-all duration-300 hover:shadow-primary/10">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {!isLogin && <div className="space-y-2 animate-fade-in">
+                    <Label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <User className="w-4 h-4 text-primary" />
                       Nome completo
                     </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input id="fullName" type="text" value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Seu nome completo" className="pl-10 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
-                    </div>
+                    <Input 
+                      id="fullName" 
+                      type="text" 
+                      value={fullName} 
+                      onChange={e => setFullName(e.target.value)} 
+                      required 
+                      placeholder="Seu nome completo" 
+                      className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl" 
+                    />
                   </div>}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-primary" />
                     Email
                   </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.com" className="pl-10 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
-                  </div>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                    placeholder="seu@email.com" 
+                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl" 
+                  />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-primary" />
                     Senha
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required placeholder="Sua senha" minLength={6} className="pl-10 pr-12 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-xl h-12 shadow-sm hover:shadow-md transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <Input 
+                      id="password" 
+                      type={showPassword ? "text" : "password"} 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      required 
+                      placeholder="••••••••" 
+                      minLength={6} 
+                      className="h-12 pr-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-1 rounded-lg hover:bg-primary/10"
+                    >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                {error && <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                      <p className="text-red-800 dark:text-red-200 text-sm font-medium">
-                        {error}
-                      </p>
-                    </div>
-                  </div>}
+                {error && <Alert variant="destructive" className="animate-fade-in border-destructive/50 bg-destructive/10">
+                    <AlertDescription className="text-sm">
+                      {error}
+                    </AlertDescription>
+                  </Alert>}
                 
-                <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 h-12 group" disabled={loading}>
-                  {loading ? <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {isLogin ? 'Entrando...' : 'Criando conta...'}
-                    </div> : <div className="flex items-center justify-center">
-                      <span>{isLogin ? 'Entrar na conta' : 'Criar conta'}</span>
-                      <div className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300">
-                        →
-                      </div>
-                    </div>}
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] group" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+                      <span>{isLogin ? 'Entrando...' : 'Criando conta...'}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span>{isLogin ? 'Entrar' : 'Criar conta'}</span>
+                      <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                    </div>
+                  )}
                 </Button>
               </form>
               
-              <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button type="button" onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-                setEmail('');
-                setPassword('');
-                setFullName('');
-              }} className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors font-medium hover:underline">
-                  {isLogin ? 'Não tem uma conta? Criar conta' : 'Já tem uma conta? Fazer login'}
+              <div className="text-center mt-6 pt-6 border-t border-border/50">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setError('');
+                    setEmail('');
+                    setPassword('');
+                    setFullName('');
+                  }} 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium group"
+                >
+                  {isLogin ? (
+                    <span>Não tem uma conta? <span className="text-primary group-hover:underline">Criar conta</span></span>
+                  ) : (
+                    <span>Já tem uma conta? <span className="text-primary group-hover:underline">Fazer login</span></span>
+                  )}
                 </button>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-8">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              © 2024 Fynance. Todos os direitos reservados.
+          <div className="text-center mt-6 opacity-60 hover:opacity-100 transition-opacity duration-300">
+            <p className="text-xs text-muted-foreground">
+              © 2025 Fynance. Todos os direitos reservados.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Seção Direita - Área Azul com Glassmorphism Harmonizado */}
+      {/* Seção Direita - Painel Lateral Criativo */}
       <div className="hidden lg:flex w-2/5 relative overflow-hidden">
-        {/* Background com Glassmorphism Harmonizado */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-2xl border border-primary/30 shadow-2xl"></div>
+        {/* Background Gradient Animado */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/80"></div>
         
-        {/* Efeito de borda sutil harmonizado */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10"></div>
-        
-        {/* Conteúdo */}
-        <div className="relative w-full flex items-center justify-center p-8">
-          <div className="max-w-sm text-center">
-            <div className="text-gray-900 dark:text-gray-100 text-3xl lg:text-4xl font-bold leading-tight space-y-2 drop-shadow-lg">
-              <div>A mudança</div>
-              <div>financeira</div>
-              <div>que você</div>
-              <div>busca está a</div>
-              <div>alguns</div>
-              <div>cliques de</div>
-              <div>distância.</div>
-            </div>
-            
-            <div className="mt-8 flex items-center justify-center">
-              
-              <div className="text-left">
-                <p className="text-gray-900 dark:text-gray-100 text-lg font-bold">Fynance</p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Controle financeiro inteligente</p>
-              </div>
-            </div>
-          </div>
+        {/* Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }}></div>
         </div>
-      </div>
 
-      {/* Versão Mobile - Área Azul com Glassmorphism Harmonizado */}
-      <div className="lg:hidden w-full relative overflow-hidden">
-        {/* Background com Glassmorphism Harmonizado */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-2xl border border-primary/30 shadow-xl"></div>
-        
-        {/* Efeito de borda sutil harmonizado */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10"></div>
+        {/* Elementos Decorativos Animados */}
+        <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         
         {/* Conteúdo */}
-        <div className="relative p-8 text-center">
-          <div className="text-gray-900 dark:text-gray-100 text-2xl font-bold leading-tight space-y-2 mb-6 drop-shadow-lg">
-            <div>A mudança financeira</div>
-            <div>que você busca está a</div>
-            <div>alguns cliques de distância.</div>
-          </div>
-          
-          <div className="flex items-center justify-center">
-            <div className="w-12 h-12 bg-primary/20 backdrop-blur-sm rounded-full flex items-center justify-center mr-3 shadow-lg border border-primary/30">
-              <Command className="w-6 h-6 text-primary dark:text-white" />
+        <div className="relative w-full flex flex-col items-center justify-center p-12 text-white">
+          {/* Ícone Grande Animado */}
+          <div className="mb-8 relative group">
+            <div className="absolute inset-0 bg-white/20 rounded-3xl blur-2xl group-hover:bg-white/30 transition-all duration-500"></div>
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-14 w-14"
+              >
+                <path d="M12 1v22" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
             </div>
-            <div className="text-left">
-              <p className="text-gray-900 dark:text-gray-100 text-base font-bold">Fynance</p>
-              <p className="text-gray-600 dark:text-gray-400 text-xs">Controle financeiro inteligente</p>
+          </div>
+
+          {/* Texto Principal */}
+          <div className="text-center space-y-6 max-w-md">
+            <h2 className="text-4xl lg:text-5xl font-bold leading-tight animate-fade-in">
+              Transforme sua vida financeira
+            </h2>
+            
+            <p className="text-lg text-white/90 leading-relaxed animate-fade-in" style={{animationDelay: '0.1s'}}>
+              Com inteligência artificial e ferramentas poderosas, o controle das suas finanças nunca foi tão simples.
+            </p>
+
+            {/* Features List */}
+            <div className="space-y-4 text-left mt-8 animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">Assistente IA para insights financeiros</span>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">Segurança e privacidade garantidas</span>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Command className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-medium">Interface intuitiva e moderna</span>
+              </div>
             </div>
           </div>
         </div>
