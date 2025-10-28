@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -9,14 +9,18 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus, X, TrendingUp, TrendingDown, DollarSign, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import TransactionFiltersAdvanced from "./TransactionFiltersAdvanced";
 import TransactionForm from "@/components/shared/TransactionForm";
 import TransactionTable from "./TransactionTable";
 import { useTransactionsPaginated, type TransactionFilters } from "@/hooks/useTransactionsPaginated";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useAuth } from "@/hooks/useAuth";
+import { applyTransactionFilters } from "@/hooks/utils/transactionFilters";
 
 const TransactionListAdvanced = () => {
+  const { user } = useAuth();
   const [filters, setFilters] = useState<TransactionFilters>({
     search: "",
     dateRange: "current-month",
@@ -29,6 +33,9 @@ const TransactionListAdvanced = () => {
   });
 
   const [newTransactionKey, setNewTransactionKey] = useState(0);
+
+  // Fetch all transactions for summary cards
+  const { data: allTransactions } = useSupabaseData('transactions', user?.id);
 
   const {
     transactions,
@@ -43,6 +50,31 @@ const TransactionListAdvanced = () => {
     subcategories,
     pagination,
   } = useTransactionsPaginated(filters);
+
+  // Calculate summary data based on filtered transactions
+  const summaryData = useMemo(() => {
+    const filteredForSummary = applyTransactionFilters(allTransactions || [], filters);
+    
+    const totalIncome = filteredForSummary
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const totalExpenses = filteredForSummary
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const balance = totalIncome - totalExpenses;
+    const transactionCount = filteredForSummary.length;
+
+    return { totalIncome, totalExpenses, balance, transactionCount };
+  }, [allTransactions, filters]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
 
   // Create lookup maps for better performance
   const categoryMap = categories.reduce((acc, cat) => {
@@ -155,6 +187,85 @@ const TransactionListAdvanced = () => {
         accounts={accounts}
         cards={cards}
       />
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Total de Receitas
+            </CardTitle>
+            <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(summaryData.totalIncome)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Período filtrado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Total de Despesas
+            </CardTitle>
+            <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/20">
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(summaryData.totalExpenses)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Período filtrado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Saldo Líquido
+            </CardTitle>
+            <div className={`p-2 rounded-full ${summaryData.balance >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'}`}>
+              <DollarSign className={`h-4 w-4 ${summaryData.balance >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${summaryData.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(summaryData.balance)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {summaryData.balance >= 0 ? 'Resultado positivo' : 'Resultado negativo'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-card-foreground">
+              Total de Transações
+            </CardTitle>
+            <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20">
+              <Receipt className="h-4 w-4 text-blue-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {summaryData.transactionCount}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Transações filtradas
+            </p>
+          </CardContent>
+        </Card>
+      </div>
       
       <Card>
         <CardHeader>

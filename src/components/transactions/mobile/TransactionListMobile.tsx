@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Plus, Loader2, TrendingUp, TrendingDown, DollarSign, Receipt } from "lucide-react";
+import { applyTransactionFilters } from "@/hooks/utils/transactionFilters";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2 } from "lucide-react";
 import TransactionFiltersAdvancedMobile from "./TransactionFiltersAdvancedMobile";
 import TransactionCardMobile from "./TransactionCardMobile";
 import TransactionForm from "@/components/shared/TransactionForm";
@@ -16,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 
 const TransactionListMobile = () => {
+  const { user } = useAuth();
   const [newTransactionKey, setNewTransactionKey] = useState(0);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [filters, setFilters] = useState<TransactionFilters>({
@@ -29,6 +33,9 @@ const TransactionListMobile = () => {
     maxAmount: "",
   });
 
+  // Fetch all transactions for summary cards
+  const { data: allTransactions } = useSupabaseData('transactions', user?.id);
+
   const {
     transactions,
     loading,
@@ -40,6 +47,31 @@ const TransactionListMobile = () => {
     cards,
     pagination,
   } = useTransactionsPaginated(filters, 20); // Load 20 items per page on mobile
+
+  // Calculate summary data based on filtered transactions
+  const summaryData = useMemo(() => {
+    const filteredForSummary = applyTransactionFilters(allTransactions || [], filters);
+    
+    const totalIncome = filteredForSummary
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const totalExpenses = filteredForSummary
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const balance = totalIncome - totalExpenses;
+    const transactionCount = filteredForSummary.length;
+
+    return { totalIncome, totalExpenses, balance, transactionCount };
+  }, [allTransactions, filters]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
 
   // Create lookup maps for efficient display
   const categoryMap = categories.reduce((acc: Record<string, any>, cat: any) => {
@@ -139,6 +171,73 @@ const TransactionListMobile = () => {
         accounts={accounts}
         cards={cards}
       />
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
+            <CardTitle className="text-xs font-medium text-card-foreground">
+              Receitas
+            </CardTitle>
+            <div className="p-1.5 rounded-full bg-green-100 dark:bg-green-900/20">
+              <TrendingUp className="h-3 w-3 text-green-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg font-bold text-green-600">
+              {formatCurrency(summaryData.totalIncome)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
+            <CardTitle className="text-xs font-medium text-card-foreground">
+              Despesas
+            </CardTitle>
+            <div className="p-1.5 rounded-full bg-red-100 dark:bg-red-900/20">
+              <TrendingDown className="h-3 w-3 text-red-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg font-bold text-red-600">
+              {formatCurrency(summaryData.totalExpenses)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
+            <CardTitle className="text-xs font-medium text-card-foreground">
+              Saldo
+            </CardTitle>
+            <div className={`p-1.5 rounded-full ${summaryData.balance >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'}`}>
+              <DollarSign className={`h-3 w-3 ${summaryData.balance >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className={`text-lg font-bold ${summaryData.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(summaryData.balance)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
+            <CardTitle className="text-xs font-medium text-card-foreground">
+              Total
+            </CardTitle>
+            <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/20">
+              <Receipt className="h-3 w-3 text-blue-600" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="text-lg font-bold text-blue-600">
+              {summaryData.transactionCount}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Header with add button */}
       <div className="flex items-center justify-between">
