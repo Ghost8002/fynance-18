@@ -123,63 +123,16 @@ const SimpleJSONImportComponent: React.FC = () => {
     if (!file || !selectedAccountId || !user) return;
 
     try {
-      // Processar arquivo
-      const transactions = await processJSON(file);
-      
-      // Criar mapeamento de categorias
+      // Criar mapeamento de categorias existentes
       const categoryMapping = new Map<string, string>();
       
-      // Mapear categorias existentes
       if (categories) {
         categories.forEach(cat => {
           categoryMapping.set(cat.name.toLowerCase(), cat.id);
         });
       }
 
-      // Detectar e criar categorias faltantes automaticamente
-      const uniqueCategories = new Set<string>();
-      transactions.forEach(transaction => {
-        if (transaction.category) {
-          const categoryNameLower = transaction.category.toLowerCase();
-          if (!categoryMapping.has(categoryNameLower)) {
-            uniqueCategories.add(transaction.category);
-          }
-        }
-      });
-
-      // Criar categorias faltantes sem perguntar
-      for (const categoryName of uniqueCategories) {
-        const categoryNameLower = categoryName.toLowerCase();
-        
-        // Verificar duplicata novamente (caso tenha sido criada entre a verificação)
-        const existingCategory = categories?.find(
-          cat => cat.name.toLowerCase() === categoryNameLower
-        );
-
-        if (existingCategory) {
-          categoryMapping.set(categoryNameLower, existingCategory.id);
-        } else {
-          // Criar nova categoria
-          const { data, error } = await supabase
-            .from('categories')
-            .insert({
-              user_id: user.id,
-              name: categoryName,
-              type: 'expense', // Tipo padrão
-              color: '#6B7280' // Cor padrão
-            })
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Erro ao criar categoria:', error);
-          } else if (data) {
-            categoryMapping.set(categoryNameLower, data.id);
-          }
-        }
-      }
-
-      // Importar com o mapeamento de categorias
+      // Importar diretamente - a edge function criará categorias faltantes automaticamente
       await importFile(file, selectedAccountId, categoryMapping);
     } catch (error) {
       console.error("Erro na importação JSON:", error);
@@ -189,7 +142,7 @@ const SimpleJSONImportComponent: React.FC = () => {
         variant: "destructive"
       });
     }
-  }, [file, selectedAccountId, user, categories, processJSON, importFile, toast]);
+  }, [file, selectedAccountId, user, categories, importFile, toast]);
 
   const handleReset = useCallback(() => {
     setFile(null);

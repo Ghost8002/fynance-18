@@ -107,6 +107,38 @@ serve(async (req) => {
       categories?.map(cat => [cat.name.toLowerCase(), cat.id]) || []
     );
 
+    // Detectar categorias únicas necessárias
+    const uniqueCategories = new Set<string>();
+    body.transactions.forEach(transaction => {
+      if (transaction.category) {
+        const categoryNameLower = transaction.category.toLowerCase();
+        if (!categoryMap.has(categoryNameLower)) {
+          uniqueCategories.add(transaction.category);
+        }
+      }
+    });
+
+    // Criar categorias faltantes automaticamente
+    for (const categoryName of uniqueCategories) {
+      const { data: newCategory, error: createError } = await supabaseClient
+        .from('categories')
+        .insert({
+          user_id: user.id,
+          name: categoryName,
+          type: 'expense', // Tipo padrão
+          color: '#6B7280' // Cor padrão
+        })
+        .select('id, name')
+        .single();
+
+      if (!createError && newCategory) {
+        categoryMap.set(categoryName.toLowerCase(), newCategory.id);
+        console.log(`[import-transactions] Categoria criada: ${categoryName} (${newCategory.id})`);
+      } else {
+        console.error(`[import-transactions] Erro ao criar categoria ${categoryName}:`, createError);
+      }
+    }
+
     // Process transactions
     const result: ImportResult = {
       success: true,

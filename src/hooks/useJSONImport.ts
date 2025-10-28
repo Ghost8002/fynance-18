@@ -3,7 +3,6 @@ import { useToast } from './use-toast';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseData } from './useSupabaseData';
-import { useBalanceUpdates } from './useBalanceUpdates';
 import { ImportedTransaction, ImportResult } from './useImport';
 import { useCache } from './useCache';
 import { useDebouncedValidation } from './useDebounce';
@@ -18,9 +17,6 @@ export const useJSONImport = () => {
   
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: existingCategories } = useSupabaseData('categories', user?.id);
-  const { data: existingTags } = useSupabaseData('tags', user?.id);
-  const { insert: insertTransaction } = useSupabaseData('transactions', user?.id);
-  const { updateAccountBalance } = useBalanceUpdates();
 
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -96,50 +92,7 @@ export const useJSONImport = () => {
     }
   }, []);
 
-  // Função para criar ou buscar tag
-  const getOrCreateTag = useCallback(async (tagName: string): Promise<string | null> => {
-    if (!user?.id || !tagName || typeof tagName !== 'string') return null;
-
-    const normalizedName = tagName.trim().toLowerCase();
-    if (!normalizedName) return null;
-
-    try {
-      // Verificar se a tag já existe (case-insensitive)
-      const existingTag = existingTags?.find(
-        tag => tag.name.toLowerCase() === normalizedName && tag.is_active
-      );
-
-      if (existingTag) {
-        return existingTag.id;
-      }
-
-      // Criar nova tag
-      const { getRandomColor } = await import('@/utils/colorGenerator');
-      const randomColor = getRandomColor();
-      const { data, error } = await supabase
-        .from("tags")
-        .insert([{ 
-          user_id: user.id, 
-          name: tagName.trim(), // Manter capitalização original
-          color: randomColor,
-          is_active: true 
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao criar tag:', error);
-        return null;
-      }
-
-      return data?.id || null;
-    } catch (error) {
-      console.error('Erro ao criar/buscar tag:', error);
-      return null;
-    }
-  }, [user?.id, existingTags]);
-
-  // Função para importar transações
+  // Função para importar transações usando edge function
   const importTransactions = useCallback(async (
     transactions: ImportedTransaction[], 
     accountId: string,
@@ -153,86 +106,57 @@ export const useJSONImport = () => {
     setProgress(0);
 
     try {
-      let successCount = 0;
-      let errorCount = 0;
-      let duplicateCount = 0;
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Sessão não encontrada');
+      }
 
-      for (let i = 0; i < transactions.length; i++) {
-        const transaction = transactions[i];
-        
-        try {
-          // Buscar categoria existente ou usar a criada
-          let categoryId: string | undefined;
-          if (transaction.category) {
-            categoryId = categoryMapping.get(transaction.category.toLowerCase());
-          }
+      // Preparar payload para a edge function
+      const payload = {
+        account_id: accountId,
+        transactions: transactions.map(t => ({
+          date: t.date,
+          description: t.description,
+          amount: t.amount,
+          type: t.type,
+          category: t.category,
+          tags: t.tags || []
+        }))
+      };
 
-          // Processar tags: criar se não existirem
-          const tagIds: string[] = [];
-          if (transaction.tags && Array.isArray(transaction.tags)) {
-            for (const tagName of transaction.tags) {
-              if (typeof tagName === 'string' && tagName.trim()) {
-                const tagId = await getOrCreateTag(tagName.trim());
-                if (tagId) {
-                  tagIds.push(tagId);
-                }
-              }
-            }
-          }
-
-          // Buscar dados completos das tags para salvar no JSONB
-          let tagsData: any[] = [];
-          if (tagIds.length > 0) {
-            const { data: fetchedTags, error: tagsError } = await supabase
-              .from('tags')
-              .select('*')
-              .in('id', tagIds);
-
-            if (!tagsError && fetchedTags) {
-              tagsData = fetchedTags;
-            }
-          }
-
-          // Inserir transação
-          const { error } = await insertTransaction({
-            user_id: user.id, // CRÍTICO: Necessário para RLS
-            date: transaction.date,
-            description: transaction.description,
-            amount: transaction.type === 'expense' ? -transaction.amount : transaction.amount,
-            type: transaction.type,
-            category_id: categoryId,
-            account_id: accountId,
-            tags: tagsData
-          });
-
-          if (error) {
-            console.error('Erro ao inserir transação:', error);
-            errorCount++;
-          } else {
-            successCount++;
-          }
-        } catch (error) {
-          console.error(`Erro na linha ${i + 1}:`, error);
-          errorCount++;
+      // Chamar edge function import-transactions
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/import-transactions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(payload)
         }
+      );
 
-        setProgress((i + 1) / transactions.length * 100);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro na importação');
       }
 
-      // Atualizar saldo da conta
-      if (successCount > 0) {
-        await updateAccountBalance(accountId);
-      }
+      const result = await response.json();
 
-      const result: ImportResult = {
-        success: successCount,
-        errors: errorCount,
-        duplicates: duplicateCount,
+      // Processar resultado da edge function
+      const importResult: ImportResult = {
+        success: result.summary.imported,
+        errors: result.summary.errors,
+        duplicates: result.summary.duplicates,
         transactions
       };
 
-      setResult(result);
-      return result;
+      setProgress(100);
+      setResult(importResult);
+      return importResult;
 
     } catch (error) {
       console.error('Erro durante importação:', error);
@@ -240,7 +164,7 @@ export const useJSONImport = () => {
     } finally {
       setImporting(false);
     }
-  }, [user, insertTransaction, updateAccountBalance, getOrCreateTag]);
+  }, [user]);
 
   // Função principal de importação
   const importFile = useCallback(async (
