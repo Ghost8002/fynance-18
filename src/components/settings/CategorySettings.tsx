@@ -18,6 +18,7 @@ interface Category {
   color: string;
   is_default: boolean;
   sort_order: number;
+  created_at: string;
 }
 const CategorySettings = () => {
   const {
@@ -161,6 +162,48 @@ const CategorySettings = () => {
       });
     }
   };
+
+  const handleRemoveDuplicates = async () => {
+    const categoryByKey = new Map<string, Category[]>();
+    
+    categories.forEach((category: Category) => {
+      const key = `${category.name.toLowerCase()}_${category.type}`;
+      if (!categoryByKey.has(key)) {
+        categoryByKey.set(key, []);
+      }
+      categoryByKey.get(key)?.push(category);
+    });
+
+    let duplicatesRemoved = 0;
+    
+    for (const [, categoryGroup] of categoryByKey) {
+      if (categoryGroup.length > 1) {
+        const sorted = categoryGroup.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        
+        for (let i = 1; i < sorted.length; i++) {
+          if (!sorted[i].is_default) {
+            await remove(sorted[i].id);
+            duplicatesRemoved++;
+          }
+        }
+      }
+    }
+
+    if (duplicatesRemoved > 0) {
+      toast({
+        title: "Sucesso",
+        description: `${duplicatesRemoved} categoria(s) duplicada(s) removida(s).`,
+      });
+      refetch();
+    } else {
+      toast({
+        title: "Info",
+        description: "Nenhuma duplicata encontrada.",
+      });
+    }
+  };
   const CategoryItem = ({
     category
   }: {
@@ -213,11 +256,22 @@ const CategorySettings = () => {
     return <div className="flex justify-center p-8">Carregando categorias...</div>;
   }
   return <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Gerenciar Categorias</h3>
-        <p className="text-sm text-muted-foreground">
-          Organize suas transações com categorias personalizadas
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Gerenciar Categorias</h3>
+          <p className="text-sm text-muted-foreground">
+            Organize suas transações com categorias personalizadas
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRemoveDuplicates}
+          disabled={loading || categories.length === 0}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Remover Duplicatas
+        </Button>
       </div>
 
       

@@ -114,6 +114,45 @@ const TagSettings = () => {
     }
   };
 
+  const handleRemoveDuplicates = async () => {
+    const tagsByName = new Map<string, typeof tags>();
+    
+    tags.forEach((tag: any) => {
+      const nameLower = tag.name.toLowerCase();
+      if (!tagsByName.has(nameLower)) {
+        tagsByName.set(nameLower, []);
+      }
+      tagsByName.get(nameLower)?.push(tag);
+    });
+
+    let duplicatesRemoved = 0;
+    
+    for (const [, tagGroup] of tagsByName) {
+      if (tagGroup.length > 1) {
+        const sorted = tagGroup.sort((a: any, b: any) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        
+        for (let i = 1; i < sorted.length; i++) {
+          await remove(sorted[i].id);
+          duplicatesRemoved++;
+        }
+      }
+    }
+
+    if (duplicatesRemoved > 0) {
+      toast({
+        title: "Sucesso",
+        description: `${duplicatesRemoved} tag(s) duplicada(s) removida(s).`,
+      });
+    } else {
+      toast({
+        title: "Info",
+        description: "Nenhuma duplicata encontrada.",
+      });
+    }
+  };
+
   const colorOptions = [
     '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
     '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
@@ -180,10 +219,23 @@ const TagSettings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tags Existentes</CardTitle>
-          <CardDescription>
-            Gerencie suas tags existentes
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Tags Existentes</CardTitle>
+              <CardDescription>
+                Gerencie suas tags existentes
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRemoveDuplicates}
+              disabled={loading || tags.length === 0}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Remover Duplicatas
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
