@@ -60,7 +60,7 @@ const FinancialSummaryMobile = ({ hiddenWidgets = [], selectedPeriod = 'current-
 
   const totalExpenses = filteredTransactions
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + toNumber(t.amount), 0);
+    .reduce((sum, t) => sum + Math.abs(toNumber(t.amount)), 0);
 
   const balance = totalIncome - totalExpenses;
 
@@ -74,7 +74,7 @@ const FinancialSummaryMobile = ({ hiddenWidgets = [], selectedPeriod = 'current-
   const totalBudgetUsed = budgets.reduce((sum, b) => {
     const spent = filteredTransactions
       .filter(t => t.type === 'expense' && t.category_id === b.category_id)
-      .reduce((s, t) => s + toNumber(t.amount), 0);
+      .reduce((s, t) => s + Math.abs(toNumber(t.amount)), 0);
     return sum + spent;
   }, 0);
 

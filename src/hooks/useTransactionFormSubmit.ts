@@ -10,6 +10,7 @@ interface FormData {
   description: string;
   amount: string;
   category_id: string;
+  subcategory_id?: string;
   account_id: string;
   card_id: string;
   date: string;
@@ -138,6 +139,7 @@ export const useTransactionFormSubmit = (
         description: formData.description,
         amount: amount,
         category_id: formData.category_id || null,
+        subcategory_id: formData.subcategory_id || null,
         account_id: formData.account_id || null,
         card_id: formData.card_id || null,
         date: formData.date,
