@@ -1,4 +1,1 @@
 project_id = "vwactcwdsfkytqmsdkde"
-
-[functions.import-transactions]
-verify_jwt = true
