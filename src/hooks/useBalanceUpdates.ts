@@ -2,6 +2,7 @@
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
+import { devError } from "@/utils/logger";
 
 export const useBalanceUpdates = () => {
   const { user } = useSupabaseAuth();
@@ -49,7 +50,7 @@ export const useBalanceUpdates = () => {
         return { success: true };
       }
     } catch (error) {
-      console.error('Erro ao atualizar saldo da conta:', error);
+      devError('Erro ao atualizar saldo da conta:', error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o saldo da conta.",
@@ -89,7 +90,7 @@ export const useBalanceUpdates = () => {
 
       return { success: true, newUsedAmount };
     } catch (error) {
-      console.error('Erro ao atualizar limite do cartão:', error);
+      devError('Erro ao atualizar limite do cartão:', error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o limite do cartão.",
@@ -129,7 +130,7 @@ export const useBalanceUpdates = () => {
 
       return { success: true, newCurrentAmount };
     } catch (error) {
-      console.error('Erro ao atualizar progresso da meta:', error);
+      devError('Erro ao atualizar progresso da meta:', error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o progresso da meta.",

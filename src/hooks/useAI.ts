@@ -5,6 +5,7 @@ import { useAIPrompts } from './ai/useAIPrompts';
 import { useAICRUD } from './useAICRUD';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { devLog, devError } from '@/utils/logger';
 
 export const useAI = () => {
   const { 
@@ -31,23 +32,23 @@ export const useAI = () => {
     setLoading(true);
     
     try {
-      console.log('Sending message:', userMessage);
+      devLog('Sending message:', userMessage);
 
       // Get financial context for the AI
       const financialContext = prepareUserData();
-      console.log('Financial context prepared:', financialContext);
+      devLog('Financial context prepared:', financialContext);
       
       // Check if message contains CRUD operations
       const crudOperation = parseNaturalLanguageCommand(userMessage);
       let crudResult = null;
       
       if (crudOperation) {
-        console.log('Executing CRUD operation:', crudOperation);
+        devLog('Executing CRUD operation:', crudOperation);
         try {
           crudResult = await executeOperation(crudOperation);
-          console.log('CRUD result:', crudResult);
+          devLog('CRUD result:', crudResult);
         } catch (crudError) {
-          console.error('CRUD operation failed:', crudError);
+          devError('CRUD operation failed:', crudError);
           // Continue with AI response even if CRUD fails
           crudResult = {
             success: false,
@@ -57,7 +58,7 @@ export const useAI = () => {
       }
 
       // Call Supabase Edge Function
-      console.log('Calling edge function...');
+      devLog('Calling edge function...');
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
           message: userMessage.trim(),
@@ -66,10 +67,10 @@ export const useAI = () => {
         }
       });
 
-      console.log('Edge function response:', { data, error });
+      devLog('Edge function response:', { data, error });
 
       if (error) {
-        console.error('Error calling AI function:', error);
+        devError('Error calling AI function:', error);
         
         // Provide more specific error messages
         if (error.message?.includes('Failed to fetch')) {
@@ -82,11 +83,11 @@ export const useAI = () => {
       }
 
       if (!data?.response) {
-        console.error('Invalid response data:', data);
+        devError('Invalid response data:', data);
         throw new Error('Resposta inválida do assistente. Tente novamente.');
       }
 
-      console.log('AI response received:', data.response);
+      devLog('AI response received:', data.response);
 
       // Add complete conversation to history
       addToHistory(userMessage, data.response, crudResult);
@@ -95,12 +96,12 @@ export const useAI = () => {
       try {
         await saveChatMessage(userMessage, data.response, data.tokensUsed || 0);
       } catch (saveError) {
-        console.error('Error saving chat message:', saveError);
+        devError('Error saving chat message:', saveError);
         // Don't throw error for save failure, just log it
       }
 
     } catch (error) {
-      console.error('Error in sendMessage:', error);
+      devError('Error in sendMessage:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao processar mensagem';
       toast.error(errorMessage);
       throw error;

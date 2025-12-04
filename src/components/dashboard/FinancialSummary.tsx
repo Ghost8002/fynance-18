@@ -15,6 +15,7 @@ import {
   validateAndAutoFixFinancialData,
   safeToNumber 
 } from "@/utils/financialCalculations";
+import { devWarn, devError } from "@/utils/logger";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -52,7 +53,7 @@ const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month'
   // Validar dados financeiros
   const validation = validateFinancialData(transactions || [], accounts || []);
   if (!validation.isValid) {
-    console.warn('Dados financeiros inválidos:', validation.errors);
+    devWarn('Dados financeiros inválidos:', validation.errors);
   }
 
   // Executar correção automática quando necessário
@@ -72,7 +73,7 @@ const FinancialSummary = ({ hiddenWidgets = [], selectedPeriod = 'current-month'
           }, 1000);
         }
       } catch (error) {
-        console.error('Erro na correção automática:', error);
+        devError('Erro na correção automática:', error);
       }
     };
 

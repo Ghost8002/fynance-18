@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/types/database';
+import { devLog, devError } from '@/utils/logger';
 
 type TableName = keyof Database['public']['Tables'];
 
@@ -27,14 +28,14 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
 
       if (error) throw error;
       
-      console.log(`useSupabaseData: Fetched ${table}`, {
+      devLog(`useSupabaseData: Fetched ${table}`, {
         count: result?.length || 0,
         sampleData: result?.[0] || null
       });
       
       setData(result || []);
     } catch (err) {
-      console.error(`Error fetching ${table}:`, err);
+      devError(`Error fetching ${table}:`, err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
@@ -47,36 +48,36 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
 
   const insert = async (newData: any) => {
     try {
-      console.log(`=== INSERT INTO ${table} ===`);
-      console.log('Dados sendo inseridos:', JSON.stringify(newData, null, 2));
-      console.log('Tabela:', table);
-      console.log('User ID:', userId);
+      devLog(`=== INSERT INTO ${table} ===`);
+      devLog('Dados sendo inseridos:', JSON.stringify(newData, null, 2));
+      devLog('Tabela:', table);
+      devLog('User ID:', userId);
       
       const { data: result, error } = await supabase
         .from(table as any)
         .insert(newData)
         .select();
 
-      console.log('Resultado da query:', { data: result, error });
+      devLog('Resultado da query:', { data: result, error });
 
       if (error) {
-        console.error(`❌ Erro na inserção em ${table}:`, error);
+        devError(`❌ Erro na inserção em ${table}:`, error);
         throw error;
       }
       
       if (result) {
-        console.log(`✅ Inserção bem-sucedida em ${table}:`, result);
+        devLog(`✅ Inserção bem-sucedida em ${table}:`, result);
         setData(prev => [...prev, ...result]);
       }
       
       return { data: result, error: null };
     } catch (err) {
-      console.error(`❌ Erro ao inserir em ${table}:`, err);
+      devError(`❌ Erro ao inserir em ${table}:`, err);
       let errorMessage = 'An error occurred';
       
       if (err instanceof Error) {
-        console.error('Mensagem de erro:', err.message);
-        console.error('Stack trace:', err.stack);
+        devError('Mensagem de erro:', err.message);
+        devError('Stack trace:', err.stack);
         
         if (err.message.includes('duplicate key')) {
           errorMessage = 'Dados duplicados';
@@ -118,7 +119,7 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
       
       return { data: result, error: null };
     } catch (err) {
-      console.error(`Error updating ${table}:`, err);
+      devError(`Error updating ${table}:`, err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       return { data: null, error: errorMessage };
     }
@@ -137,7 +138,7 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
       
       return { error: null };
     } catch (err) {
-      console.error(`Error deleting from ${table}:`, err);
+      devError(`Error deleting from ${table}:`, err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       return { error: errorMessage };
     }

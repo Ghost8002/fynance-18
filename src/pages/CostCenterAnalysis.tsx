@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import AppLayout from "@/components/shared/AppLayout";
 import { useToast } from "@/hooks/use-toast";
+import { devError } from "@/utils/logger";
 
 interface SubcategoryDetail {
   id: string;
@@ -225,7 +226,7 @@ const CostCenterAnalysis = () => {
       // Redirecionar de volta para a página de relatórios
       navigate('/reports');
     } catch (error) {
-      console.error('Error removing cost center:', error);
+      devError('Error removing cost center:', error);
       toast({
         title: "Erro",
         description: `Erro ao remover centro de custo: ${error.message}`,

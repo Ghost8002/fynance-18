@@ -8,6 +8,7 @@ import { ImportedTransaction, ImportResult } from './useImport';
 import { useCache } from './useCache';
 import { useDebouncedValidation } from './useDebounce';
 import { convertOFXDate, isValidOFXDate } from '../utils/dateValidation';
+import { devLog, devWarn, devError } from '../utils/logger';
 
 export const useOFXImport = () => {
   const { user } = useAuth();
@@ -61,9 +62,9 @@ export const useOFXImport = () => {
       
       return transactions;
     } catch (error) {
-      console.error('Erro ao processar OFX com worker:', error);
+      devError('Erro ao processar OFX com worker:', error);
       // Fallback para processamento síncrono
-      console.warn('Usando processamento síncrono como fallback');
+      devWarn('Usando processamento síncrono como fallback');
       return processOFXSync(file);
     }
   }, [workerProcessOFX, workerProgress]);
@@ -97,11 +98,11 @@ export const useOFXImport = () => {
                 if (isValidOFXDate(dateStr)) {
                   date = convertOFXDate(dateStr);
                 } else {
-                  console.warn(`Data OFX inválida: ${dateStr}, usando fallback`);
+                  devWarn(`Data OFX inválida: ${dateStr}, usando fallback`);
                   date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
                 }
               } catch (error) {
-                console.warn(`Erro ao converter data OFX: ${dateStr}, usando fallback`, error);
+                devWarn(`Erro ao converter data OFX: ${dateStr}, usando fallback`, error);
                 date = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
               }
               
@@ -139,7 +140,7 @@ export const useOFXImport = () => {
             }
           }
         } catch (error) {
-          console.warn('Erro ao processar transação OFX:', error);
+          devWarn('Erro ao processar transação OFX:', error);
           continue;
         }
       }
@@ -192,13 +193,13 @@ export const useOFXImport = () => {
           });
 
           if (error) {
-            console.error('Erro ao inserir transação:', error);
+            devError('Erro ao inserir transação:', error);
             errorCount++;
           } else {
             successCount++;
           }
         } catch (error) {
-          console.error(`Erro na linha ${i + 1}:`, error);
+          devError(`Erro na linha ${i + 1}:`, error);
           errorCount++;
         }
 
@@ -221,7 +222,7 @@ export const useOFXImport = () => {
       return result;
 
     } catch (error) {
-      console.error('Erro durante importação:', error);
+      devError('Erro durante importação:', error);
       throw error;
     } finally {
       setImporting(false);

@@ -14,6 +14,7 @@ import BankSelector from "@/components/shared/BankSelector";
 import BankLogo from "@/components/shared/BankLogo";
 import { getBankById } from "@/utils/banks/bankDatabase";
 import ColorPicker from "@/components/shared/ColorPicker";
+import { devError } from "@/utils/logger";
 
 interface CardFormProps {
   onCardAdded?: () => void;
@@ -155,7 +156,7 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       const { error } = await insert(cardData);
 
       if (error) {
-        console.error('Insert error:', error);
+        devError('Insert error:', error);
         toast({
           variant: "destructive",
           title: "Erro ao adicionar cartão",
@@ -185,7 +186,7 @@ export const CardForm = ({ onCardAdded }: CardFormProps) => {
       onCardAdded?.();
 
     } catch (error: any) {
-      console.error('Error adding card:', error);
+      devError('Error adding card:', error);
       
       let errorMessage = "Erro inesperado ao adicionar cartão";
       

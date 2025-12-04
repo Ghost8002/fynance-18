@@ -21,6 +21,7 @@ import TransactionFormFields from "./TransactionFormFields";
 import { getCurrentLocalDateString } from "@/utils/dateValidation";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import TagSelector from "./TagSelector";
+import { devLog } from "@/utils/logger";
 
 interface TransactionFormProps {
   defaultAccountId?: string;
@@ -112,7 +113,7 @@ const TransactionForm = ({
   };
 
   const handleTransactionAdded = () => {
-    console.log('Transaction added - refreshing data and closing dialog');
+    devLog('Transaction added - refreshing data and closing dialog');
     
     if (onTransactionAdded) {
       onTransactionAdded();
@@ -127,8 +128,8 @@ const TransactionForm = ({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted with data:', formData);
-    console.log('Selected tags:', selectedTags);
+    devLog('Form submitted with data:', formData);
+    devLog('Selected tags:', selectedTags);
     
     // Don't submit if there's a balance error
     if (balanceError) {
@@ -138,7 +139,7 @@ const TransactionForm = ({
     const success = await handleSubmit(formData, selectedTags, true);
     
     if (success) {
-      console.log('Transaction submission successful - resetting form');
+      devLog('Transaction submission successful - resetting form');
       setFormData({
         type: defaultGoalId ? "income" : "expense",
         description: "",
