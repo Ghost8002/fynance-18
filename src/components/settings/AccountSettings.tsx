@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
+import { devError } from "@/utils/logger";
 
 export default function AccountSettings() {
   const { user, logout } = useAuth();
@@ -50,7 +51,7 @@ export default function AccountSettings() {
       const { error: deleteError } = await supabase.functions.invoke('delete-account');
 
       if (deleteError) {
-        console.error('Error deleting account:', deleteError);
+        devError('Error deleting account:', deleteError);
         toast({
           title: "Erro",
           description: "Não foi possível excluir a conta. Tente novamente.",
@@ -69,7 +70,7 @@ export default function AccountSettings() {
         description: "Sua conta foi excluída com sucesso.",
       });
     } catch (error) {
-      console.error('Error deleting account:', error);
+      devError('Error deleting account:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro inesperado. Tente novamente.",

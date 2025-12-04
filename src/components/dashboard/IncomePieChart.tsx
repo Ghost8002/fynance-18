@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { PeriodType } from "@/components/dashboard/PeriodFilter";
 import { useTheme } from "@/hooks/useTheme";
+import { devLog } from "@/utils/logger";
 
 // Define category data type
 type CategoryData = {
@@ -27,8 +28,8 @@ const IncomePieChart = ({ selectedPeriod = 'current-month', customDateRange }: I
 
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  console.log('IncomePieChart - Transactions:', transactions);
-  console.log('IncomePieChart - Categories:', categories);
+  devLog('IncomePieChart - Transactions:', transactions);
+  devLog('IncomePieChart - Categories:', categories);
 
 // Filter transactions by current period and income type
 const incomeTx = transactions.filter(t => t.type === 'income');
@@ -42,7 +43,7 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
     })
   : filterTransactionsByPeriod(incomeTx, selectedPeriod);
 
-  console.log('IncomePieChart - Filtered Transactions:', filteredTransactions);
+  devLog('IncomePieChart - Filtered Transactions:', filteredTransactions);
 
   // Create category map for lookup
   const categoryMap = categories.reduce((acc, cat) => {

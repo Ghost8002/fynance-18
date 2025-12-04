@@ -6,6 +6,7 @@ import { useTags } from "@/hooks/useTags";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useEffect, useState } from "react";
+import { devLog } from "@/utils/logger";
 
 const TagsOverview = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ const TagsOverview = () => {
   // Escuta eventos de transações adicionadas
   useEffect(() => {
     const handleTransactionAdded = async () => {
-      console.log('TagsOverview: Received transaction added event');
+      devLog('TagsOverview: Received transaction added event');
       await refetchTransactions();
       setRefreshKey(prev => prev + 1);
     };
@@ -26,7 +27,7 @@ const TagsOverview = () => {
   }, [refetchTransactions]);
 
   const tagAnalysis = useMemo(() => {
-    console.log('TagsOverview: Analyzing tags', {
+    devLog('TagsOverview: Analyzing tags', {
       transactions: transactions?.length || 0,
       tags: tags?.length || 0
     });
@@ -38,14 +39,14 @@ const TagsOverview = () => {
       transaction.tags && Array.isArray(transaction.tags) && transaction.tags.length > 0
     );
 
-    console.log('TagsOverview: Found transactions with tags:', transactionsWithTags.length);
+    devLog('TagsOverview: Found transactions with tags:', transactionsWithTags.length);
 
     const tagStats = tags.map(tag => {
       const tagTransactions = transactionsWithTags.filter(transaction =>
         transaction.tags.some((t: any) => t.id === tag.id)
       );
 
-      console.log(`Tag ${tag.name} has ${tagTransactions.length} associated transactions`);
+      devLog(`Tag ${tag.name} has ${tagTransactions.length} associated transactions`);
 
       const income = tagTransactions
         .filter(t => t.type === 'income')
@@ -66,7 +67,7 @@ const TagsOverview = () => {
     }).filter(tag => tag.transactionsCount > 0)
       .sort((a, b) => b.totalAmount - a.totalAmount);
 
-    console.log('TagsOverview: Tag analysis result:', tagStats);
+    devLog('TagsOverview: Tag analysis result:', tagStats);
     return tagStats;
   }, [transactions, tags, refreshKey]);
 

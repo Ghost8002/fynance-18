@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, FileSpreadsheet, FileText, Info } from 'lucide-react';
 import { useLazyLoad } from '@/hooks/useLazyLoad';
+import { devWarn } from '@/utils/logger';
 
 // Componentes lazy
 const SimpleImportComponent = lazy(() => import('./SimpleImportComponent'));
@@ -42,7 +43,7 @@ const LazyImportComponent: React.FC<LazyImportComponentProps> = ({ defaultTab = 
         ]);
         setIsPreloaded(true);
       } catch (error) {
-        console.warn('Erro ao pré-carregar componentes:', error);
+        devWarn('Erro ao pré-carregar componentes:', error);
       }
     }
   };

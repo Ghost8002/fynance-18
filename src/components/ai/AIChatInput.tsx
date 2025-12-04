@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { devError } from '@/utils/logger';
 
 interface AIChatInputProps {
   loading: boolean;
@@ -85,7 +86,7 @@ const AIChatInput = ({ loading, onSendMessage }: AIChatInputProps) => {
       };
 
       recognitionRef.current.onerror = (event: any) => {
-        console.error('Erro no reconhecimento de voz:', event.error);
+        devError('Erro no reconhecimento de voz:', event.error);
         toast.error('Erro ao capturar voz');
         setIsListening(false);
       };
@@ -96,7 +97,7 @@ const AIChatInput = ({ loading, onSendMessage }: AIChatInputProps) => {
 
       recognitionRef.current.start();
     } catch (error) {
-      console.error('Erro ao iniciar reconhecimento de voz:', error);
+      devError('Erro ao iniciar reconhecimento de voz:', error);
       toast.error('Erro ao ativar reconhecimento de voz');
       setIsListening(false);
     }

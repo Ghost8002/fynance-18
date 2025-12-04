@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { devError } from '@/utils/logger';
 
 export interface CustomBank {
   id: string;
@@ -51,7 +52,7 @@ export const useCustomBanks = () => {
 
       setCustomBanks((data as any) || []);
     } catch (err) {
-      console.error('Erro ao buscar bancos customizados:', err);
+      devError('Erro ao buscar bancos customizados:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
@@ -90,7 +91,7 @@ export const useCustomBanks = () => {
       
       return (data as any);
     } catch (err) {
-      console.error('Erro ao criar banco customizado:', err);
+      devError('Erro ao criar banco customizado:', err);
       throw err;
     }
   };
@@ -128,7 +129,7 @@ export const useCustomBanks = () => {
       
       return (data as any);
     } catch (err) {
-      console.error('Erro ao atualizar banco customizado:', err);
+      devError('Erro ao atualizar banco customizado:', err);
       throw err;
     }
   };
@@ -154,7 +155,7 @@ export const useCustomBanks = () => {
         prev.filter(bank => bank.id !== bankId)
       );
     } catch (err) {
-      console.error('Erro ao deletar banco customizado:', err);
+      devError('Erro ao deletar banco customizado:', err);
       throw err;
     }
   };

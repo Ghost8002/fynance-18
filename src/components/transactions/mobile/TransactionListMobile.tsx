@@ -17,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { devError } from "@/utils/logger";
 
 const TransactionListMobile = () => {
   const { user } = useAuth();
@@ -99,7 +100,7 @@ const TransactionListMobile = () => {
       }
       return result;
     } catch (error) {
-      console.error('Error updating transaction:', error);
+      devError('Error updating transaction:', error);
       toast.error("Erro ao atualizar transação");
       throw error;
     }
@@ -115,7 +116,7 @@ const TransactionListMobile = () => {
       }
       return result;
     } catch (error) {
-      console.error('Error deleting transaction:', error);
+      devError('Error deleting transaction:', error);
       toast.error("Erro ao excluir transação");
       throw error;
     }
