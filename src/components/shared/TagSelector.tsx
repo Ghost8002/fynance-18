@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { devLog, devError } from "@/utils/logger";
 
 interface TagSelectorProps {
   selectedTags: string[];
@@ -30,20 +31,20 @@ const TagSelector = ({ selectedTags, onTagsChange, isMobile = false }: TagSelect
   const activeTags = safeTags.filter(tag => tag && tag.is_active);
 
   const handleTagToggle = (tagId: string) => {
-    console.log('Toggling tag:', tagId, 'Current selection:', selectedTags);
+    devLog('Toggling tag:', tagId, 'Current selection:', selectedTags);
     if (selectedTags.includes(tagId)) {
       const newTags = selectedTags.filter(id => id !== tagId);
-      console.log('Removing tag, new selection:', newTags);
+      devLog('Removing tag, new selection:', newTags);
       onTagsChange(newTags);
     } else {
       const newTags = [...selectedTags, tagId];
-      console.log('Adding tag, new selection:', newTags);
+      devLog('Adding tag, new selection:', newTags);
       onTagsChange(newTags);
     }
   };
 
   const removeTag = (tagId: string) => {
-    console.log('Removing tag directly:', tagId);
+    devLog('Removing tag directly:', tagId);
     const newTags = selectedTags.filter(id => id !== tagId);
     onTagsChange(newTags);
   };
@@ -80,7 +81,7 @@ const TagSelector = ({ selectedTags, onTagsChange, isMobile = false }: TagSelect
         setTagQuery("");
       }
     } catch (err) {
-      console.error("Erro ao criar tag:", err);
+      devError("Erro ao criar tag:", err);
       toast({ title: "Erro", description: "Não foi possível criar a tag.", variant: "destructive" });
     }
   };
@@ -136,7 +137,7 @@ const TagSelector = ({ selectedTags, onTagsChange, isMobile = false }: TagSelect
             aria-expanded={open}
             className={`w-full justify-between ${isMobile ? 'h-8 text-xs' : ''}`}
             onClick={() => {
-              console.log('Opening tag selector, available tags:', activeTags.length);
+              devLog('Opening tag selector, available tags:', activeTags.length);
               setOpen(true);
             }}
           >
@@ -197,7 +198,7 @@ const TagSelector = ({ selectedTags, onTagsChange, isMobile = false }: TagSelect
                       key={tag.id}
                       value={tag.name}
                       onSelect={() => {
-                        console.log('Tag selected from command:', tag.name, tag.id);
+                        devLog('Tag selected from command:', tag.name, tag.id);
                         handleTagToggle(tag.id);
                       }}
                       className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}

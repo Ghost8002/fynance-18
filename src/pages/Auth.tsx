@@ -3,15 +3,16 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthForm } from '@/components/auth/AuthForm';
+import { devLog } from '@/utils/logger';
 
 const Auth = () => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Auth page - Auth state:', { isAuthenticated, loading });
+    devLog('Auth page - Auth state:', { isAuthenticated, loading });
     if (!loading && isAuthenticated) {
-      console.log('User authenticated, redirecting to dashboard...');
+      devLog('User authenticated, redirecting to dashboard...');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
