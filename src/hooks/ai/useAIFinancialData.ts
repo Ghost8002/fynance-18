@@ -1,8 +1,8 @@
-
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/hooks/useAuth';
 import { UserFinancialData } from './types';
 import { parseLocalDate } from '@/utils/dateValidation';
+import { devLog } from '@/utils/logger';
 
 export const useAIFinancialData = () => {
   const { user } = useAuth();
@@ -13,10 +13,10 @@ export const useAIFinancialData = () => {
   const { data: categories } = useSupabaseData('categories', user?.id);
 
   const prepareUserData = (): UserFinancialData => {
-    console.log('Preparing user data...');
-    console.log('Accounts:', accounts);
-    console.log('Transactions:', transactions);
-    console.log('Goals:', goals);
+    devLog('Preparing user data...');
+    devLog('Accounts:', accounts);
+    devLog('Transactions:', transactions);
+    devLog('Goals:', goals);
 
     // Calculate monthly income and expenses
     const currentMonth = new Date().getMonth();
@@ -28,7 +28,7 @@ export const useAIFinancialData = () => {
              transactionDate.getFullYear() === currentYear;
     });
 
-    console.log('Monthly transactions:', monthlyTransactions);
+    devLog('Monthly transactions:', monthlyTransactions);
 
     const monthlyIncome = monthlyTransactions
       .filter(t => t.type === 'income')
@@ -63,7 +63,7 @@ export const useAIFinancialData = () => {
       return sum + balance;
     }, 0);
 
-    console.log('Calculated total balance:', totalBalance);
+    devLog('Calculated total balance:', totalBalance);
 
     // Prepare goals data
     const goalsData = goals.map(goal => ({
@@ -81,7 +81,7 @@ export const useAIFinancialData = () => {
       totalBalance
     };
 
-    console.log('Final user data:', userData);
+    devLog('Final user data:', userData);
     return userData;
   };
 

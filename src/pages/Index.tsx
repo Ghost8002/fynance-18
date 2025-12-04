@@ -4,15 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AuthForm from "@/components/shared/AuthForm";
 import Dashboard from "./Dashboard";
+import { devLog } from "@/utils/logger";
 
 const Index = () => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Index - Auth state:', { isAuthenticated, loading });
+    devLog('Index - Auth state:', { isAuthenticated, loading });
     if (!loading && isAuthenticated) {
-      console.log('Redirecting to dashboard...');
+      devLog('Redirecting to dashboard...');
       navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
@@ -26,11 +27,11 @@ const Index = () => {
   }
 
   if (isAuthenticated) {
-    console.log('User is authenticated, showing dashboard');
+    devLog('User is authenticated, showing dashboard');
     return <Dashboard />;
   }
 
-  console.log('User not authenticated, showing auth form');
+  devLog('User not authenticated, showing auth form');
   return <AuthForm />;
 };
 

@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentLocalDateString } from '@/utils/dateValidation';
+import { devLog, devError } from '@/utils/logger';
 
 interface CardBill {
   id: string;
@@ -61,7 +62,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
     try {
       setLoadingBills(true);
-      console.log('Buscando faturas de cartão para usuário:', user.id);
+      devLog('Buscando faturas de cartão para usuário:', user.id);
       
       let query = supabase
         .from('card_bills')
@@ -77,7 +78,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Erro ao buscar faturas:', error);
+        devError('Erro ao buscar faturas:', error);
         toast({
           title: "Erro",
           description: "Erro ao carregar faturas de cartão",
@@ -86,10 +87,10 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return;
       }
 
-      console.log('Faturas encontradas:', data);
+      devLog('Faturas encontradas:', data);
       setCardBills(data || []);
     } catch (error) {
-      console.error('Erro ao buscar faturas:', error);
+      devError('Erro ao buscar faturas:', error);
     } finally {
       setLoadingBills(false);
     }
@@ -101,7 +102,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
     try {
       setLoadingInstallments(true);
-      console.log('Buscando parcelamentos de cartão para usuário:', user.id);
+      devLog('Buscando parcelamentos de cartão para usuário:', user.id);
       
       let query = supabase
         .from('card_installments')
@@ -116,7 +117,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Erro ao buscar parcelamentos:', error);
+        devError('Erro ao buscar parcelamentos:', error);
         toast({
           title: "Erro",
           description: "Erro ao carregar parcelamentos",
@@ -125,10 +126,10 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return;
       }
 
-      console.log('Parcelamentos encontrados:', data);
+      devLog('Parcelamentos encontrados:', data);
       setCardInstallments(data || []);
     } catch (error) {
-      console.error('Erro ao buscar parcelamentos:', error);
+      devError('Erro ao buscar parcelamentos:', error);
     } finally {
       setLoadingInstallments(false);
     }
@@ -150,7 +151,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       });
 
       if (error) {
-        console.error('Erro ao criar dívida da fatura:', error);
+        devError('Erro ao criar dívida da fatura:', error);
         toast({
           title: "Erro",
           description: "Erro ao criar dívida da fatura",
@@ -174,7 +175,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       });
       return null;
     } catch (error) {
-      console.error('Erro ao criar dívida da fatura:', error);
+      devError('Erro ao criar dívida da fatura:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao criar dívida",
@@ -194,7 +195,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       });
 
       if (error) {
-        console.error('Erro ao criar dívidas dos parcelamentos (RPC):', error);
+        devError('Erro ao criar dívidas dos parcelamentos (RPC):', error);
         toast({
           title: "Erro",
           description: "Erro ao criar dívidas dos parcelamentos",
@@ -219,7 +220,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
       return createdIds;
     } catch (error) {
-      console.error('Erro ao criar dívidas dos parcelamentos (RPC):', error);
+      devError('Erro ao criar dívidas dos parcelamentos (RPC):', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao criar dívidas",
@@ -245,7 +246,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       });
 
       if (error) {
-        console.error('Erro ao sincronizar pagamento (RPC):', error);
+        devError('Erro ao sincronizar pagamento (RPC):', error);
         toast({
           title: "Erro",
           description: "Erro ao sincronizar pagamento",
@@ -264,7 +265,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
 
       return false;
     } catch (error) {
-      console.error('Erro ao sincronizar pagamento (RPC):', error);
+      devError('Erro ao sincronizar pagamento (RPC):', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao sincronizar pagamento",
@@ -279,12 +280,12 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return;
 
     try {
-      console.log('Iniciando sincronização completa de dívidas de cartão...');
+      devLog('Iniciando sincronização completa de dívidas de cartão...');
       
       const { data, error } = await supabase.rpc('sync_card_debts');
 
       if (error) {
-        console.error('Erro ao sincronizar dívidas:', error);
+        devError('Erro ao sincronizar dívidas:', error);
         toast({
           title: "Erro",
           description: "Erro ao sincronizar dívidas de cartão",
@@ -293,7 +294,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         return;
       }
 
-      console.log('Resposta da sincronização:', data);
+      devLog('Resposta da sincronização:', data);
 
       const result = data as { 
         success?: boolean; 
@@ -307,7 +308,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         const billsSynced = result?.bills_synced || 0;
         const installmentsSynced = result?.installments_synced || 0;
         
-        console.log('Sincronização bem-sucedida:', {
+        devLog('Sincronização bem-sucedida:', {
           totalDebts,
           billsSynced,
           installmentsSynced
@@ -324,7 +325,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
           description: description,
         });
       } else {
-        console.log('Nenhuma nova dívida foi criada');
+        devLog('Nenhuma nova dívida foi criada');
         toast({
           title: "Sincronização",
           description: "Nenhuma nova dívida foi criada",
@@ -332,12 +333,12 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       }
 
       // Recarregar dados após sincronização
-      console.log('Recarregando dados após sincronização...');
+      devLog('Recarregando dados após sincronização...');
       await fetchCardBills(cardId);
       await fetchCardInstallments(cardId);
 
     } catch (error) {
-      console.error('Erro ao sincronizar dívidas:', error);
+      devError('Erro ao sincronizar dívidas:', error);
       toast({
         title: "Erro",
         description: "Erro ao sincronizar dívidas de cartão",
@@ -351,7 +352,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
     if (!user?.id) return;
 
     try {
-      console.log('Sincronizando parcelamentos existentes (RPC)...');
+      devLog('Sincronizando parcelamentos existentes (RPC)...');
       
       const { data: installments, error: installmentsError } = await supabase
         .from('card_installments')
@@ -360,7 +361,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         .eq('status', 'active');
 
       if (installmentsError) {
-        console.error('Erro ao buscar parcelamentos:', installmentsError);
+        devError('Erro ao buscar parcelamentos:', installmentsError);
         toast({
           title: "Erro",
           description: "Erro ao buscar parcelamentos",
@@ -376,7 +377,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
         totalDebtsCreated += ids.length;
       }
 
-      console.log('Parcelamentos sincronizados:', totalDebtsCreated);
+      devLog('Parcelamentos sincronizados:', totalDebtsCreated);
       
       toast({
         title: "Parcelamentos Sincronizados",
@@ -386,7 +387,7 @@ export const useCardDebtsIntegration = (): CardDebtsIntegration => {
       await fetchCardInstallments();
 
     } catch (error) {
-      console.error('Erro ao sincronizar parcelamentos existentes (RPC):', error);
+      devError('Erro ao sincronizar parcelamentos existentes (RPC):', error);
       toast({
         title: "Erro",
         description: "Erro ao sincronizar parcelamentos existentes",

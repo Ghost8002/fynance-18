@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import BankLogo from "@/components/shared/BankLogo";
 import { getBankById } from "@/utils/banks/bankDatabase";
 import { useCustomBanks } from "@/hooks/useCustomBanks";
+import { devLog, devError } from "@/utils/logger";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -57,21 +58,21 @@ const AccountList = () => {
     // Find the account to get initial balance
     const account = accounts?.find(acc => acc.id === accountId);
     const initialBalance = Number(account?.balance) || 0;
-    console.log(`Account ${account?.name} - Initial Balance:`, initialBalance);
+    devLog(`Account ${account?.name} - Initial Balance:`, initialBalance);
 
     // Get all transactions for this account
     const accountTransactions = transactions.filter(t => t.account_id === accountId);
-    console.log(`Account ${account?.name} - Total transactions:`, accountTransactions.length);
+    devLog(`Account ${account?.name} - Total transactions:`, accountTransactions.length);
 
     // Calculate incomes and expenses separately
     const incomes = accountTransactions.filter(t => t.type === 'income');
     const expenses = accountTransactions.filter(t => t.type === 'expense');
     const totalIncome = incomes.reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
     const totalExpense = expenses.reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
-    console.log(`Account ${account?.name} - Total Income:`, totalIncome);
-    console.log(`Account ${account?.name} - Total Expense:`, totalExpense);
+    devLog(`Account ${account?.name} - Total Income:`, totalIncome);
+    devLog(`Account ${account?.name} - Total Expense:`, totalExpense);
     const finalBalance = initialBalance + totalIncome - totalExpense;
-    console.log(`Account ${account?.name} - Final Balance: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${finalBalance}`);
+    devLog(`Account ${account?.name} - Final Balance: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${finalBalance}`);
     return finalBalance;
   };
   const handleDelete = async (id: string, name: string) => {
@@ -87,7 +88,7 @@ const AccountList = () => {
         description: `Conta "${name}" removida com sucesso!`
       });
     } catch (error) {
-      console.error('Erro ao remover conta:', error);
+      devError('Erro ao remover conta:', error);
       toast({
         title: "Erro",
         description: "Não foi possível remover a conta. Tente novamente.",
