@@ -1,13 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import { z } from 'zod';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react";
+
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().trim().email('Email inválido').max(255, 'Email muito longo'),
+  password: z.string().min(6, 'Mínimo 6 caracteres')
+});
+
+const signupSchema = z.object({
+  email: z.string().trim().email('Email inválido').max(255, 'Email muito longo'),
+  password: z.string().min(8, 'Mínimo 8 caracteres').max(72, 'Máximo 72 caracteres'),
+  fullName: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome muito longo')
+});
+
+type FieldErrors = {
+  email?: string;
+  password?: string;
+  fullName?: string;
+};
+
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -15,6 +34,7 @@ const AuthForm = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const {
     signIn,
@@ -24,42 +44,59 @@ const AuthForm = () => {
     toast
   } = useToast();
   const navigate = useNavigate();
+
+  const validateForm = (): boolean => {
+    const schema = isLogin ? loginSchema : signupSchema;
+    const data = isLogin 
+      ? { email, password } 
+      : { email, password, fullName };
+    
+    const result = schema.safeParse(data);
+    
+    if (!result.success) {
+      const errors: FieldErrors = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as keyof FieldErrors;
+        if (!errors[field]) {
+          errors[field] = err.message;
+        }
+      });
+      setFieldErrors(errors);
+      return false;
+    }
+    
+    setFieldErrors({});
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setLoading(true);
     try {
       if (isLogin) {
-        console.log('Attempting login...');
-        const {
-          error
-        } = await signIn(email, password);
+        const { error } = await signIn(email.trim(), password);
         if (error) {
-          console.error('Login error:', error);
           throw error;
         }
-        console.log('Login successful, showing toast...');
         toast({
           title: "Sucesso",
           description: "Login realizado com sucesso!"
         });
 
-        // Force navigation after successful login
         setTimeout(() => {
-          console.log('Forcing navigation to dashboard...');
-          navigate("/dashboard", {
-            replace: true
-          });
+          navigate("/dashboard", { replace: true });
         }, 100);
       } else {
-        console.log('Attempting signup...');
-        const {
-          error
-        } = await signUp(email, password, {
-          full_name: fullName
+        const { error } = await signUp(email.trim(), password, {
+          full_name: fullName.trim()
         });
         if (error) {
-          console.error('Signup error:', error);
           throw error;
         }
         toast({
@@ -68,7 +105,6 @@ const AuthForm = () => {
         });
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
       setError(error.message || 'Ocorreu um erro durante a autenticação');
       toast({
         title: "Erro",
@@ -79,7 +115,18 @@ const AuthForm = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-muted/20">
+
+  const clearForm = () => {
+    setIsLogin(!isLogin);
+    setError('');
+    setFieldErrors({});
+    setEmail('');
+    setPassword('');
+    setFullName('');
+  };
+
+  return (
+    <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-muted/20">
       {/* Background Decorativo Animado */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -139,8 +186,9 @@ const AuthForm = () => {
             
             {/* Card */}
             <div className="relative bg-card/95 backdrop-blur-xl rounded-3xl border border-border/50 shadow-2xl p-8 transition-all duration-300 hover:shadow-primary/10">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {!isLogin && <div className="space-y-2 animate-fade-in">
+              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                {!isLogin && (
+                  <div className="space-y-2 animate-fade-in">
                     <Label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
                       <User className="w-4 h-4 text-primary" />
                       Nome completo
@@ -149,12 +197,20 @@ const AuthForm = () => {
                       id="fullName" 
                       type="text" 
                       value={fullName} 
-                      onChange={e => setFullName(e.target.value)} 
-                      required 
+                      onChange={e => {
+                        setFullName(e.target.value);
+                        if (fieldErrors.fullName) setFieldErrors(prev => ({ ...prev, fullName: undefined }));
+                      }}
                       placeholder="Seu nome completo" 
-                      className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl" 
+                      maxLength={100}
+                      className={`h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl ${fieldErrors.fullName ? 'border-destructive' : ''}`}
+                      aria-invalid={!!fieldErrors.fullName}
                     />
-                  </div>}
+                    {fieldErrors.fullName && (
+                      <p className="text-xs text-destructive mt-1">{fieldErrors.fullName}</p>
+                    )}
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -165,11 +221,18 @@ const AuthForm = () => {
                     id="email" 
                     type="email" 
                     value={email} 
-                    onChange={e => setEmail(e.target.value)} 
-                    required 
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                    }}
                     placeholder="seu@email.com" 
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl" 
+                    maxLength={255}
+                    className={`h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl ${fieldErrors.email ? 'border-destructive' : ''}`}
+                    aria-invalid={!!fieldErrors.email}
                   />
+                  {fieldErrors.email && (
+                    <p className="text-xs text-destructive mt-1">{fieldErrors.email}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -182,11 +245,14 @@ const AuthForm = () => {
                       id="password" 
                       type={showPassword ? "text" : "password"} 
                       value={password} 
-                      onChange={e => setPassword(e.target.value)} 
-                      required 
+                      onChange={e => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: undefined }));
+                      }}
                       placeholder="••••••••" 
-                      minLength={6} 
-                      className="h-12 pr-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl" 
+                      maxLength={72}
+                      className={`h-12 pr-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl ${fieldErrors.password ? 'border-destructive' : ''}`}
+                      aria-invalid={!!fieldErrors.password}
                     />
                     <button 
                       type="button" 
@@ -196,13 +262,21 @@ const AuthForm = () => {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  {fieldErrors.password && (
+                    <p className="text-xs text-destructive mt-1">{fieldErrors.password}</p>
+                  )}
+                  {!isLogin && !fieldErrors.password && (
+                    <p className="text-xs text-muted-foreground mt-1">Mínimo 8 caracteres</p>
+                  )}
                 </div>
 
-                {error && <Alert variant="destructive" className="animate-fade-in border-destructive/50 bg-destructive/10">
+                {error && (
+                  <Alert variant="destructive" className="animate-fade-in border-destructive/50 bg-destructive/10">
                     <AlertDescription className="text-sm">
                       {error}
                     </AlertDescription>
-                  </Alert>}
+                  </Alert>
+                )}
                 
                 <Button 
                   type="submit" 
@@ -226,13 +300,7 @@ const AuthForm = () => {
               <div className="text-center mt-6 pt-6 border-t border-border/50">
                 <button 
                   type="button" 
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setError('');
-                    setEmail('');
-                    setPassword('');
-                    setFullName('');
-                  }} 
+                  onClick={clearForm} 
                   className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium group"
                 >
                   {isLogin ? (
@@ -329,6 +397,8 @@ const AuthForm = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default AuthForm;
