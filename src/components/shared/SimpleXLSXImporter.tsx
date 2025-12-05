@@ -16,6 +16,7 @@ import CategoryTagValidationModal from './CategoryTagValidationModal';
 import { AccountSelector } from './AccountSelector';
 import { supabase } from '@/integrations/supabase/client';
 import * as XLSX from 'xlsx';
+import { devLog, devWarn, devError } from '@/utils/logger';
 
 interface XLSXRow {
   data: string;
@@ -167,9 +168,9 @@ const SimpleXLSXImporter: React.FC = () => {
               const days = Number(data) - 2; // -2 porque Excel trata 1900 incorretamente como ano bissexto
               const resultDate = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
               formattedDate = resultDate.toISOString().split('T')[0]; // YYYY-MM-DD
-              console.log(`Convertendo data serial do Excel: ${data} -> ${formattedDate}`);
+              devLog(`Convertendo data serial do Excel: ${data} -> ${formattedDate}`);
             } catch (error) {
-              console.error('Erro ao converter data serial do Excel:', error);
+              devError('Erro ao converter data serial do Excel:', error);
               formattedDate = data; // Manter original se falhar
             }
           } else if (data.includes('/')) {
@@ -204,7 +205,7 @@ const SimpleXLSXImporter: React.FC = () => {
             tags
           });
         } catch (error) {
-          console.warn(`Erro ao processar linha ${i + 2}:`, error);
+          devWarn(`Erro ao processar linha ${i + 2}:`, error);
           continue;
         }
       }
@@ -379,30 +380,30 @@ const SimpleXLSXImporter: React.FC = () => {
       // Inserir todas as transações em lote
       for (const transaction of transactionsToInsert) {
         try {
-          console.log('=== INSERINDO TRANSAÇÃO ===');
-          console.log('Dados da transação:', JSON.stringify(transaction, null, 2));
-          console.log('Tipo de account_id:', typeof transaction.account_id);
-          console.log('Tipo de amount:', typeof transaction.amount);
-          console.log('Tipo de tags:', typeof transaction.tags, Array.isArray(transaction.tags));
-          console.log('Tags:', transaction.tags);
+          devLog('=== INSERINDO TRANSAÇÃO ===');
+          devLog('Dados da transação:', JSON.stringify(transaction, null, 2));
+          devLog('Tipo de account_id:', typeof transaction.account_id);
+          devLog('Tipo de amount:', typeof transaction.amount);
+          devLog('Tipo de tags:', typeof transaction.tags, Array.isArray(transaction.tags));
+          devLog('Tags:', transaction.tags);
           const result = await insertTransaction(transaction);
-          console.log('Resultado da inserção:', result);
+          devLog('Resultado da inserção:', result);
           if (result.error) {
-            console.error('Erro retornado pela função insert:', result.error);
+            devError('Erro retornado pela função insert:', result.error);
             throw new Error(result.error);
           }
           if (result.data && result.data[0]) {
             insertedTransactions.push(result.data[0]);
             success++;
-            console.log('✅ Transação inserida com sucesso:', result.data[0]);
+            devLog('✅ Transação inserida com sucesso:', result.data[0]);
           } else {
-            console.error('❌ Nenhum dado retornado na inserção');
-            console.error('Result.data:', result.data);
+            devError('❌ Nenhum dado retornado na inserção');
+            devError('Result.data:', result.data);
             throw new Error('Nenhum dado retornado na inserção');
           }
         } catch (error) {
-          console.error('❌ ERRO ao inserir transação:', error);
-          console.error('Dados da transação que falhou:', JSON.stringify(transaction, null, 2));
+          devError('❌ ERRO ao inserir transação:', error);
+          devError('Dados da transação que falhou:', JSON.stringify(transaction, null, 2));
           errors++;
 
           // Se há muitos erros, interromper o processo
@@ -441,7 +442,7 @@ const SimpleXLSXImporter: React.FC = () => {
       }
     } catch (error) {
       // Em caso de erro crítico, tentar reverter transações inseridas
-      console.error('Erro crítico na importação:', error);
+      devError('Erro crítico na importação:', error);
 
       // Nota: Em um sistema real, aqui seria implementado um rollback transacional
       // Por enquanto, apenas reportamos o erro

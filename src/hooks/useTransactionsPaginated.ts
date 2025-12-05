@@ -4,6 +4,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { TransactionFilters } from "./types/transactionTypes";
 import { applyTransactionFilters } from "./utils/transactionFilters";
 import { createPaginationInfo, paginateArray } from "./utils/paginationUtils";
+import { devLog, devError } from "@/utils/logger";
 
 export type { TransactionFilters } from "./types/transactionTypes";
 
@@ -30,7 +31,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
   // Listen for transaction events
   useEffect(() => {
     const handleTransactionAdded = async () => {
-      console.log('useTransactionsPaginated: Received transaction added event');
+      devLog('useTransactionsPaginated: Received transaction added event');
       await refetchTransactions();
     };
 
@@ -40,7 +41,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
 
   // Enhanced transactions - tags are already embedded from useSupabaseData
   const enhancedTransactions = useMemo(() => {
-    console.log('useTransactionsPaginated: Processing transactions', {
+    devLog('useTransactionsPaginated: Processing transactions', {
       rawTransactions: rawTransactions?.length || 0,
       sampleTransaction: rawTransactions?.[0] || null
     });
@@ -55,7 +56,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
   const filteredTransactions = useMemo(() => {
     const filtered = applyTransactionFilters(enhancedTransactions, filters);
     
-    console.log('useTransactionsPaginated: Filtered transactions', {
+    devLog('useTransactionsPaginated: Filtered transactions', {
       original: enhancedTransactions.length,
       filtered: filtered.length,
       filters: filters
@@ -86,7 +87,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
       await refetchTransactions();
       return result;
     } catch (error) {
-      console.error('Error updating transaction:', error);
+      devError('Error updating transaction:', error);
       setError('Failed to update transaction');
       throw error;
     }
@@ -98,7 +99,7 @@ export const useTransactionsPaginated = (filters: TransactionFilters, itemsPerPa
       await refetchTransactions();
       return result;
     } catch (error) {
-      console.error('Error removing transaction:', error);
+      devError('Error removing transaction:', error);
       setError('Failed to remove transaction');
       throw error;
     }

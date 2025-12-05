@@ -1,5 +1,6 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { devLog, devError } from '@/utils/logger';
 
 interface DefaultCategory {
   name: string;
@@ -35,7 +36,7 @@ export const createDefaultCategories = async (
   userId: string
 ): Promise<void> => {
   try {
-    console.log('Creating default categories for user:', userId);
+    devLog('Creating default categories for user:', userId);
     
     // Check if user already has categories
     const { data: existingCategories, error: checkError } = await supabase
@@ -45,13 +46,13 @@ export const createDefaultCategories = async (
       .limit(1);
 
     if (checkError) {
-      console.error('Error checking existing categories:', checkError);
+      devError('Error checking existing categories:', checkError);
       return;
     }
 
     // If user already has categories, don't create defaults
     if (existingCategories && existingCategories.length > 0) {
-      console.log('User already has categories, skipping default creation');
+      devLog('User already has categories, skipping default creation');
       return;
     }
 
@@ -67,12 +68,12 @@ export const createDefaultCategories = async (
       .insert(categoriesToInsert);
 
     if (insertError) {
-      console.error('Error creating default categories:', insertError);
+      devError('Error creating default categories:', insertError);
       return;
     }
 
-    console.log('Default categories created successfully');
+    devLog('Default categories created successfully');
   } catch (error) {
-    console.error('Error in createDefaultCategories:', error);
+    devError('Error in createDefaultCategories:', error);
   }
 };

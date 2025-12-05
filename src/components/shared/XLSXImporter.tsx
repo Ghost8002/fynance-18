@@ -33,6 +33,7 @@ import XLSXValidationModal from "./XLSXValidationModal";
 import XLSXCategoryMappingModal from "./XLSXCategoryMappingModal";
 import { XLSXProcessor, XLSXTemplate, XLSXTransaction, CategoryMapping, TagMapping } from "@/utils/xlsxProcessor";
 import * as XLSX from 'xlsx';
+import { devLog, devError } from "@/utils/logger";
 
 interface ImportedTransaction {
   date: string;
@@ -144,7 +145,7 @@ const XLSXImporter = () => {
         setColumnMapping(autoMapping);
       }
     } catch (error) {
-      console.error('Erro ao processar preview XLSX:', error);
+      devError('Erro ao processar preview XLSX:', error);
       toast({
         title: "Erro no Preview",
         description: "Não foi possível processar o preview do arquivo XLSX.",
@@ -206,7 +207,7 @@ const XLSXImporter = () => {
        }
       
     } catch (error) {
-      console.error('Erro ao processar arquivo:', error);
+      devError('Erro ao processar arquivo:', error);
       toast({
         title: "Erro ao processar arquivo",
         description: error instanceof Error ? error.message : "Erro desconhecido",
@@ -281,7 +282,7 @@ const XLSXImporter = () => {
         });
 
         if (error) {
-          console.error('Erro ao inserir transação:', error);
+          devError('Erro ao inserir transação:', error);
           errorCount++;
         } else {
           successCount++;
@@ -308,7 +309,7 @@ const XLSXImporter = () => {
       });
 
     } catch (error) {
-      console.error('Erro durante importação:', error);
+      devError('Erro durante importação:', error);
       toast({
         title: "Erro na Importação",
         description: "Ocorreu um erro durante a importação das transações.",
@@ -386,7 +387,7 @@ const XLSXImporter = () => {
             reference: `XLSX-${i}`
           });
         } catch (error) {
-          console.error(`Erro ao processar linha ${i}:`, error);
+          devError(`Erro ao processar linha ${i}:`, error);
           continue;
         }
       }
@@ -470,7 +471,7 @@ const XLSXImporter = () => {
       setProgress(30);
       
       // Processar arquivo com novo sistema
-      console.log('Processando arquivo XLSX:', file.name);
+      devLog('Processando arquivo XLSX:', file.name);
       const processedTemplate = await processor.processFile(file);
       setTemplate(processedTemplate);
       
@@ -524,7 +525,7 @@ const XLSXImporter = () => {
         description: `${processedTemplate.transactions.length} transações encontradas.`
       });
     } catch (error) {
-      console.error('Erro durante processamento:', error);
+      devError('Erro durante processamento:', error);
       toast({
         title: "Erro no Processamento",
         description: error instanceof Error ? error.message : "Erro desconhecido ao processar arquivo XLSX.",
@@ -563,7 +564,7 @@ const XLSXImporter = () => {
           const { error } = await insertTransaction(transactionData);
           
           if (error) {
-            console.error('Erro ao inserir transação:', error);
+            devError('Erro ao inserir transação:', error);
             errorCount++;
           } else {
             await updateAccountBalance(selectedAccountId, transaction.amount, transaction.type);
@@ -571,7 +572,7 @@ const XLSXImporter = () => {
           }
 
         } catch (error) {
-          console.error('Erro ao processar transação:', error);
+          devError('Erro ao processar transação:', error);
           errorCount++;
         }
       }
@@ -594,7 +595,7 @@ const XLSXImporter = () => {
       }
 
     } catch (error) {
-      console.error('Erro durante importação:', error);
+      devError('Erro durante importação:', error);
       toast({
         title: "Erro na Importação",
         description: error instanceof Error ? error.message : "Erro desconhecido ao importar transações.",
@@ -651,12 +652,12 @@ const XLSXImporter = () => {
             tags: transaction.tags
           };
 
-          console.log('Inserindo transação:', transactionData);
+          devLog('Inserindo transação:', transactionData);
 
           const { error } = await insertTransaction(transactionData);
           
           if (error) {
-            console.error('Erro ao inserir transação:', error);
+            devError('Erro ao inserir transação:', error);
             errorCount++;
           } else {
             await updateAccountBalance(selectedAccountId, transaction.amount, transaction.type);
@@ -664,7 +665,7 @@ const XLSXImporter = () => {
           }
 
         } catch (error) {
-          console.error('Erro ao processar transação:', error);
+          devError('Erro ao processar transação:', error);
           errorCount++;
         }
       }
@@ -689,7 +690,7 @@ const XLSXImporter = () => {
       }
 
     } catch (error) {
-      console.error('Erro durante importação:', error);
+      devError('Erro durante importação:', error);
       toast({
         title: "Erro na Importação",
         description: error instanceof Error ? error.message : "Erro desconhecido ao importar transações.",
