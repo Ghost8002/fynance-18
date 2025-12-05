@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCustomBanks } from "@/hooks/useCustomBanks";
 import { BankInfo, searchBanks, getPopularBanks, getAllActiveBanks } from "@/utils/banks/bankDatabase";
 import BankLogo from "./BankLogo";
+import { devError } from "@/utils/logger";
 
 interface BankSelectorProps {
   selectedBankId?: string;
@@ -131,7 +132,7 @@ export const BankSelector = ({
       setSearchQuery("");
 
     } catch (error) {
-      console.error("Erro ao criar banco:", error);
+      devError("Erro ao criar banco:", error);
       toast({
         variant: "destructive",
         title: "Erro",

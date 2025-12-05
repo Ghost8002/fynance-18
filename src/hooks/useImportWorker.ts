@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ImportedTransaction } from './useImport';
 import { CategoryEngine } from '../utils/categorization/CategoryEngine';
+import { devLog, devWarn, devError } from '@/utils/logger';
 
 interface WorkerProgress {
   progress: number;
@@ -53,7 +54,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
 
           switch (type) {
             case 'ready':
-              console.log('Import Worker inicializado:', data.message);
+              devLog('Import Worker inicializado:', data.message);
               setWorkerAvailable(true);
               break;
 
@@ -82,7 +83,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
         };
 
         workerRef.current.onerror = (error) => {
-          console.error('Erro no Import Worker:', error);
+          devError('Erro no Import Worker:', error);
           setIsProcessing(false);
           setProgress(null);
           rejectCurrentTask.current(new Error('Worker error'));
@@ -94,7 +95,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
           }
         };
       } catch (error) {
-        console.error('Erro ao inicializar Import Worker:', error);
+        devError('Erro ao inicializar Import Worker:', error);
       }
     }
   }, []);
@@ -107,7 +108,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
   const processXLSX = useCallback(async (file: File): Promise<ImportedTransaction[]> => {
     if (!workerRef.current) {
       // Fallback para processamento síncrono se worker não estiver disponível
-      console.warn('Web Worker não disponível, usando processamento síncrono');
+      devWarn('Web Worker não disponível, usando processamento síncrono');
       return processXLSXSync(file);
     }
 
@@ -163,7 +164,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
   const processOFX = useCallback(async (file: File): Promise<ImportedTransaction[]> => {
     if (!workerRef.current) {
       // Fallback para processamento síncrono se worker não estiver disponível
-      console.warn('Web Worker não disponível, usando processamento síncrono');
+      devWarn('Web Worker não disponível, usando processamento síncrono');
       return processOFXSync(file);
     }
 
@@ -214,16 +215,16 @@ export const useImportWorker = (): UseImportWorkerReturn => {
         workerRef.current.onmessage = (event) => {
           const { type, data } = event.data;
           if (type === 'ready') {
-            console.log('Novo Import Worker inicializado após cancelamento');
+            devLog('Novo Import Worker inicializado após cancelamento');
           }
         };
         
         workerRef.current.onerror = (error) => {
-          console.error('Erro no novo Import Worker:', error);
+          devError('Erro no novo Import Worker:', error);
         };
         
       } catch (error) {
-        console.error('Erro ao recriar Import Worker:', error);
+        devError('Erro ao recriar Import Worker:', error);
       }
       
       setIsProcessing(false);
@@ -304,7 +305,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
             tags
           });
         } catch (error) {
-          console.warn(`Erro ao processar linha ${i + 2}:`, error);
+          devWarn(`Erro ao processar linha ${i + 2}:`, error);
           continue;
         }
       }
@@ -320,7 +321,7 @@ export const useImportWorker = (): UseImportWorkerReturn => {
       const text = await file.text();
       const transactions: ImportedTransaction[] = [];
       
-      console.log('Processamento OFX síncrono iniciado, tamanho do arquivo:', text.length);
+      devLog('Processamento OFX síncrono iniciado, tamanho do arquivo:', text.length);
       
       const transactionRegex = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/g;
       let match;
@@ -410,12 +411,12 @@ export const useImportWorker = (): UseImportWorkerReturn => {
             }
           }
         } catch (error) {
-          console.warn(`Erro ao processar transação OFX ${processedCount}:`, error);
+          devWarn(`Erro ao processar transação OFX ${processedCount}:`, error);
           continue;
         }
       }
       
-      console.log(`Processamento OFX síncrono concluído: ${count} transações válidas de ${processedCount} processadas`);
+      devLog(`Processamento OFX síncrono concluído: ${count} transações válidas de ${processedCount} processadas`);
       return transactions;
     } catch (error) {
       throw new Error(`Erro ao processar arquivo OFX: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);

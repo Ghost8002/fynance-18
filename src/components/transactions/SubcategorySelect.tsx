@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { devError } from '@/utils/logger';
 
 type Subcategory = Database['public']['Tables']['subcategories']['Row'];
 
@@ -96,7 +97,7 @@ const SubcategorySelect: React.FC<SubcategorySelectProps> = ({
         setSubcategoryQuery("");
       }
     } catch (err) {
-      console.error("Erro ao criar subcategoria:", err);
+      devError("Erro ao criar subcategoria:", err);
       toast({ title: "Erro", description: "Não foi possível criar a subcategoria.", variant: "destructive" });
     }
   };

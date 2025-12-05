@@ -8,6 +8,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { devError } from "@/utils/logger";
 
 interface BillPaymentDialogProps {
   open: boolean;
@@ -244,7 +245,7 @@ export const BillPaymentDialog = ({
       onPaymentSuccess();
       onOpenChange(false);
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
+      devError('Erro ao processar pagamento:', error);
       toast({
         variant: "destructive",
         title: "Erro ao processar pagamento"

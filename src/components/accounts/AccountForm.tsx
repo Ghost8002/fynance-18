@@ -19,6 +19,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 import BankSelector from "@/components/shared/BankSelector";
 import ColorPicker from "@/components/shared/ColorPicker";
+import { devError } from "@/utils/logger";
 
 const AccountForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -92,7 +93,7 @@ const AccountForm = () => {
       
       setIsOpen(false);
     } catch (error) {
-      console.error('Error adding account:', error);
+      devError('Error adding account:', error);
       toast({
         title: "Erro",
         description: "Não foi possível adicionar a conta. Tente novamente.",

@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { parseLocalDate } from "./dateValidation";
+import { devLog, devWarn, devError } from "@/utils/logger";
 
 export interface Transaction {
   id: string;
@@ -53,7 +54,7 @@ export const filterTransactionsByPeriod = (
       
       // Verifica se a data é válida
       if (isNaN(transactionDate.getTime())) {
-        console.warn(`Data inválida na transação ${transaction.id}: ${transaction.date}`);
+        devWarn(`Data inválida na transação ${transaction.id}: ${transaction.date}`);
         return false;
       }
       
@@ -79,7 +80,7 @@ export const filterTransactionsByPeriod = (
       return normalizedTransactionDate >= normalizedStartDate && 
              normalizedTransactionDate <= normalizedEndDate;
     } catch (error) {
-      console.error(`Erro ao filtrar transação ${transaction.id}:`, error);
+      devError(`Erro ao filtrar transação ${transaction.id}:`, error);
       return false;
     }
   });
@@ -93,11 +94,11 @@ export const calculatePeriodSummary = (
   period: FinancialPeriod,
   accounts: Account[] = []
 ): FinancialSummary => {
-  console.log(`Calculando resumo para período: ${format(period.startDate, 'dd/MM/yyyy')} - ${format(period.endDate, 'dd/MM/yyyy')}`);
+  devLog(`Calculando resumo para período: ${format(period.startDate, 'dd/MM/yyyy')} - ${format(period.endDate, 'dd/MM/yyyy')}`);
   
   // Filtrar transações do período
   const periodTransactions = filterTransactionsByPeriod(transactions, period);
-  console.log(`Transações encontradas no período: ${periodTransactions.length}`);
+  devLog(`Transações encontradas no período: ${periodTransactions.length}`);
   
   // Calcular receitas e despesas
   const incomeTransactions = periodTransactions.filter(t => t.type === 'income');
@@ -116,7 +117,7 @@ export const calculatePeriodSummary = (
     return sum + safeToNumber(account.balance);
   }, 0);
   
-  console.log(`Resumo calculado:`, {
+  devLog(`Resumo calculado:`, {
     totalIncome,
     totalExpenses,
     periodBalance,
@@ -160,7 +161,7 @@ export const calculateAccountBalanceFromTransactions = (
     // Saldo = Saldo Inicial + Receitas - Despesas
     const accountBalance = initialBalance + totalIncome - totalExpense;
     
-    console.log(`Conta ${account.name}: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${accountBalance}`);
+    devLog(`Conta ${account.name}: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${accountBalance}`);
     
     return totalSum + accountBalance;
   }, 0);

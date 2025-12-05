@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import CategorySelector from "@/components/shared/CategorySelector";
 import { dateToLocalDateString } from "@/utils/dateValidation";
 import TagSelector from "@/components/shared/TagSelector";
+import { devError } from "@/utils/logger";
 
 const BudgetForm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +118,7 @@ const BudgetForm = () => {
       setErrors({});
       setIsOpen(false);
     } catch (error) {
-      console.error('Error adding budget:', error);
+      devError('Error adding budget:', error);
       toast({
         title: "Erro",
         description: "Não foi possível criar o orçamento. Tente novamente.",

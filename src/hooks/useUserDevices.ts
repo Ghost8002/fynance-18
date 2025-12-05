@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { devLog, devError } from '@/utils/logger';
 
 // Mock interface for user devices since table doesn't exist yet
 interface UserDevice {
@@ -28,7 +29,7 @@ export const useUserDevices = () => {
       // This functionality would require creating the user_devices table first
       setDevices([]);
     } catch (error) {
-      console.error('Erro ao carregar dispositivos:', error);
+      devError('Erro ao carregar dispositivos:', error);
       toast({
         title: "Erro",
         description: "Erro ao carregar dispositivos.",
@@ -44,10 +45,10 @@ export const useUserDevices = () => {
 
     try {
       // This would require the user_devices table to be created first
-      console.log('Device registration would happen here when table exists');
+      devLog('Device registration would happen here when table exists');
       await loadDevices();
     } catch (error) {
-      console.error('Erro ao registrar dispositivo atual:', error);
+      devError('Erro ao registrar dispositivo atual:', error);
     }
   };
 
@@ -55,7 +56,7 @@ export const useUserDevices = () => {
     try {
       setLoading(true);
       // This would require the user_devices table to be created first
-      console.log('Device removal would happen here when table exists');
+      devLog('Device removal would happen here when table exists');
       
       setDevices(devices.filter(device => device.id !== deviceId));
       toast({
@@ -63,7 +64,7 @@ export const useUserDevices = () => {
         description: "O dispositivo foi removido com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao remover dispositivo:', error);
+      devError('Erro ao remover dispositivo:', error);
       toast({
         title: "Erro",
         description: "Erro ao remover dispositivo.",

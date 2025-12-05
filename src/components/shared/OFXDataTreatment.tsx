@@ -37,6 +37,7 @@ import TagSelector from "@/components/shared/TagSelector";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { devLog, devError } from "@/utils/logger";
 
 interface ImportedTransaction {
   date: string;
@@ -288,7 +289,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       if (description.includes(keyword)) {
         const category = availableCategories.find(cat => cat.name === categoryName);
         if (category) {
-          console.log(`Categoria encontrada para "${description}": ${categoryName}`);
+          devLog(`Categoria encontrada para "${description}": ${categoryName}`);
           return category.id;
         }
       }
@@ -336,11 +337,11 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       .trim();
 
     if (categoryName.length < 2) {
-      console.log(`Nome de categoria muito curto: "${categoryName}" da descrição: "${description}"`);
+      devLog(`Nome de categoria muito curto: "${categoryName}" da descrição: "${description}"`);
       return '';
     }
 
-    console.log(`Tentando criar/encontrar categoria: "${categoryName}" para transação: "${description}"`);
+    devLog(`Tentando criar/encontrar categoria: "${categoryName}" para transação: "${description}"`);
 
     // Verificação robusta contra duplicatas - sempre buscar dados atualizados
     const { data: existingCategories, error: searchError } = await supabase
@@ -350,7 +351,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       .eq('type', transaction.type);
 
     if (searchError) {
-      console.error('Erro ao verificar categorias existentes:', searchError);
+      devError('Erro ao verificar categorias existentes:', searchError);
       return '';
     }
 
@@ -360,7 +361,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     );
 
     if (exactMatch) {
-      console.log(`✓ Categoria exata já existe: "${exactMatch.name}" (ID: ${exactMatch.id})`);
+      devLog(`✓ Categoria exata já existe: "${exactMatch.name}" (ID: ${exactMatch.id})`);
       return exactMatch.id;
     }
 
@@ -381,7 +382,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     });
 
     if (similarMatch) {
-      console.log(`✓ Categoria similar já existe: "${similarMatch.name}" (ID: ${similarMatch.id}), usando ela em vez de criar "${categoryName}"`);
+      devLog(`✓ Categoria similar já existe: "${similarMatch.name}" (ID: ${similarMatch.id}), usando ela em vez de criar "${categoryName}"`);
       return similarMatch.id;
     }
 
@@ -394,7 +395,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       .eq('name', categoryName);
 
     if (doubleCheckCategories && doubleCheckCategories.length > 0) {
-      console.log(`✓ Categoria foi criada por outro processo: "${doubleCheckCategories[0].name}" (ID: ${doubleCheckCategories[0].id})`);
+      devLog(`✓ Categoria foi criada por outro processo: "${doubleCheckCategories[0].name}" (ID: ${doubleCheckCategories[0].id})`);
       return doubleCheckCategories[0].id;
     }
 
@@ -406,7 +407,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-    console.log(`🔄 Criando nova categoria: "${categoryName}" (${transaction.type})`);
+    devLog(`🔄 Criando nova categoria: "${categoryName}" (${transaction.type})`);
             
     const { data: newCategory, error } = await supabase
       .from('categories')
@@ -421,11 +422,11 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
       .single();
 
     if (error) {
-      console.error(`❌ Erro ao criar categoria "${categoryName}":`, error);
+      devError(`❌ Erro ao criar categoria "${categoryName}":`, error);
       
       // Se erro de constraint (categoria já existe), tentar buscar a categoria existente
       if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
-        console.log(`🔍 Tentando encontrar categoria existente após erro de duplicata...`);
+        devLog(`🔍 Tentando encontrar categoria existente após erro de duplicata...`);
         
         const { data: existingCategory } = await supabase
           .from('categories')
@@ -436,7 +437,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
           .single();
 
         if (existingCategory) {
-          console.log(`✓ Encontrada categoria existente após erro: "${existingCategory.name}" (ID: ${existingCategory.id})`);
+          devLog(`✓ Encontrada categoria existente após erro: "${existingCategory.name}" (ID: ${existingCategory.id})`);
           return existingCategory.id;
         }
       }
@@ -445,7 +446,7 @@ const OFXDataTreatment = ({ transactions, accountId, onSave, onCancel }: OFXData
     }
 
     if (newCategory) {
-      console.log(`✅ Nova categoria criada com sucesso: "${categoryName}" (ID: ${newCategory.id}, ${transaction.type})`);
+      devLog(`✅ Nova categoria criada com sucesso: "${categoryName}" (ID: ${newCategory.id}, ${transaction.type})`);
       return newCategory.id;
     }
 

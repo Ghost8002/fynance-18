@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
 import { PeriodType } from "@/components/dashboard/PeriodFilter";
 import { useTheme } from "@/hooks/useTheme";
+import { devLog } from "@/utils/logger";
 
 // Define category data type
 type CategoryData = {
@@ -24,8 +25,8 @@ const ExpensePieChart = ({ selectedPeriod = 'current-month', customDateRange }: 
 
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  console.log('ExpensePieChart - Transactions:', transactions);
-  console.log('ExpensePieChart - Categories:', categories);
+  devLog('ExpensePieChart - Transactions:', transactions);
+  devLog('ExpensePieChart - Categories:', categories);
 
 // Filter transactions by current period and expense type
 const expenseTx = transactions.filter(t => t.type === 'expense');
@@ -39,7 +40,7 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
     })
   : filterTransactionsByPeriod(expenseTx, selectedPeriod);
 
-  console.log('ExpensePieChart - Filtered Transactions:', filteredTransactions);
+  devLog('ExpensePieChart - Filtered Transactions:', filteredTransactions);
 
   // Create category map for lookup
   const categoryMap = categories.reduce((acc, cat) => {
