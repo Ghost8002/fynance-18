@@ -36,7 +36,6 @@ const AIChatSessions = ({ onSessionSelect, onBack, currentSessionId }: AIChatSes
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error loading chat sessions:', error);
         return;
       }
 
@@ -67,7 +66,7 @@ const AIChatSessions = ({ onSessionSelect, onBack, currentSessionId }: AIChatSes
 
       setSessions(Array.from(sessionsMap.values()));
     } catch (error) {
-      console.error('Error loading chat sessions:', error);
+      // Silent error handling
     } finally {
       setLoading(false);
     }

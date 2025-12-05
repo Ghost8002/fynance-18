@@ -52,7 +52,6 @@ export const useAIChat = () => {
       const { data, error } = await query.limit(50);
 
       if (error) {
-        console.error('Error loading chat history:', error);
         return;
       }
 
@@ -66,7 +65,7 @@ export const useAIChat = () => {
 
       setChatHistory(history);
     } catch (error) {
-      console.error('Error loading chat history:', error);
+      // Silent error handling
     }
   };
 
@@ -85,7 +84,6 @@ export const useAIChat = () => {
       setChatHistory([]);
       toast.success('Nova conversa iniciada! A conversa anterior foi salva no histórico.');
     } catch (error) {
-      console.error('Error starting new conversation:', error);
       toast.error('Erro ao iniciar nova conversa');
     }
   };
@@ -107,7 +105,6 @@ export const useAIChat = () => {
         .lte('created_at', endOfDay);
 
       if (error) {
-        console.error('Error deleting chat history:', error);
         toast.error('Erro ao excluir histórico');
         return;
       }
@@ -115,7 +112,6 @@ export const useAIChat = () => {
       setChatHistory([]);
       toast.success('Histórico excluído permanentemente');
     } catch (error) {
-      console.error('Error deleting chat history:', error);
       toast.error('Erro ao excluir histórico');
     }
   };
@@ -136,10 +132,10 @@ export const useAIChat = () => {
         .insert(insertData);
 
       if (saveError) {
-        console.error('Error saving chat history:', saveError);
+        // Silent error - don't interrupt user experience
       }
     } catch (saveError) {
-      console.error('Error saving chat history:', saveError);
+      // Silent error - don't interrupt user experience
     }
   };
 
