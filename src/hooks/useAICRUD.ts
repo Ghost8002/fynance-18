@@ -21,8 +21,6 @@ export const useAICRUD = () => {
 
   const executeOperation = async (operation: CRUDOperation): Promise<{ success: boolean; message: string; data?: any }> => {
     try {
-      console.log('Executing CRUD operation:', operation);
-
       switch (operation.table) {
         case 'transactions':
           return await handleTransactionOperation(operation);
@@ -38,7 +36,6 @@ export const useAICRUD = () => {
           return { success: false, message: `Tabela '${operation.table}' não suportada` };
       }
     } catch (error) {
-      console.error('Error executing CRUD operation:', error);
       return { 
         success: false, 
         message: `Erro ao executar operação: ${error instanceof Error ? error.message : 'Erro desconhecido'}` 

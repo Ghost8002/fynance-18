@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAI } from '@/hooks/useAI';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ const AIAssistant = () => {
   const { sendMessage, loading, chatHistory, loadChatHistory, startNewConversation, permanentlyDeleteHistory } = useAI();
   const [showHistory, setShowHistory] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>();
+  const [suggestedMessage, setSuggestedMessage] = useState<string>('');
 
   useEffect(() => {
     loadChatHistory();
@@ -49,8 +50,6 @@ const AIAssistant = () => {
   };
 
   const handleSessionSelect = async (sessionId: string) => {
-    // Load specific session - for now, we'll load all history and filter by date
-    // In a more advanced implementation, we'd have proper session management
     setCurrentSessionId(sessionId);
     setShowHistory(false);
     await loadChatHistory(sessionId);
@@ -59,12 +58,15 @@ const AIAssistant = () => {
 
   const handleBackFromHistory = () => {
     setShowHistory(false);
-    // Reload current session
     loadChatHistory();
   };
 
   const handleQuestionSelect = (question: string) => {
-    // This will be handled by the input component
+    setSuggestedMessage(question);
+  };
+
+  const clearSuggestedMessage = () => {
+    setSuggestedMessage('');
   };
 
   if (showHistory) {
@@ -109,6 +111,8 @@ const AIAssistant = () => {
         <AIChatInput 
           loading={loading}
           onSendMessage={handleSendMessage}
+          suggestedMessage={suggestedMessage}
+          onClearSuggestion={clearSuggestedMessage}
         />
       </div>
     </div>

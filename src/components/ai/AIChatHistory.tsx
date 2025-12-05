@@ -1,7 +1,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Bot, User, CheckCircle, XCircle } from 'lucide-react';
 import { ChatMessage } from '@/hooks/ai/types';
 import MarkdownRenderer from './MarkdownRenderer';
 
@@ -96,8 +96,12 @@ const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
             <p className="text-sm font-medium text-muted-foreground">Assistente IA</p>
             <div className="bg-gradient-to-br from-emerald-50 to-emerald-50/50 dark:from-emerald-950/50 dark:to-emerald-950/20 rounded-2xl rounded-tl-md p-4 shadow-sm border border-emerald-200/50 dark:border-emerald-800/50">
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
-                <span className="text-sm text-muted-foreground">Analisando suas finanças e processando solicitação...</span>
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span className="text-sm text-muted-foreground">Analisando suas finanças...</span>
               </div>
             </div>
           </div>

@@ -9,13 +9,24 @@ import { devError } from '@/utils/logger';
 interface AIChatInputProps {
   loading: boolean;
   onSendMessage: (message: string) => Promise<void>;
+  suggestedMessage?: string;
+  onClearSuggestion?: () => void;
 }
 
-const AIChatInput = ({ loading, onSendMessage }: AIChatInputProps) => {
+const AIChatInput = ({ loading, onSendMessage, suggestedMessage, onClearSuggestion }: AIChatInputProps) => {
   const [message, setMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Preenche input com sugestão selecionada
+  useEffect(() => {
+    if (suggestedMessage) {
+      setMessage(suggestedMessage);
+      onClearSuggestion?.();
+      inputRef.current?.focus();
+    }
+  }, [suggestedMessage, onClearSuggestion]);
 
   // Atalho de teclado "/" para focar no input
   useEffect(() => {
