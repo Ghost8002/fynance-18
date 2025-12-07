@@ -317,7 +317,7 @@ const FinancialHealthReport = () => {
                 </div>
               </div>
               <Progress value={financialHealthScore.score} className="h-3 mb-4" />
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 Baseado em análise de margem de lucro, liquidez, estabilidade, diversificação e controle de orçamento
               </p>
             </CardContent>
@@ -334,11 +334,11 @@ const FinancialHealthReport = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Margem de Lucro</span>
+                  <span className="text-sm font-medium text-muted-foreground">Margem de Lucro</span>
                   <Badge variant="outline">{Math.round(financialHealthScore.details.margemLucro.score)}/25</Badge>
                 </div>
                 <Progress value={financialHealthScore.details.margemLucro.score} className="h-2 mb-2" />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {formatPercentage(financialHealthScore.details.margemLucro.value)}
                 </p>
               </CardContent>
@@ -347,11 +347,11 @@ const FinancialHealthReport = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Liquidez</span>
+                  <span className="text-sm font-medium text-muted-foreground">Liquidez</span>
                   <Badge variant="outline">{Math.round(financialHealthScore.details.liquidez.score)}/25</Badge>
                 </div>
                 <Progress value={financialHealthScore.details.liquidez.score} className="h-2 mb-2" />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {financialHealthScore.details.liquidez.value.toFixed(1)} meses de reserva
                 </p>
               </CardContent>
@@ -360,11 +360,11 @@ const FinancialHealthReport = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Estabilidade</span>
+                  <span className="text-sm font-medium text-muted-foreground">Estabilidade</span>
                   <Badge variant="outline">{Math.round(financialHealthScore.details.estabilidade.score)}/20</Badge>
                 </div>
                 <Progress value={financialHealthScore.details.estabilidade.score} className="h-2 mb-2" />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {formatPercentage(financialHealthScore.details.estabilidade.value)} de variação
                 </p>
               </CardContent>
@@ -373,11 +373,11 @@ const FinancialHealthReport = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Diversificação</span>
+                  <span className="text-sm font-medium text-muted-foreground">Diversificação</span>
                   <Badge variant="outline">{Math.round(financialHealthScore.details.diversificacao.score)}/15</Badge>
                 </div>
                 <Progress value={financialHealthScore.details.diversificacao.score} className="h-2 mb-2" />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {financialHealthScore.details.diversificacao.value} categorias
                 </p>
               </CardContent>
@@ -386,11 +386,11 @@ const FinancialHealthReport = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">Controle Orçamento</span>
+                  <span className="text-sm font-medium text-muted-foreground">Controle Orçamento</span>
                   <Badge variant="outline">{Math.round(financialHealthScore.details.controleOrcamento.score)}/15</Badge>
                 </div>
                 <Progress value={financialHealthScore.details.controleOrcamento.score} className="h-2 mb-2" />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {financialHealthScore.details.controleOrcamento.value} orçamentos
                 </p>
               </CardContent>

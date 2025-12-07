@@ -169,7 +169,7 @@ const Reports = () => {
           </div>
           
           {/* Filter Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-finance-primary/10 rounded-lg">
@@ -212,7 +212,7 @@ const Reports = () => {
 
             {/* Custom Date Pickers */}
             {globalPeriod === "custom" && (
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="mt-6 pt-6 border-t border-border">
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -310,7 +310,7 @@ const Reports = () => {
                   className={`group cursor-pointer transition-all duration-300 border-2 hover:border-finance-primary/30
                     ${activeTab === report.id 
                       ? 'border-finance-primary shadow-xl scale-105 bg-finance-primary/5' 
-                      : 'border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-102'}`}
+                      : 'border-border hover:shadow-lg hover:scale-102'}`}
                   onClick={() => setActiveTab(report.id)}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -355,7 +355,7 @@ const Reports = () => {
                   className={`group cursor-pointer transition-all duration-300 border-2 hover:border-finance-primary/30
                     ${activeTab === report.id 
                       ? 'border-finance-primary shadow-xl scale-105 bg-finance-primary/5' 
-                      : 'border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-102'}`}
+                      : 'border-border hover:shadow-lg hover:scale-102'}`}
                   onClick={() => setActiveTab(report.id)}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
