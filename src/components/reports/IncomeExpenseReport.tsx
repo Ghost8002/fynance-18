@@ -207,27 +207,27 @@ const IncomeExpenseReport = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <Card className="bg-gray-50 dark:bg-gray-800">
+          <Card className="bg-muted">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Receitas</p>
+              <p className="text-sm text-muted-foreground">Total Receitas</p>
               <p className="text-2xl font-bold text-green-500 dark:text-green-400">
                 {formatCurrency(totals.totalReceitas)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 dark:bg-gray-800">
+          <Card className="bg-muted">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Despesas</p>
+              <p className="text-sm text-muted-foreground">Total Despesas</p>
               <p className="text-2xl font-bold text-red-500 dark:text-red-400">
                 {formatCurrency(totals.totalDespesas)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 dark:bg-gray-800">
+          <Card className="bg-muted">
             <CardContent className="p-4 flex flex-col items-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Saldo</p>
+              <p className="text-sm text-muted-foreground">Saldo</p>
               <p className={`text-2xl font-bold ${
                 totals.saldo >= 0 ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"
               }`}>

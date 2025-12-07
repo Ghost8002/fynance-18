@@ -126,7 +126,7 @@ const CategoryReport = () => {
       </CardHeader>
       <CardContent className="pt-6">
         {chartData.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             Nenhuma transação de {type === 'expense' ? 'despesa' : 'receita'} encontrada para o período selecionado
           </div>
         ) : (
@@ -183,9 +183,9 @@ const CategoryReport = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              <Card className="bg-gray-50 dark:bg-gray-800">
+              <Card className="bg-muted">
                 <CardContent className="p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Categoria com maior {type === 'expense' ? 'gasto' : 'receita'}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Categoria com maior {type === 'expense' ? 'gasto' : 'receita'}</p>
                   {topCategory && (
                     <div className="flex justify-between">
                       <p className="text-lg font-bold">{topCategory.name}</p>
@@ -197,9 +197,9 @@ const CategoryReport = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-50 dark:bg-gray-800">
+              <Card className="bg-muted">
                 <CardContent className="p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total {type === 'expense' ? 'Despesas' : 'Receitas'}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Total {type === 'expense' ? 'Despesas' : 'Receitas'}</p>
                   <p className={`text-lg font-bold ${type === 'expense' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'}`}>
                     {formatCurrency(totalAmount)}
                   </p>
