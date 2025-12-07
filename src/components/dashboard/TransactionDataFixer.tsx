@@ -176,10 +176,10 @@ export const TransactionDataFixer = () => {
             <h4 className="font-semibold text-sm">Inconsistências sendo corrigidas automaticamente:</h4>
             <div className="max-h-40 overflow-y-auto space-y-2">
               {inconsistencies.map((inconsistency, index) => (
-                <div key={inconsistency.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border">
+                <div key={inconsistency.id} className="flex items-center justify-between p-2 bg-card rounded border border-border">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{inconsistency.description}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Badge variant="outline" className="text-xs">
                         {inconsistency.currentType === 'income' ? 'Receita' : 'Despesa'}
                       </Badge>
@@ -202,7 +202,7 @@ export const TransactionDataFixer = () => {
               <span className="text-sm font-medium">Correção automática em andamento...</span>
             </div>
             <Progress value={fixProgress} className="w-full" />
-            <p className="text-xs text-center text-gray-500">
+            <p className="text-xs text-center text-muted-foreground">
               Corrigindo {inconsistencies.length} transação(ões)...
             </p>
           </div>

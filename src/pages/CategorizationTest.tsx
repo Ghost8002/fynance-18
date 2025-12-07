@@ -82,7 +82,7 @@ export default function CategorizationTestPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold mb-2">Métodos de Categorização:</h3>
-              <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              <ul className="space-y-1 text-sm text-muted-foreground">
                 <li>• <strong>Exata:</strong> Busca por palavras-chave exatas</li>
                 <li>• <strong>Parcial:</strong> Busca por palavras-chave contidas na descrição</li>
                 <li>• <strong>Contexto:</strong> Análise semântica (PIX, transferências, etc.)</li>
@@ -92,7 +92,7 @@ export default function CategorizationTestPage() {
             
             <div>
               <h3 className="font-semibold mb-2">Recursos Avançados:</h3>
-              <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              <ul className="space-y-1 text-sm text-muted-foreground">
                 <li>• <strong>Correção de Tipo:</strong> Detecta e corrige receitas/despesas</li>
                 <li>• <strong>Confiança:</strong> Score de 0-100% para cada categorização</li>
                 <li>• <strong>Avisos:</strong> Alertas para inconsistências detectadas</li>

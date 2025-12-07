@@ -113,7 +113,7 @@ export const FinancialDebugPanel = ({
         </div>
 
         {/* Informações do Período */}
-        <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+        <div className="bg-muted p-3 rounded-lg">
           <h4 className="font-semibold mb-2">Período Selecionado:</h4>
           <p className="text-sm">
             <strong>Tipo:</strong> {selectedPeriod}<br />
@@ -165,7 +165,7 @@ export const FinancialDebugPanel = ({
                       <span className="truncate">{t.description}</span>
                       <span className="font-mono">R$ {Number(t.amount).toFixed(2)}</span>
                     </div>)}
-                  {incomeTransactions.length === 0 && <p className="text-sm text-gray-500">Nenhuma receita no período</p>}
+                  {incomeTransactions.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma receita no período</p>}
                 </div>
               </div>
 
@@ -179,7 +179,7 @@ export const FinancialDebugPanel = ({
                       <span className="truncate">{t.description}</span>
                       <span className="font-mono">R$ {Number(t.amount).toFixed(2)}</span>
                     </div>)}
-                  {expenseTransactions.length === 0 && <p className="text-sm text-gray-500">Nenhuma despesa no período</p>}
+                  {expenseTransactions.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma despesa no período</p>}
                 </div>
               </div>
             </div>
@@ -193,7 +193,7 @@ export const FinancialDebugPanel = ({
                 {accounts?.map(account => <div key={account.id} className="text-sm flex justify-between">
                     <span>{account.name}</span>
                     <span className="font-mono">R$ {Number(account.balance).toFixed(2)}</span>
-                  </div>) || <p className="text-sm text-gray-500">Nenhuma conta encontrada</p>}
+                  </div>) || <p className="text-sm text-muted-foreground">Nenhuma conta encontrada</p>}
               </div>
             </div>
           </div>}
