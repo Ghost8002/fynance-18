@@ -126,7 +126,7 @@ const AuthForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen h-screen flex overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
       {/* Background Decorativo Animado */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -135,7 +135,7 @@ const AuthForm = () => {
       </div>
 
       {/* Seção Esquerda - Formulário de Login */}
-      <div className="w-full lg:w-3/5 flex items-center justify-center p-4 sm:p-8 relative z-10">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 relative z-10 overflow-y-auto">
         <div className="w-full max-w-md animate-fade-in">
           {/* Header com Logo Animado */}
           <div className="text-center mb-8 space-y-4">
@@ -323,7 +323,7 @@ const AuthForm = () => {
       </div>
 
       {/* Seção Direita - Painel Lateral Criativo */}
-      <div className="hidden lg:flex w-2/5 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative">
         {/* Background Gradient Animado */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/80"></div>
         
