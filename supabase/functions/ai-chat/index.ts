@@ -31,7 +31,7 @@ interface ChatRequest {
   crudResult?: CRUDResult;
 }
 
-function buildFinancialPromptWithCRUD(userData: UserFinancialData, userMessage: string, crudResult?: CRUDResult): string {
+function buildSystemPrompt(userData: UserFinancialData, crudResult?: CRUDResult): string {
   const { monthlyIncome, monthlyExpenses, savingsRate, categories, goals, totalBalance } = userData;
   
   const topCategories = categories
@@ -78,8 +78,6 @@ EXEMPLOS DE COMANDOS SUPORTADOS:
 - "Crie uma nova categoria chamada Investimentos com cor azul"
 - "Exclua a transação com descrição 'teste'"
 
-PERGUNTA/COMANDO DO USUÁRIO: "${userMessage}"
-
 INSTRUÇÕES PARA RESPOSTA:
 - Responda sempre em português brasileiro
 - Se uma operação CRUD foi executada, comente sobre o resultado
@@ -91,6 +89,17 @@ INSTRUÇÕES PARA RESPOSTA:
 - Use formatação clara com tópicos quando apropriado
 
 Se o usuário solicitar alterações nos dados, explique que a operação foi executada (se aplicável) e forneça orientações sobre o resultado.`;
+}
+
+function getDefaultSystemPrompt(): string {
+  return `Você é um assistente financeiro especializado em finanças pessoais brasileiras.
+
+INSTRUÇÕES PARA RESPOSTA:
+- Responda sempre em português brasileiro
+- Use linguagem clara, motivacional e prática
+- Seja encorajador mas realista
+- Limite a resposta a no máximo 300 palavras
+- Forneça dicas práticas sobre gestão financeira`;
 }
 
 serve(async (req) => {
@@ -127,26 +136,17 @@ serve(async (req) => {
       throw new Error('Message too long. Please keep messages under 1000 characters.');
     }
 
-    // Use systemPrompt if provided, otherwise build from userData
-    let finalPrompt = systemPrompt;
-    if (!finalPrompt && userData) {
-      finalPrompt = buildFinancialPromptWithCRUD(userData, message, crudResult);
-    } else if (!finalPrompt) {
-      // Fallback prompt if no userData
-      finalPrompt = `Você é um assistente financeiro especializado em finanças pessoais brasileiras.
-      
-PERGUNTA/COMANDO DO USUÁRIO: "${message}"
-
-INSTRUÇÕES PARA RESPOSTA:
-- Responda sempre em português brasileiro
-- Use linguagem clara, motivacional e prática
-- Seja encorajador mas realista
-- Limite a resposta a no máximo 300 palavras
-- Forneça dicas práticas sobre gestão financeira`;
+    // Build system prompt - user message is now passed as a separate user role message
+    let systemPromptContent = systemPrompt;
+    if (!systemPromptContent && userData) {
+      systemPromptContent = buildSystemPrompt(userData, crudResult);
+    } else if (!systemPromptContent) {
+      systemPromptContent = getDefaultSystemPrompt();
     }
 
-    console.log('Using prompt length:', finalPrompt.length);
+    console.log('Using system prompt length:', systemPromptContent.length);
 
+    // Use proper message roles to prevent prompt injection
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -156,7 +156,8 @@ INSTRUÇÕES PARA RESPOSTA:
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
         messages: [
-          { role: 'system', content: finalPrompt }
+          { role: 'system', content: systemPromptContent },
+          { role: 'user', content: message }
         ],
         max_tokens: 500,
         temperature: 0.7,
@@ -197,15 +198,19 @@ INSTRUÇÕES PARA RESPOSTA:
     });
 
   } catch (error) {
+    // Log detailed error server-side only
     console.error('Error in ai-chat function:', error);
+    if (error instanceof Error) {
+      console.error('Stack trace:', error.stack);
+    }
     
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     const statusCode = errorMessage.includes('API key') ? 401 : 
                       errorMessage.includes('Rate limit') ? 429 : 500;
     
+    // Return generic error to client - no stack traces exposed
     return new Response(JSON.stringify({ 
-      error: errorMessage,
-      details: error instanceof Error ? error.stack : undefined
+      error: errorMessage
     }), {
       status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
