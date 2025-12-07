@@ -82,7 +82,7 @@ const GoalList = () => {
       case 'paused':
         return 'bg-yellow-100 text-yellow-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -92,9 +92,9 @@ const GoalList = () => {
         {[1, 2, 3].map(i => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-8 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-muted rounded mb-2"></div>
+              <div className="h-8 bg-muted rounded mb-4"></div>
+              <div className="h-4 bg-muted rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -116,9 +116,9 @@ const GoalList = () => {
   if (goals.length === 0) {
     return (
       <div className="text-center py-12">
-        <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma meta cadastrada</h3>
-        <p className="text-gray-500 mb-6">Comece definindo sua primeira meta financeira.</p>
+        <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">Nenhuma meta cadastrada</h3>
+        <p className="text-muted-foreground mb-6">Comece definindo sua primeira meta financeira.</p>
       </div>
     );
   }
@@ -176,7 +176,7 @@ const GoalList = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Progresso</span>
+                  <span className="text-sm text-muted-foreground">Progresso</span>
                   <span className="text-sm font-medium">{percentage}%</span>
                 </div>
                 <Progress 
@@ -184,10 +184,10 @@ const GoalList = () => {
                   className="h-2"
                 />
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
+                  <span className="text-muted-foreground">
                     {formatCurrency(currentAmount)}
                   </span>
-                  <span className="text-gray-600">
+                  <span className="text-muted-foreground">
                     {formatCurrency(targetAmount)}
                   </span>
                 </div>
@@ -199,7 +199,7 @@ const GoalList = () => {
                    goal.status === 'paused' ? 'Pausada' : 'Ativa'}
                 </Badge>
                 {goal.deadline && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4 mr-1" />
                     {formatDate(goal.deadline)}
                   </div>
@@ -208,7 +208,7 @@ const GoalList = () => {
 
               {goal.category && (
                 <div>
-                  <span className="text-sm text-gray-500">Categoria: </span>
+                  <span className="text-sm text-muted-foreground">Categoria: </span>
                   <span className="text-sm font-medium">{goal.category}</span>
                 </div>
               )}
@@ -230,7 +230,7 @@ const GoalList = () => {
                 </div>
               )}
 
-              <div className="text-center text-sm text-gray-500">
+              <div className="text-center text-sm text-muted-foreground">
                 Faltam {formatCurrency(Math.max(0, targetAmount - currentAmount))}
               </div>
             </CardContent>

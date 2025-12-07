@@ -34,7 +34,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="emailNotifications" className="flex flex-col">
                 <span>Notificações por e-mail</span>
-                <span className="text-sm text-gray-500">Receba alertas no seu e-mail</span>
+                <span className="text-sm text-muted-foreground">Receba alertas no seu e-mail</span>
               </Label>
               <Switch 
                 id="emailNotifications" 
@@ -47,7 +47,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="pushNotifications" className="flex flex-col">
                 <span>Notificações push</span>
-                <span className="text-sm text-gray-500">Receba alertas no seu celular</span>
+                <span className="text-sm text-muted-foreground">Receba alertas no seu celular</span>
               </Label>
               <Switch 
                 id="pushNotifications" 
@@ -68,7 +68,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="billReminders" className="flex flex-col">
                 <span>Lembretes de contas</span>
-                <span className="text-sm text-gray-500">Aviso antes do vencimento de contas</span>
+                <span className="text-sm text-muted-foreground">Aviso antes do vencimento de contas</span>
               </Label>
               <Switch 
                 id="billReminders" 
@@ -81,7 +81,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="budgetAlerts" className="flex flex-col">
                 <span>Alertas de orçamento</span>
-                <span className="text-sm text-gray-500">Quando um limite de categoria for atingido</span>
+                <span className="text-sm text-muted-foreground">Quando um limite de categoria for atingido</span>
               </Label>
               <Switch 
                 id="budgetAlerts" 
@@ -94,7 +94,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="goalAchieved" className="flex flex-col">
                 <span>Metas atingidas</span>
-                <span className="text-sm text-gray-500">Quando você atingir uma meta financeira</span>
+                <span className="text-sm text-muted-foreground">Quando você atingir uma meta financeira</span>
               </Label>
               <Switch 
                 id="goalAchieved" 
@@ -115,7 +115,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="weeklyReport" className="flex flex-col">
                 <span>Relatório semanal</span>
-                <span className="text-sm text-gray-500">Receba um resumo das suas finanças a cada semana</span>
+                <span className="text-sm text-muted-foreground">Receba um resumo das suas finanças a cada semana</span>
               </Label>
               <Switch 
                 id="weeklyReport" 
@@ -128,7 +128,7 @@ const NotificationSettings = () => {
             <div className="flex items-center justify-between">
               <Label htmlFor="monthlyReport" className="flex flex-col">
                 <span>Relatório mensal</span>
-                <span className="text-sm text-gray-500">Receba um resumo das suas finanças a cada mês</span>
+                <span className="text-sm text-muted-foreground">Receba um resumo das suas finanças a cada mês</span>
               </Label>
               <Switch 
                 id="monthlyReport" 

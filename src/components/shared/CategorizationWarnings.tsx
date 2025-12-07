@@ -122,7 +122,7 @@ export function CategorizationWarnings({
                         >
                           {originalType === 'income' ? 'Receita' : 'Despesa'}
                         </Badge>
-                        <ArrowRight className="h-3 w-3 text-gray-500" />
+                        <ArrowRight className="h-3 w-3 text-muted-foreground" />
                         <Badge 
                           variant={result.correctedType === 'income' ? 'default' : 'secondary'}
                           className="text-xs"
@@ -153,7 +153,7 @@ export function CategorizationWarnings({
                     variant="ghost"
                     size="sm"
                     onClick={() => dismissWarning(warningId)}
-                    className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700"
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -201,7 +201,7 @@ export function CategorizationWarnings({
                     </Alert>
                   ))}
 
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Confiança: {result.confidence}%</span>
                     <span>Método: {(result as any).method || 'automático'}</span>
                   </div>
