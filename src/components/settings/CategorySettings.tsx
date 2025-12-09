@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Edit2, Check, X, GripVertical } from "lucide-react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 
 interface Category {
   id: string;
@@ -268,19 +269,44 @@ const CategorySettings = () => {
   }: {
     category: Category;
   }) => (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ 
+        opacity: draggedCategory?.id === category.id ? 0.5 : 1, 
+        y: 0, 
+        scale: draggedCategory?.id === category.id ? 0.95 : 1 
+      }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30,
+        mass: 0.8
+      }}
+      whileHover={{ 
+        scale: 1.02,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+      }}
+      whileTap={{ scale: 0.98 }}
       draggable
-      onDragStart={(e) => handleDragStart(e, category)}
+      onDragStart={(e) => handleDragStart(e as unknown as DragEvent<HTMLDivElement>, category)}
       onDragEnd={handleDragEnd}
-      className={`flex items-center justify-between p-3 border rounded-lg cursor-grab active:cursor-grabbing transition-all ${
-        draggedCategory?.id === category.id ? 'opacity-50 scale-95' : 'hover:shadow-md'
-      }`}
+      className="flex items-center justify-between p-3 border rounded-lg cursor-grab active:cursor-grabbing bg-card"
     >
       <div className="flex items-center space-x-3">
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-        <div className="w-4 h-4 rounded-full border" style={{
-          backgroundColor: category.color
-        }} />
+        <motion.div
+          whileHover={{ scale: 1.2 }}
+          transition={{ type: "spring", stiffness: 400 }}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </motion.div>
+        <motion.div 
+          className="w-4 h-4 rounded-full border" 
+          style={{ backgroundColor: category.color }}
+          whileHover={{ scale: 1.3 }}
+          transition={{ type: "spring", stiffness: 400 }}
+        />
         {editingId === category.id ? (
           <div className="flex items-center space-x-2">
             <Input 
@@ -294,14 +320,16 @@ const CategorySettings = () => {
             />
             <div className="flex space-x-1">
               {predefinedColors.slice(0, 5).map(color => (
-                <button 
+                <motion.button 
                   key={color} 
                   className={`w-6 h-6 rounded-full border-2 ${editingCategory.color === color ? 'border-gray-800' : 'border-gray-300'}`} 
                   style={{ backgroundColor: color }} 
                   onClick={(e) => {
                     e.stopPropagation();
                     setEditingCategory({ ...editingCategory, color });
-                  }} 
+                  }}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
                 />
               ))}
             </div>
@@ -346,7 +374,7 @@ const CategorySettings = () => {
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
   if (loading) {
     return <div className="flex justify-center p-8">Carregando categorias...</div>;
@@ -374,72 +402,120 @@ const CategorySettings = () => {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Categorias de Receita */}
-        <Card
-          onDragOver={(e) => handleDragOver(e, 'income')}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, 'income')}
-          className={`transition-all ${
-            dragOverType === 'income' && draggedCategory?.type !== 'income'
-              ? 'ring-2 ring-green-500 bg-green-50/50 dark:bg-green-950/20'
-              : ''
-          }`}
+        <motion.div
+          animate={{
+            scale: dragOverType === 'income' && draggedCategory?.type !== 'income' ? 1.02 : 1,
+            boxShadow: dragOverType === 'income' && draggedCategory?.type !== 'income' 
+              ? "0 0 20px rgba(34, 197, 94, 0.3)" 
+              : "none"
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
-          <CardHeader>
-            <CardTitle className="text-green-600">Categorias de Receita</CardTitle>
-            <CardDescription>
-              Categorias para organizar suas fontes de renda
-              {draggedCategory && draggedCategory.type !== 'income' && (
-                <span className="block text-xs text-green-600 mt-1">
-                  Arraste aqui para mover para Receita
-                </span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 min-h-[100px]">
-            {incomeCategories.length === 0 && !draggedCategory && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhuma categoria de receita
-              </p>
-            )}
-            {incomeCategories.map((category: Category) => (
-              <CategoryItem key={category.id} category={category} />
-            ))}
-          </CardContent>
-        </Card>
+          <Card
+            onDragOver={(e) => handleDragOver(e, 'income')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'income')}
+            className={`transition-colors duration-300 ${
+              dragOverType === 'income' && draggedCategory?.type !== 'income'
+                ? 'ring-2 ring-green-500 bg-green-50/50 dark:bg-green-950/20'
+                : ''
+            }`}
+          >
+            <CardHeader>
+              <CardTitle className="text-green-600">Categorias de Receita</CardTitle>
+              <CardDescription>
+                Categorias para organizar suas fontes de renda
+                <AnimatePresence>
+                  {draggedCategory && draggedCategory.type !== 'income' && (
+                    <motion.span 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="block text-xs text-green-600 mt-1"
+                    >
+                      Arraste aqui para mover para Receita
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 min-h-[100px]">
+              <AnimatePresence mode="popLayout">
+                {incomeCategories.length === 0 && !draggedCategory && (
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-muted-foreground text-center py-4"
+                  >
+                    Nenhuma categoria de receita
+                  </motion.p>
+                )}
+                {incomeCategories.map((category: Category) => (
+                  <CategoryItem key={category.id} category={category} />
+                ))}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Categorias de Despesa */}
-        <Card
-          onDragOver={(e) => handleDragOver(e, 'expense')}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, 'expense')}
-          className={`transition-all ${
-            dragOverType === 'expense' && draggedCategory?.type !== 'expense'
-              ? 'ring-2 ring-red-500 bg-red-50/50 dark:bg-red-950/20'
-              : ''
-          }`}
+        <motion.div
+          animate={{
+            scale: dragOverType === 'expense' && draggedCategory?.type !== 'expense' ? 1.02 : 1,
+            boxShadow: dragOverType === 'expense' && draggedCategory?.type !== 'expense' 
+              ? "0 0 20px rgba(239, 68, 68, 0.3)" 
+              : "none"
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
         >
-          <CardHeader>
-            <CardTitle className="text-red-600">Categorias de Despesa</CardTitle>
-            <CardDescription>
-              Categorias para organizar seus gastos
-              {draggedCategory && draggedCategory.type !== 'expense' && (
-                <span className="block text-xs text-red-600 mt-1">
-                  Arraste aqui para mover para Despesa
-                </span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 min-h-[100px]">
-            {expenseCategories.length === 0 && !draggedCategory && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhuma categoria de despesa
-              </p>
-            )}
-            {expenseCategories.map((category: Category) => (
-              <CategoryItem key={category.id} category={category} />
-            ))}
-          </CardContent>
-        </Card>
+          <Card
+            onDragOver={(e) => handleDragOver(e, 'expense')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'expense')}
+            className={`transition-colors duration-300 ${
+              dragOverType === 'expense' && draggedCategory?.type !== 'expense'
+                ? 'ring-2 ring-red-500 bg-red-50/50 dark:bg-red-950/20'
+                : ''
+            }`}
+          >
+            <CardHeader>
+              <CardTitle className="text-red-600">Categorias de Despesa</CardTitle>
+              <CardDescription>
+                Categorias para organizar seus gastos
+                <AnimatePresence>
+                  {draggedCategory && draggedCategory.type !== 'expense' && (
+                    <motion.span 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="block text-xs text-red-600 mt-1"
+                    >
+                      Arraste aqui para mover para Despesa
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 min-h-[100px]">
+              <AnimatePresence mode="popLayout">
+                {expenseCategories.length === 0 && !draggedCategory && (
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-muted-foreground text-center py-4"
+                  >
+                    Nenhuma categoria de despesa
+                  </motion.p>
+                )}
+                {expenseCategories.map((category: Category) => (
+                  <CategoryItem key={category.id} category={category} />
+                ))}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       <Separator />
