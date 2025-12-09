@@ -1,40 +1,46 @@
-import React, { useEffect } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { Loader2 } from "lucide-react";
 
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Transactions from "./pages/Transactions";
-import Cards from "./pages/Cards";
-import Accounts from "./pages/Accounts";
-import Categories from "./pages/Categories";
-import Budgets from "./pages/Budgets";
-import Goals from "./pages/Goals";
-import Settings from "./pages/Settings";
-import AccountsAndDebts from "./pages/AccountsAndDebts";
-import TagsDashboard from "./pages/TagsDashboard";
-import Calendar from "./pages/Calendar";
-import Login from "./pages/Login";
-import AIAssistantPage from "./pages/AIAssistant";
-import Reports from "./pages/Reports";
-import Help from "./pages/Help";
-import Control from "./pages/Control";
+// Eager loaded pages (critical path)
 import LandingPage from "@/landingpage/LandingPage";
+import Login from "./pages/Login";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
-import Imports from "./pages/Imports";
-import ImportsTransactions from "./pages/ImportsTransactions";
-import ImportsXLSX from "./pages/ImportsXLSX";
-import ImportsJSON from "./pages/ImportsJSON";
-import BankSelectorDemo from "./pages/BankSelectorDemo";
-import UploadBankLogos from "./pages/UploadBankLogos";
-import Subcategories from "./pages/Subcategories";
-import SubcategoryTest from "./components/categories/SubcategoryTest";
-import TestSubcategoryCreation from "./components/categories/TestSubcategoryCreation";
-import CostCenterAnalysis from "./pages/CostCenterAnalysis";
+// Lazy loaded pages (code splitting)
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Cards = lazy(() => import("./pages/Cards"));
+const Accounts = lazy(() => import("./pages/Accounts"));
+const Categories = lazy(() => import("./pages/Categories"));
+const Budgets = lazy(() => import("./pages/Budgets"));
+const Goals = lazy(() => import("./pages/Goals"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AccountsAndDebts = lazy(() => import("./pages/AccountsAndDebts"));
+const TagsDashboard = lazy(() => import("./pages/TagsDashboard"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const AIAssistantPage = lazy(() => import("./pages/AIAssistant"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Help = lazy(() => import("./pages/Help"));
+const Control = lazy(() => import("./pages/Control"));
+const Imports = lazy(() => import("./pages/Imports"));
+const ImportsTransactions = lazy(() => import("./pages/ImportsTransactions"));
+const ImportsXLSX = lazy(() => import("./pages/ImportsXLSX"));
+const ImportsJSON = lazy(() => import("./pages/ImportsJSON"));
+const BankSelectorDemo = lazy(() => import("./pages/BankSelectorDemo"));
+const UploadBankLogos = lazy(() => import("./pages/UploadBankLogos"));
+const Subcategories = lazy(() => import("./pages/Subcategories"));
+const SubcategoryTest = lazy(() => import("./components/categories/SubcategoryTest"));
+const TestSubcategoryCreation = lazy(() => import("./components/categories/TestSubcategoryCreation"));
+const CostCenterAnalysis = lazy(() => import("./pages/CostCenterAnalysis"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,55 +51,75 @@ const queryClient = new QueryClient({
   },
 });
 
+// Loading fallback for lazy loaded components
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <p className="text-muted-foreground">Carregando...</p>
+    </div>
+  </div>
+);
+
 const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return null;
+  
+  if (loading) return <PageLoader />;
+  
   return (
-    <Routes>
-      <Route path="/" element={isAuthenticated ? <Dashboard /> : <LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      {/* Rotas em português para corresponder à sidebar */}
-      <Route path="/transacoes" element={<Transactions />} />
-      <Route path="/contas-dividas" element={<AccountsAndDebts />} />
-      <Route path="/cartoes" element={<Cards />} />
-      <Route path="/contas" element={<Accounts />} />
-      <Route path="/controle" element={<Control />} />
-      <Route path="/orcamentos" element={<Budgets />} />
-      <Route path="/metas" element={<Goals />} />
-      <Route path="/relatorios" element={<Reports />} />
-      <Route path="/calendario" element={<Calendar />} />
-      <Route path="/assistente-ia" element={<AIAssistantPage />} />
-      <Route path="/configuracoes" element={<Settings />} />
-      <Route path="/ajuda" element={<Help />} />
-      <Route path="/importacoes" element={<Imports />} />
-      <Route path="/importacoes/transacoes" element={<ImportsTransactions />} />
-      <Route path="/importacoes/xlsx" element={<ImportsXLSX />} />
-      <Route path="/importacoes/json" element={<ImportsJSON />} />
-      <Route path="/demo-bancos" element={<BankSelectorDemo />} />
-      <Route path="/upload-logos" element={<UploadBankLogos />} />
-      <Route path="/centro-custo/:categoryId" element={<CostCenterAnalysis />} />
-      {/* Manter rotas antigas em inglês para compatibilidade */}
-      <Route path="/transactions" element={<Transactions />} />
-      <Route path="/cards" element={<Cards />} />
-      <Route path="/accounts" element={<Accounts />} />
-      <Route path="/categories" element={<Categories />} />
-      <Route path="/subcategories" element={<Subcategories />} />
-      <Route path="/subcategory-test" element={<SubcategoryTest />} />
-      <Route path="/test-subcategory-creation" element={<TestSubcategoryCreation />} />
-      <Route path="/budgets" element={<Budgets />} />
-      <Route path="/goals" element={<Goals />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/accounts-debts" element={<AccountsAndDebts />} />
-      <Route path="/tags" element={<TagsDashboard />} />
-      <Route path="/calendar" element={<Calendar />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={isAuthenticated ? <Dashboard /> : <LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
+        <Route path="/termos" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        
+        {/* Protected routes - Portuguese */}
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/transacoes" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+        <Route path="/contas-dividas" element={<ProtectedRoute><AccountsAndDebts /></ProtectedRoute>} />
+        <Route path="/cartoes" element={<ProtectedRoute><Cards /></ProtectedRoute>} />
+        <Route path="/contas" element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
+        <Route path="/controle" element={<ProtectedRoute><Control /></ProtectedRoute>} />
+        <Route path="/orcamentos" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
+        <Route path="/metas" element={<ProtectedRoute><Goals /></ProtectedRoute>} />
+        <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+        <Route path="/calendario" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+        <Route path="/assistente-ia" element={<ProtectedRoute><AIAssistantPage /></ProtectedRoute>} />
+        <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/ajuda" element={<ProtectedRoute><Help /></ProtectedRoute>} />
+        <Route path="/importacoes" element={<ProtectedRoute><Imports /></ProtectedRoute>} />
+        <Route path="/importacoes/transacoes" element={<ProtectedRoute><ImportsTransactions /></ProtectedRoute>} />
+        <Route path="/importacoes/xlsx" element={<ProtectedRoute><ImportsXLSX /></ProtectedRoute>} />
+        <Route path="/importacoes/json" element={<ProtectedRoute><ImportsJSON /></ProtectedRoute>} />
+        <Route path="/demo-bancos" element={<ProtectedRoute><BankSelectorDemo /></ProtectedRoute>} />
+        <Route path="/upload-logos" element={<ProtectedRoute><UploadBankLogos /></ProtectedRoute>} />
+        <Route path="/centro-custo/:categoryId" element={<ProtectedRoute><CostCenterAnalysis /></ProtectedRoute>} />
+        
+        {/* Protected routes - English (compatibility) */}
+        <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+        <Route path="/cards" element={<ProtectedRoute><Cards /></ProtectedRoute>} />
+        <Route path="/accounts" element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
+        <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+        <Route path="/subcategories" element={<ProtectedRoute><Subcategories /></ProtectedRoute>} />
+        <Route path="/subcategory-test" element={<ProtectedRoute><SubcategoryTest /></ProtectedRoute>} />
+        <Route path="/test-subcategory-creation" element={<ProtectedRoute><TestSubcategoryCreation /></ProtectedRoute>} />
+        <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
+        <Route path="/goals" element={<ProtectedRoute><Goals /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/accounts-debts" element={<ProtectedRoute><AccountsAndDebts /></ProtectedRoute>} />
+        <Route path="/tags" element={<ProtectedRoute><TagsDashboard /></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+      </Routes>
+    </Suspense>
   );
 };
 
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
-    // Aplicar tema diretamente sem usar o hook useTheme
     const stored = localStorage.getItem('theme') || 'system';
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
@@ -110,19 +136,21 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => (
-  <BrowserRouter>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-          </TooltipProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </BrowserRouter>
+  <ErrorBoundary>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </ErrorBoundary>
 );
 
 export default App;
