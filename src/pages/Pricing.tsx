@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useSubscription, SUBSCRIPTION_TIERS } from "@/context/SubscriptionContext";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -26,6 +26,13 @@ export default function PricingPage() {
   const { isSubscribed, subscriptionEnd, openCheckout, openCustomerPortal, isLoading } = useSubscription();
   const navigate = useNavigate();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  // Redirect to dashboard if user is already subscribed
+  useEffect(() => {
+    if (isSubscribed && !isLoading) {
+      navigate("/", { replace: true });
+    }
+  }, [isSubscribed, isLoading, navigate]);
 
   const handleSubscribe = async () => {
     if (!isAuthenticated) {
