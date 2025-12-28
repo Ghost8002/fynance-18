@@ -24,8 +24,8 @@ export const useSubscription = () => {
 
 export const SUBSCRIPTION_TIERS = {
   pro: {
-    price_id: "price_1SjO63A4lDqvdenyPAY2irJO",
-    product_id: "prod_TgldNQYhNAyVqj",
+    price_id: "price_1SjPFoA4lDqvdenye62OTC3B",
+    product_id: "prod_TgmpRA1m2P5lqZ",
     name: "Pro",
     price: "R$ 5,00/mês"
   }
