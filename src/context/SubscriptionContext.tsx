@@ -27,7 +27,7 @@ export const SUBSCRIPTION_TIERS = {
     price_id: "price_1SjO63A4lDqvdenyPAY2irJO",
     product_id: "prod_TgldNQYhNAyVqj",
     name: "Pro",
-    price: "R$ 19,90/mês"
+    price: "R$ 5,00/mês"
   }
 } as const;
 
