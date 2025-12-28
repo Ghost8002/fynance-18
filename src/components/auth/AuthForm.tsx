@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { FynanceLogo } from '@/components/shared/FynanceLogo';
 
 export const AuthForm = () => {
   const { signIn, signUp } = useAuth();
@@ -78,10 +79,13 @@ export const AuthForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>FinanSys</CardTitle>
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <FynanceLogo size="lg" />
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Fynance</CardTitle>
           <CardDescription>Gerencie suas finanças de forma inteligente</CardDescription>
         </CardHeader>
         <CardContent>
