@@ -37,24 +37,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setIsLoading(false);
-        }
-      }
-    );
+    // Set up auth state listener FIRST
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
+      // Avoid trusting a possibly-stale session from storage; we validate via getSession/getUser below.
+      if (event === 'INITIAL_SESSION') return;
+
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    // THEN check for existing session and validate it against the API
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+
+      if (!session?.access_token) {
+        setSession(null);
+        setUser(null);
         setIsLoading(false);
+        return;
       }
+
+      const { error } = await supabase.auth.getUser(session.access_token);
+
+      if (error) {
+        // Session exists in storage but is invalid/expired server-side
+        await supabase.auth.signOut({ scope: 'local' });
+        setSession(null);
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      setSession(session);
+      setUser(session.user ?? null);
+      setIsLoading(false);
     });
 
     return () => {
@@ -181,8 +202,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Always clear local session even if the server session no longer exists
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) {
+        console.warn('Supabase signOut warning:', error);
+      }
+
+      setSession(null);
+      setUser(null);
 
       toast.success('Logout realizado com sucesso!');
       navigate('/');
