@@ -8,8 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Trash2, Crown, CreditCard, Calendar, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { devError } from "@/utils/logger";
+import { useSubscription, SUBSCRIPTION_TIERS } from "@/context/SubscriptionContext";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function AccountSettings() {
   const { user, logout } = useAuth();
@@ -18,6 +22,33 @@ export default function AccountSettings() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { isSubscribed, productId, subscriptionEnd, isLoading: subscriptionLoading, checkSubscription, openCheckout, openCustomerPortal } = useSubscription();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshSubscription = async () => {
+    setRefreshing(true);
+    await checkSubscription();
+    setRefreshing(false);
+    toast({
+      title: "Atualizado",
+      description: "Status da assinatura atualizado.",
+    });
+  };
+
+  const getCurrentPlanName = () => {
+    if (!isSubscribed || !productId) return null;
+    const tier = Object.values(SUBSCRIPTION_TIERS).find(t => t.product_id === productId);
+    return tier?.name || "Plano Ativo";
+  };
+
+  const formatSubscriptionEnd = () => {
+    if (!subscriptionEnd) return null;
+    try {
+      return format(new Date(subscriptionEnd), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    } catch {
+      return subscriptionEnd;
+    }
+  };
 
   const handleDeleteAccount = async () => {
     if (!user || !password.trim()) {
@@ -85,6 +116,110 @@ export default function AccountSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Subscription Card */}
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Crown className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  Assinatura
+                  {isSubscribed && (
+                    <Badge variant="default" className="bg-primary text-primary-foreground">
+                      Ativa
+                    </Badge>
+                  )}
+                  {!isSubscribed && !subscriptionLoading && (
+                    <Badge variant="secondary">
+                      Gratuito
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Gerencie sua assinatura e plano
+                </CardDescription>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefreshSubscription}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {subscriptionLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : isSubscribed ? (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-sm">Plano Atual</Label>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-lg">{getCurrentPlanName()}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-sm">Próxima Renovação</Label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-medium">{formatSubscriptionEnd()}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  className="w-full sm:w-auto"
+                  onClick={openCustomerPortal}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Gerenciar Assinatura
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-muted/50 border border-dashed">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Você está usando o plano gratuito. Assine para desbloquear recursos premium como:
+                </p>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    Assistente IA ilimitado
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    Relatórios avançados
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    Importação ilimitada
+                  </li>
+                </ul>
+              </div>
+              <Button 
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                onClick={openCheckout}
+              >
+                <Crown className="mr-2 h-4 w-4" />
+                Assinar por {SUBSCRIPTION_TIERS.pro.price}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Informações da Conta</CardTitle>
