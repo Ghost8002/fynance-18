@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Command } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/landingpage/components/ui/button";
 import Navigation from "@/landingpage/components/Navigation";
 import { FeaturesSection } from "@/landingpage/components/features/FeaturesSection";
@@ -9,6 +9,7 @@ import Footer from "@/landingpage/components/Footer";
 import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
 import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-effect";
 import { useNavigate } from "react-router-dom";
+import { FynanceLogo } from "@/components/shared/FynanceLogo";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -41,8 +42,8 @@ const LandingPage = () => {
           transition={{ delay: 0.2 }}
           className="inline-block mb-6 px-4 py-2 rounded-full glass"
         >
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            <Command className="w-4 h-4 inline-block mr-2 text-primary" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+            <span className="w-4 h-4 mr-2 inline-flex"><FynanceLogo size="sm" className="h-4 w-4" /></span>
             Sistema completo de gestão financeira
           </span>
         </motion.div>
