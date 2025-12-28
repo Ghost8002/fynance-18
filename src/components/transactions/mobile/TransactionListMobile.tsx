@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import TransactionFiltersAdvancedMobile from "./TransactionFiltersAdvancedMobile";
 import TransactionCardMobile from "./TransactionCardMobile";
 import TransactionForm from "@/components/shared/TransactionForm";
-import { useTransactionsPaginated, type TransactionFilters } from "@/hooks/useTransactionsPaginated";
+import { useTransactionsPaginatedServer } from "@/hooks/useTransactionsPaginatedServer";
+import { type TransactionFilters } from "@/hooks/types/transactionTypes";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -47,7 +48,7 @@ const TransactionListMobile = () => {
     accounts,
     cards,
     pagination,
-  } = useTransactionsPaginated(filters, 20); // Load 20 items per page on mobile
+  } = useTransactionsPaginatedServer(filters, { itemsPerPage: 20 }); // Load 20 items per page on mobile
 
   // Calculate summary data based on filtered transactions
   const summaryData = useMemo(() => {
