@@ -82,7 +82,7 @@ export const PricingSection = () => {
         />
         <PricingTier
           name="Premium"
-          price="R$ 29"
+          price="R$ 5"
           description="Recursos avançados para gestão financeira completa"
           features={[
             "Todos os recursos básicos",
