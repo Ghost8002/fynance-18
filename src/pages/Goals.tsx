@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import GoalForm from "@/components/goals/GoalForm";
@@ -9,18 +8,10 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { Target } from "lucide-react";
 
 const Goals = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: goals, refetch } = useSupabaseData('goals', user?.id);
   const [editingGoal, setEditingGoal] = useState<any>(null);
   const [showEditForm, setShowEditForm] = useState(false);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   // Recarregar dados quando um progresso for adicionado
   useEffect(() => {

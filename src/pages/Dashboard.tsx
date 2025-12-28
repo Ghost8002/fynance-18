@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 import AppLayout from "@/components/shared/AppLayout";
 import FinancialSummary from "@/components/dashboard/FinancialSummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
@@ -25,8 +23,6 @@ import CardOverviewMobile from "@/components/dashboard/mobile/CardOverviewMobile
 import RecentTransactionsMobile from "@/components/dashboard/mobile/RecentTransactionsMobile";
 
 const Dashboard = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { selectedPeriod, setSelectedPeriod } = usePeriodFilter();
   const { isWidgetVisible } = useDashboardCustomization();
@@ -39,13 +35,6 @@ const Dashboard = () => {
     from: undefined,
     to: undefined
   });
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   // Mapeamento dos widgets do FinancialSummary que podem ser ocultados individualmente
   const getHiddenFinancialSummaryWidgets = () => {

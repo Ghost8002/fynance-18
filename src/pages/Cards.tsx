@@ -1,6 +1,4 @@
-
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import { CardList } from "@/components/cards/CardList";
@@ -22,19 +20,11 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, RefreshCw } from "lucide-react";
 
 const Cards = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const isMobile = useIsMobile();
   const { data: cards, refetch: refetchCards } = useSupabaseData('cards', user?.id);
   const { syncAllCardDebts, loadingBills } = useCardDebtsIntegration();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   // Auto-select first card if none selected
   useEffect(() => {

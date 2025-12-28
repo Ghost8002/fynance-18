@@ -66,9 +66,7 @@ const PageLoader = () => (
 );
 
 const AppRoutes = () => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) return <PageLoader />;
+  const { isAuthenticated } = useAuth();
   
   return (
     <Suspense fallback={<PageLoader />}>

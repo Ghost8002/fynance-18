@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import SimpleJSONImportComponent from "@/components/shared/SimpleJSONImportComponent";
 import { Button } from "@/components/ui/button";
@@ -8,12 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Upload, Shield, CheckCircle } from "lucide-react";
 
 const ImportsJSON = () => {
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
-    
     // SEO
     document.title = "Importar do Chat (JSON) | Fynance";
     const desc = "Importe transações financeiras a partir de arquivos JSON gerados pelo ChatGPT.";
@@ -32,9 +28,7 @@ const ImportsJSON = () => {
       document.head.appendChild(link);
     }
     link.setAttribute("href", window.location.origin + "/importacoes/json");
-  }, [isAuthenticated, navigate]);
-
-  if (!isAuthenticated) return null;
+  }, []);
 
   return (
     <AppLayout>

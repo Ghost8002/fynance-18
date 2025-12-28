@@ -11,10 +11,11 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requireSubscription = true }: ProtectedRouteProps) => {
   const { isAuthenticated, loading } = useAuth();
-  const { isSubscribed, isLoading: subscriptionLoading } = useSubscription();
+  const { isSubscribed } = useSubscription();
   const location = useLocation();
 
-  if (loading || subscriptionLoading) {
+  // Only show loader for initial auth check, not for subscription
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
