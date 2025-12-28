@@ -1,9 +1,8 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, Menu, Bot, PiggyBank } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { LayoutDashboard, Receipt, CreditCard, Menu, PiggyBank } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { PrefetchLink } from '@/components/shared/PrefetchLink';
 
 const primaryNavItems = [
   {
@@ -49,7 +48,7 @@ export function BottomNav() {
         {primaryNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           return (
-            <Link
+            <PrefetchLink
               key={item.href}
               to={item.href}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-0.5 transition-all duration-300 ${
@@ -65,7 +64,7 @@ export function BottomNav() {
               {isActive && (
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-primary rounded-t-full" />
               )}
-            </Link>
+            </PrefetchLink>
           );
         })}
         
@@ -85,7 +84,7 @@ export function BottomNav() {
                 {menuItems.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
-                    <Link
+                    <PrefetchLink
                       key={item.href}
                       to={item.href}
                       className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-300 ${
@@ -96,7 +95,7 @@ export function BottomNav() {
                     >
                       <span className="text-xl">{item.icon}</span>
                       <span className="text-sm">{item.title}</span>
-                    </Link>
+                    </PrefetchLink>
                   );
                 })}
               </div>

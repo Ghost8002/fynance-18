@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Shield, FileDown } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-
+import { PrefetchLink } from './PrefetchLink';
 // Estrutura organizada por categorias
 const navigationSections = [
   {
@@ -136,10 +136,10 @@ export function AppSidebar() {
                             animationDelay: `${globalIndex * 0.03}s`
                           }}
                         >
-                          <Link to={item.href} className="flex items-center space-x-3 w-full">
+                          <PrefetchLink to={item.href} className="flex items-center space-x-3 w-full">
                             <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
                             <span className="truncate font-medium text-sm">{item.title}</span>
-                          </Link>
+                          </PrefetchLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
