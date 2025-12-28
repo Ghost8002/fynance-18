@@ -1,19 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Receipt, FileText, Database, Upload, Download, Settings, TrendingUp, Users, Calendar, CreditCard, Wallet, BarChart3, Clock, Info } from "lucide-react";
+import { Receipt, FileText, Database, Upload, CreditCard, TrendingUp, BarChart3, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+
 const Imports = () => {
-  const {
-    isAuthenticated
-  } = useAuth();
   const navigate = useNavigate();
+
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
     // SEO
     document.title = "Importações | Fynance";
     const desc = "Importe dados financeiros, como transações via OFX.";
@@ -31,7 +27,7 @@ const Imports = () => {
       document.head.appendChild(link);
     }
     link.setAttribute("href", window.location.origin + "/importacoes");
-  }, [isAuthenticated, navigate]);
+  }, []);
   const importOptions = [{
     id: "transactions",
     title: "Transações OFX",
@@ -103,7 +99,7 @@ const Imports = () => {
     to: "/importacoes/orcamentos",
     comingSoon: true
   }];
-  if (!isAuthenticated) return null;
+
   return <AppLayout>
       <div className="mb-8 animate-fade-in">
         <div className="flex items-center gap-4 mb-4">

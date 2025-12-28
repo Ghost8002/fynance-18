@@ -1,6 +1,4 @@
-
-import { useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import BudgetList from "@/components/budgets/BudgetList";
@@ -14,18 +12,10 @@ import { PiggyBank, TrendingUp, AlertTriangle, CheckCircle, Target } from "lucid
 import { parseLocalDate } from "@/utils/dateValidation";
 
 const Budgets = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: budgets } = useSupabaseData('budgets', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
   const { data: transactions } = useSupabaseData('transactions', user?.id);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   // Calculate budget statistics
   const budgetStats = useMemo(() => {

@@ -1,22 +1,17 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PeriodSummary } from "@/components/shared/PeriodSummary";
 import ReceivableList from "@/components/receivables/ReceivableList";
 import ReceivableStats from "@/components/receivables/ReceivableStats";
 import DebtList from "@/components/debts/DebtList";
 import DebtStats from "@/components/debts/DebtStats";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 
 const AccountsAndDebts = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("receivables");
   
   // Simple month navigation state
@@ -81,16 +76,6 @@ const AccountsAndDebts = () => {
   const goToNextMonth = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
   };
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <AppLayout>

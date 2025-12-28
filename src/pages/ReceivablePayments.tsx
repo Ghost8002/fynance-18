@@ -1,6 +1,3 @@
-
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import ReceivablePaymentList from "@/components/receivables/ReceivablePaymentList";
@@ -8,16 +5,8 @@ import ReceivableStats from "@/components/receivables/ReceivableStats";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const ReceivablePayments = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: payments } = useSupabaseData('receivable_payments', user?.id);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   return (
     <AppLayout>

@@ -1,19 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import ImprovedOFXImporter from "@/components/shared/ImprovedOFXImporter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Upload, Shield, CheckCircle } from "lucide-react";
+import { ArrowLeft, FileText, Shield, CheckCircle } from "lucide-react";
+
 const ImportsTransactions = () => {
-  const {
-    isAuthenticated
-  } = useAuth();
   const navigate = useNavigate();
+
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
     // SEO
     document.title = "Importar Transações (OFX) | Fynance";
     const desc = "Importe transações financeiras a partir de arquivos OFX.";
@@ -31,8 +27,7 @@ const ImportsTransactions = () => {
       document.head.appendChild(link);
     }
     link.setAttribute("href", window.location.origin + "/importacoes/transacoes");
-  }, [isAuthenticated, navigate]);
-  if (!isAuthenticated) return null;
+  }, []);
   return (
     <AppLayout>
       <div className="space-y-8">

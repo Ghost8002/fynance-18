@@ -1,17 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import SimpleXLSXImporter from "@/components/shared/SimpleXLSXImporter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileSpreadsheet } from "lucide-react";
+
 const ImportsXLSX = () => {
-  const {
-    isAuthenticated
-  } = useAuth();
   const navigate = useNavigate();
+
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
     // SEO
     document.title = "Importar Transações (XLSX) | Fynance";
     const desc = "Importe transações financeiras a partir de arquivos XLSX.";
@@ -29,8 +26,7 @@ const ImportsXLSX = () => {
       document.head.appendChild(link);
     }
     link.setAttribute("href", window.location.origin + "/importacoes/xlsx");
-  }, [isAuthenticated, navigate]);
-  if (!isAuthenticated) return null;
+  }, []);
   return <AppLayout>
       <div className="space-y-8">
         {/* Header */}

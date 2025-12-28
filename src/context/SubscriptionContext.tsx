@@ -37,8 +37,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [productId, setProductId] = useState<string | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasCheckedOnce, setHasCheckedOnce] = useState(false);
 
-  const checkSubscription = useCallback(async () => {
+  const checkSubscription = useCallback(async (showLoading = false) => {
     if (!session?.access_token) {
       setIsSubscribed(false);
       setProductId(null);
@@ -46,7 +47,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    setIsLoading(true);
+    // Only show loading on first check, not on navigation
+    if (showLoading && !hasCheckedOnce) {
+      setIsLoading(true);
+    }
+    
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
@@ -62,12 +67,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setIsSubscribed(data.subscribed || false);
       setProductId(data.product_id || null);
       setSubscriptionEnd(data.subscription_end || null);
+      setHasCheckedOnce(true);
     } catch (error) {
       console.error('Error checking subscription:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, hasCheckedOnce]);
 
   const openCheckout = useCallback(async () => {
     if (!session?.access_token) {
@@ -124,11 +130,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Check subscription on auth change - only when session token is available
   useEffect(() => {
     if (isAuthenticated && session?.access_token) {
-      checkSubscription();
+      checkSubscription(true); // Show loading only on first check
     } else if (!isAuthenticated) {
       setIsSubscribed(false);
       setProductId(null);
       setSubscriptionEnd(null);
+      setHasCheckedOnce(false);
     }
   }, [isAuthenticated, session?.access_token, checkSubscription]);
 

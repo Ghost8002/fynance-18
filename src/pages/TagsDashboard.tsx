@@ -1,7 +1,3 @@
-
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import TagsOverview from "@/components/tags/TagsOverview";
 import TagsIncomeExpenseChart from "@/components/tags/TagsIncomeExpenseChart";
@@ -10,14 +6,6 @@ import TagsStatsCards from "@/components/tags/TagsStatsCards";
 import CategoriesTagsAnalysis from "@/components/tags/CategoriesTagsAnalysis";
 
 const TagsDashboard = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   return (
     <AppLayout>

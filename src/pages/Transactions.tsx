@@ -1,20 +1,9 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import TransactionListAdvanced from "@/components/transactions/TransactionListAdvanced";
 import TransactionListMobile from "@/components/transactions/mobile/TransactionListMobile";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+
 const Transactions = () => {
-  const {
-    isAuthenticated
-  } = useAuth();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
   return <AppLayout>
       {/* Desktop version */}
       <div className="hidden md:block space-y-6">

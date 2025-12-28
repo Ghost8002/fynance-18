@@ -1,21 +1,8 @@
-
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import AppLayout from "@/components/shared/AppLayout";
 import AccountList from "@/components/accounts/AccountList";
 import AccountForm from "@/components/accounts/AccountForm";
 
 const Accounts = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, navigate]);
 
   return (
     <AppLayout>
