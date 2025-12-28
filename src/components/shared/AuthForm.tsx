@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react";
+import { FynanceLogo } from './FynanceLogo';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -142,20 +143,8 @@ const AuthForm = () => {
             <div className="flex justify-center mb-4">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl transform group-hover:scale-110 transition-transform duration-300">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-9 w-9"
-                  >
-                    <path d="M12 1v22" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden transform group-hover:scale-110 transition-transform duration-300">
+                  <FynanceLogo size="lg" />
                 </div>
               </div>
             </div>
@@ -344,20 +333,16 @@ const AuthForm = () => {
           {/* Ícone Grande Animado */}
           <div className="mb-8 relative group">
             <div className="absolute inset-0 bg-white/20 rounded-3xl blur-2xl group-hover:bg-white/30 transition-all duration-500"></div>
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-14 w-14"
-              >
-                <path d="M12 1v22" />
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 overflow-hidden">
+              <img 
+                src="/logo-light.svg" 
+                alt="Fynance" 
+                className="h-20 w-20"
+                onError={(e) => {
+                  // Fallback to imported logo if public path fails
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
             </div>
           </div>
 

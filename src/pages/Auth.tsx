@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { devLog } from '@/utils/logger';
+import { FynanceLogo } from '@/components/shared/FynanceLogo';
 
 const Auth = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -30,11 +31,14 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">FinanceApp</h1>
-          <p className="text-gray-600">Gerencie suas finanças de forma inteligente</p>
+          <div className="flex justify-center mb-4">
+            <FynanceLogo size="lg" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">Fynance</h1>
+          <p className="text-muted-foreground">Gerencie suas finanças de forma inteligente</p>
         </div>
         <AuthForm />
       </div>
