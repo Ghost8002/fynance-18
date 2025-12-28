@@ -60,15 +60,33 @@ const FrequentlyAskedQuestions = () => {
             </AccordionItem>
 
             <AccordionItem value="item-5">
-              <AccordionTrigger>Como exportar meus dados financeiros?</AccordionTrigger>
+              <AccordionTrigger>Como cadastrar meus cartões de crédito?</AccordionTrigger>
               <AccordionContent>
-                Para exportar seus dados, vá até a página "Relatórios" e selecione o tipo de relatório que deseja. 
-                Após visualizar os dados, clique no botão "Exportar" e escolha o formato desejado (PDF, Excel ou CSV). 
-                O arquivo será gerado e disponibilizado para download.
+                Acesse a página "Cartões" no menu lateral e clique em "Adicionar Cartão". Preencha as informações 
+                como nome do cartão, banco, limite de crédito, dia de fechamento e dia de vencimento da fatura. 
+                Após salvar, você poderá registrar compras no cartão e acompanhar suas faturas.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-6">
+              <AccordionTrigger>Como funciona o controle de contas a pagar?</AccordionTrigger>
+              <AccordionContent>
+                Na página "Contas a Pagar", você pode registrar todas as suas despesas futuras. Adicione a descrição, 
+                valor, data de vencimento e categoria. O sistema mostrará quais contas estão pendentes, pagas ou 
+                vencidas, ajudando você a manter suas finanças organizadas.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7">
+              <AccordionTrigger>Como acompanhar meus recebimentos?</AccordionTrigger>
+              <AccordionContent>
+                Acesse "Contas a Receber" para gerenciar todos os valores que você tem a receber. Cadastre o valor, 
+                a data prevista e a origem do recebimento. Quando o pagamento for confirmado, marque como recebido 
+                e o valor será automaticamente atualizado no seu saldo.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-8">
               <AccordionTrigger>Como alterar minha senha?</AccordionTrigger>
               <AccordionContent>
                 Para alterar sua senha, acesse "Configurações" e selecione a aba "Segurança". Na seção "Alteração de Senha", 
@@ -77,12 +95,30 @@ const FrequentlyAskedQuestions = () => {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-7">
+            <AccordionItem value="item-9">
               <AccordionTrigger>É possível programar pagamentos recorrentes?</AccordionTrigger>
               <AccordionContent>
                 Sim, ao adicionar uma nova transação, você pode marcar a opção "Transação recorrente" e definir a 
                 frequência (mensal, semanal, anual). O sistema criará automaticamente as transações futuras de acordo 
                 com a programação, e você receberá lembretes conforme suas configurações de notificação.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-10">
+              <AccordionTrigger>Como visualizar o resumo do meu patrimônio?</AccordionTrigger>
+              <AccordionContent>
+                Na página "Patrimônio", você pode cadastrar todos os seus bens e investimentos. O sistema calcula 
+                automaticamente o valor total do seu patrimônio e mostra a evolução ao longo do tempo através de 
+                gráficos e relatórios detalhados.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-11">
+              <AccordionTrigger>Como funciona a assinatura Premium?</AccordionTrigger>
+              <AccordionContent>
+                A assinatura Premium custa apenas R$ 5,00 por mês e oferece acesso completo a todas as funcionalidades 
+                do Vida Financeira, incluindo relatórios avançados, múltiplas contas, metas ilimitadas e suporte 
+                prioritário. Você pode assinar diretamente pelo aplicativo na página de Planos.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
