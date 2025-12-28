@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { SubscriptionProvider } from "@/context/SubscriptionContext";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,9 @@ import LandingPage from "@/landingpage/LandingPage";
 import Login from "./pages/Login";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Pricing from "./pages/Pricing";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
+import CheckoutCanceled from "./pages/CheckoutCanceled";
 
 // Lazy loaded pages (code splitting)
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -76,6 +80,10 @@ const AppRoutes = () => {
         <Route path="/termos" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/precos" element={<Pricing />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/checkout-success" element={<CheckoutSuccess />} />
+        <Route path="/checkout-canceled" element={<CheckoutCanceled />} />
         
         {/* Protected routes - Portuguese */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -140,13 +148,15 @@ const App = () => (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ThemeProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <AppRoutes />
-            </TooltipProvider>
-          </ThemeProvider>
+          <SubscriptionProvider>
+            <ThemeProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <AppRoutes />
+              </TooltipProvider>
+            </ThemeProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
