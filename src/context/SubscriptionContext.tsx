@@ -121,16 +121,16 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [session?.access_token]);
 
-  // Check subscription on auth change
+  // Check subscription on auth change - only when session token is available
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && session?.access_token) {
       checkSubscription();
-    } else {
+    } else if (!isAuthenticated) {
       setIsSubscribed(false);
       setProductId(null);
       setSubscriptionEnd(null);
     }
-  }, [isAuthenticated, checkSubscription]);
+  }, [isAuthenticated, session?.access_token, checkSubscription]);
 
   // Auto-refresh subscription status every minute
   useEffect(() => {
