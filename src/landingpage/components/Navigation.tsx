@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Command, Menu, LogIn } from "lucide-react";
+import { Menu, LogIn } from "lucide-react";
 import { Button } from "@/landingpage/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/landingpage/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "@/components/shared/ThemeToggle";
+import { FynanceLogo } from "@/components/shared/FynanceLogo";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -80,7 +81,7 @@ const Navigation = () => {
       <div className="mx-auto h-full px-4 sm:px-6">
         <nav className="flex items-center justify-between h-full">
           <div className="flex items-center gap-2">
-            <Command className="w-5 h-5 text-primary" />
+            <FynanceLogo size="sm" />
             <span className="font-bold text-base text-gray-900 dark:text-gray-100">Fynance</span>
           </div>
 

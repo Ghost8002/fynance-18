@@ -4,9 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
-import { Command, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
+import { FynanceLogo } from './FynanceLogo';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -26,20 +27,8 @@ const Navbar = () => {
         {/* Logo and Brand */}
         <div className="flex items-center space-x-3">
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6"
-              >
-                <path d="M12 1v22" />
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+              <FynanceLogo size="md" className="h-10 w-10" />
             </div>
             <div className="space-y-0.5">
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
@@ -56,22 +45,10 @@ const Navbar = () => {
 
         {/* Mobile Logo - Kept for backward compatibility but hidden */}
         <Link to="/" className="hidden flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-finance-primary to-finance-secondary text-white transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6"
-            >
-              <path d="M12 1v22" />
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
+            <FynanceLogo size="md" className="h-10 w-10" />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-finance-primary to-finance-secondary bg-clip-text text-transparent">
+          <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Fynance
           </span>
         </Link>
@@ -157,7 +134,7 @@ const Navbar = () => {
           ) : (
             <Link to="/login">
               <Button className="button-gradient text-white hover:shadow-lg transform hover:scale-105 transition-all duration-300 rounded-full px-6">
-                <Command className="w-4 h-4 mr-2" />
+                <FynanceLogo size="sm" className="h-4 w-4 mr-2" />
                 Entrar
               </Button>
             </Link>
