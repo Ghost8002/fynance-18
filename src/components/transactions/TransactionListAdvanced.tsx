@@ -14,7 +14,8 @@ import { toast } from "sonner";
 import TransactionFiltersAdvanced from "./TransactionFiltersAdvanced";
 import TransactionForm from "@/components/shared/TransactionForm";
 import TransactionTable from "./TransactionTable";
-import { useTransactionsPaginated, type TransactionFilters } from "@/hooks/useTransactionsPaginated";
+import { useTransactionsPaginatedServer } from "@/hooks/useTransactionsPaginatedServer";
+import { type TransactionFilters } from "@/hooks/types/transactionTypes";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { applyTransactionFilters } from "@/hooks/utils/transactionFilters";
@@ -49,7 +50,7 @@ const TransactionListAdvanced = () => {
     tags,
     subcategories,
     pagination,
-  } = useTransactionsPaginated(filters);
+  } = useTransactionsPaginatedServer(filters, { itemsPerPage: 50 });
 
   // Calculate summary data based on filtered transactions
   const summaryData = useMemo(() => {
