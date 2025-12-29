@@ -333,11 +333,11 @@ const AuthForm = () => {
           {/* Ícone Grande Animado */}
           <div className="mb-8 relative group">
             <div className="absolute inset-0 bg-white/20 rounded-3xl blur-2xl group-hover:bg-white/30 transition-all duration-500"></div>
-            <div className="relative transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-              <img 
-                src="/logo-light.svg" 
-                alt="Fynance" 
-                className="h-24 w-24"
+            <div className="relative rounded-3xl overflow-hidden transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+              <img
+                src="/logo-light.svg"
+                alt="Fynance"
+                className="h-24 w-24 rounded-3xl"
               />
             </div>
           </div>
