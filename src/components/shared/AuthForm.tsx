@@ -143,7 +143,7 @@ const AuthForm = () => {
             <div className="flex justify-center mb-4">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden transform group-hover:scale-110 transition-transform duration-300">
+                <div className="relative transform group-hover:scale-110 transition-transform duration-300">
                   <FynanceLogo size="lg" />
                 </div>
               </div>
@@ -333,15 +333,11 @@ const AuthForm = () => {
           {/* Ícone Grande Animado */}
           <div className="mb-8 relative group">
             <div className="absolute inset-0 bg-white/20 rounded-3xl blur-2xl group-hover:bg-white/30 transition-all duration-500"></div>
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 overflow-hidden">
+            <div className="relative transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
               <img 
                 src="/logo-light.svg" 
                 alt="Fynance" 
-                className="h-20 w-20"
-                onError={(e) => {
-                  // Fallback to imported logo if public path fails
-                  e.currentTarget.style.display = 'none';
-                }}
+                className="h-24 w-24"
               />
             </div>
           </div>
