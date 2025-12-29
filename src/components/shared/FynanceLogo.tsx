@@ -19,13 +19,13 @@ export function FynanceLogo({ size = 'md', className = '' }: FynanceLogoProps) {
       <img
         src={logoDark}
         alt="Fynance"
-        className={`${sizeClasses[size]} ${className} dark:hidden`}
+        className={`${sizeClasses[size]} ${className} dark:hidden rounded-xl`}
       />
       {/* Logo clara para tema escuro */}
       <img
         src={logoLight}
         alt="Fynance"
-        className={`${sizeClasses[size]} ${className} hidden dark:block`}
+        className={`${sizeClasses[size]} ${className} hidden dark:block rounded-xl`}
       />
     </>
   );
