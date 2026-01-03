@@ -15,7 +15,18 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo-light.svg', 'logo-dark.svg'],
+      includeAssets: [
+        'favicon.ico',
+        'logo-light.svg',
+        'logo-dark.svg',
+        'pwa-192x192.png',
+        'pwa-512x512.png',
+      ],
+      devOptions: {
+        // Permite instalar PWA também no preview/dev (Android precisa do service worker ativo)
+        enabled: true,
+        type: 'module',
+      },
       manifest: {
         name: 'Fynance - Controle Inteligente',
         short_name: 'Fynance',
@@ -29,30 +40,30 @@ export default defineConfig(({ mode }) => ({
           {
             src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png}'],
         globIgnores: [
           '**/banco-logos-temp/**',
           '**/Bancos-em-SVG-main/**',
-          '**/*.svg'
+          '**/*.svg',
         ],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
-      }
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
     })
   ].filter(Boolean),
   resolve: {
