@@ -35,7 +35,10 @@ export default defineConfig(({ mode }) => ({
         background_color: '#020617',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        // Abre direto no login quando instalado
+        id: '/login',
+        start_url: '/login',
+        scope: '/',
         icons: [
           {
             src: '/pwa-192x192.png',
