@@ -60,7 +60,7 @@ const queryClient = new QueryClient({
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
     <div className="flex flex-col items-center gap-4">
-      <img src={loadingGraph} alt="Carregando" className="h-16 w-16" />
+      <img src={loadingGraph} alt="Carregando" className="h-32 w-32" />
       <p className="text-muted-foreground">Carregando...</p>
     </div>
   </div>
