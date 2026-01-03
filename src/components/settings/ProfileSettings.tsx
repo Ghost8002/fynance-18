@@ -58,7 +58,6 @@ export default function ProfileSettings() {
       const file = event.target.files?.[0];
       if (!file || !user) return;
 
-      
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
@@ -73,11 +72,14 @@ export default function ProfileSettings() {
         .from('avatars')
         .getPublicUrl(filePath);
 
+      // Update local state and save to database immediately
       setLocalProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      await updateProfile({ avatar_url: publicUrl });
 
       toast({
         title: "Sucesso",
-        description: "Avatar enviado com sucesso!",
+        description: "Avatar atualizado com sucesso!",
       });
     } catch (error) {
       console.error('Error uploading avatar:', error);
@@ -86,7 +88,6 @@ export default function ProfileSettings() {
         description: "Não foi possível fazer upload do avatar.",
         variant: "destructive",
       });
-    } finally {
     }
   };
 
