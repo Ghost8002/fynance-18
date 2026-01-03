@@ -18,6 +18,7 @@ import TermsOfService from "./pages/TermsOfService";
 import Pricing from "./pages/Pricing";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CheckoutCanceled from "./pages/CheckoutCanceled";
+import ResetPassword from "./pages/ResetPassword";
 
 // Lazy loaded pages (code splitting)
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -82,6 +83,7 @@ const AppRoutes = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/checkout-success" element={<CheckoutSuccess />} />
         <Route path="/checkout-canceled" element={<CheckoutCanceled />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         {/* Protected routes - Portuguese */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

@@ -7,8 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles } from "lucide-react";
+import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles, ArrowLeft } from "lucide-react";
 import { FynanceLogo } from './FynanceLogo';
+
+// Email validation schema for forgot password
+const emailSchema = z.object({
+  email: z.string().trim().email('Email inválido').max(255, 'Email muito longo'),
+});
 
 // Validation schemas
 const loginSchema = z.object({
@@ -30,6 +35,7 @@ type FieldErrors = {
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -37,9 +43,11 @@ const AuthForm = () => {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const {
     signIn,
-    signUp
+    signUp,
+    resetPassword
   } = useAuth();
   const {
     toast
@@ -124,6 +132,52 @@ const AuthForm = () => {
     setEmail('');
     setPassword('');
     setFullName('');
+    setShowForgotPassword(false);
+    setForgotPasswordSuccess(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    const result = emailSchema.safeParse({ email });
+    if (!result.success) {
+      setFieldErrors({ email: result.error.errors[0].message });
+      return;
+    }
+    
+    setFieldErrors({});
+    setLoading(true);
+    
+    try {
+      const { error } = await resetPassword(email.trim());
+      
+      if (error) {
+        throw error;
+      }
+      
+      setForgotPasswordSuccess(true);
+      toast({
+        title: 'Email enviado!',
+        description: 'Verifique sua caixa de entrada para redefinir sua senha.',
+      });
+    } catch (error: any) {
+      // Generic message for security (don't reveal if email exists)
+      setForgotPasswordSuccess(true);
+      toast({
+        title: 'Email enviado!',
+        description: 'Se este email estiver cadastrado, você receberá um link para redefinir sua senha.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const backToLogin = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordSuccess(false);
+    setError('');
+    setFieldErrors({});
   };
 
   return (
@@ -160,10 +214,18 @@ const AuthForm = () => {
 
             <div className="pt-2">
               <h2 className="text-xl font-semibold text-foreground mb-1">
-                {isLogin ? 'Bem-vindo de volta!' : 'Comece sua jornada'}
+                {showForgotPassword 
+                  ? 'Recuperar senha' 
+                  : isLogin 
+                    ? 'Bem-vindo de volta!' 
+                    : 'Comece sua jornada'}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {isLogin ? 'Entre para acessar sua conta' : 'Crie sua conta gratuitamente'}
+                {showForgotPassword 
+                  ? 'Digite seu email para receber o link de recuperação'
+                  : isLogin 
+                    ? 'Entre para acessar sua conta' 
+                    : 'Crie sua conta gratuitamente'}
               </p>
             </div>
           </div>
@@ -175,7 +237,94 @@ const AuthForm = () => {
             
             {/* Card */}
             <div className="relative bg-card/95 backdrop-blur-xl rounded-3xl border border-border/50 shadow-2xl p-8 transition-all duration-300 hover:shadow-primary/10">
-              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              
+              {/* Forgot Password Form */}
+              {showForgotPassword ? (
+                forgotPasswordSuccess ? (
+                  <div className="space-y-6 text-center animate-fade-in">
+                    <div className="flex justify-center">
+                      <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Mail className="w-8 h-8 text-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Email enviado!</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Se este email estiver cadastrado, você receberá um link para redefinir sua senha.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={backToLogin}
+                      className="w-full h-12 rounded-xl"
+                      variant="outline"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Voltar ao login
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-5 animate-fade-in" noValidate>
+                    <div className="space-y-2">
+                      <Label htmlFor="forgot-email" className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-primary" />
+                        Email
+                      </Label>
+                      <Input 
+                        id="forgot-email" 
+                        type="email" 
+                        value={email} 
+                        onChange={e => {
+                          setEmail(e.target.value);
+                          if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }));
+                        }}
+                        placeholder="seu@email.com" 
+                        maxLength={255}
+                        className={`h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-xl ${fieldErrors.email ? 'border-destructive' : ''}`}
+                        aria-invalid={!!fieldErrors.email}
+                        autoFocus
+                      />
+                      {fieldErrors.email && (
+                        <p className="text-xs text-destructive mt-1">{fieldErrors.email}</p>
+                      )}
+                    </div>
+
+                    {error && (
+                      <Alert variant="destructive" className="animate-fade-in border-destructive/50 bg-destructive/10">
+                        <AlertDescription className="text-sm">{error}</AlertDescription>
+                      </Alert>
+                    )}
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300" 
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+                          <span>Enviando...</span>
+                        </div>
+                      ) : (
+                        'Enviar link de recuperação'
+                      )}
+                    </Button>
+
+                    <div className="text-center pt-4 border-t border-border/50">
+                      <button
+                        type="button"
+                        onClick={backToLogin}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+                      >
+                        <ArrowLeft className="w-4 h-4 inline mr-1" />
+                        Voltar ao login
+                      </button>
+                    </div>
+                  </form>
+                )
+              ) : (
+                /* Login/Signup Form */
+                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 {!isLogin && (
                   <div className="space-y-2 animate-fade-in">
                     <Label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -257,6 +406,15 @@ const AuthForm = () => {
                   {!isLogin && !fieldErrors.password && (
                     <p className="text-xs text-muted-foreground mt-1">Mínimo 8 caracteres</p>
                   )}
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-xs text-primary hover:underline mt-1"
+                    >
+                      Esqueceu sua senha?
+                    </button>
+                  )}
                 </div>
 
                 {error && (
@@ -285,7 +443,9 @@ const AuthForm = () => {
                   )}
                 </Button>
               </form>
+              )}
               
+              {!showForgotPassword && (
               <div className="text-center mt-6 pt-6 border-t border-border/50">
                 <button 
                   type="button" 
@@ -299,6 +459,7 @@ const AuthForm = () => {
                   )}
                 </button>
               </div>
+              )}
             </div>
           </div>
 
