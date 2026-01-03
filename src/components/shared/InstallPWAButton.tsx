@@ -45,10 +45,7 @@ const InstallPWAButton = () => {
               onClick={handleInstall}
               className="h-9 w-9 rounded-full hover:bg-primary/10 transition-all duration-300"
             >
-              <div className="relative">
-                <FynanceLogo size="sm" className="h-5 w-5" />
-                <Download className="h-3 w-3 absolute -bottom-1 -right-1 text-primary" />
-              </div>
+              <Download className="h-5 w-5 text-muted-foreground" />
               <span className="sr-only">Instalar App</span>
             </Button>
           </TooltipTrigger>
