@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/types/database';
 import { devLog, devError } from '@/utils/logger';
@@ -10,8 +10,9 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!userId) {
       setLoading(false);
       return;
@@ -20,7 +21,6 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
     try {
       setLoading(true);
       
-      // Regular fetch for all tables - tags are already stored in transactions.tags column
       const { data: result, error } = await supabase
         .from(table as any)
         .select('*')
@@ -40,18 +40,69 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [table, userId]);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!userId) return;
+
+    // Clean up previous channel if exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    // Create unique channel name
+    const channelName = `${table}-${userId}-${Date.now()}`;
+    
+    channelRef.current = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: table,
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          devLog(`Realtime ${table}:`, payload.eventType, payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setData(prev => {
+              // Avoid duplicates
+              const exists = prev.some(item => item.id === (payload.new as any).id);
+              if (exists) return prev;
+              return [...prev, payload.new];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            setData(prev => prev.map(item => 
+              item.id === (payload.new as any).id ? payload.new : item
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setData(prev => prev.filter(item => item.id !== (payload.old as any).id));
+          }
+        }
+      )
+      .subscribe((status) => {
+        devLog(`Realtime subscription ${table}:`, status);
+      });
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [table, userId]);
 
   useEffect(() => {
     fetchData();
-  }, [table, userId]);
+  }, [fetchData]);
 
   const insert = async (newData: any) => {
     try {
       devLog(`=== INSERT INTO ${table} ===`);
       devLog('Dados sendo inseridos:', JSON.stringify(newData, null, 2));
-      devLog('Tabela:', table);
-      devLog('User ID:', userId);
       
       const { data: result, error } = await supabase
         .from(table as any)
@@ -65,9 +116,15 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
         throw error;
       }
       
-      if (result) {
+      // Realtime will handle the update, but we also update locally for immediate feedback
+      if (result && Array.isArray(result)) {
         devLog(`✅ Inserção bem-sucedida em ${table}:`, result);
-        setData(prev => [...prev, ...result]);
+        setData(prev => {
+          const newItems = (result as any[]).filter(
+            (newItem: any) => !prev.some(existing => existing.id === newItem.id)
+          );
+          return [...prev, ...newItems];
+        });
       }
       
       return { data: result, error: null };
@@ -76,9 +133,6 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
       let errorMessage = 'An error occurred';
       
       if (err instanceof Error) {
-        devError('Mensagem de erro:', err.message);
-        devError('Stack trace:', err.stack);
-        
         if (err.message.includes('duplicate key')) {
           errorMessage = 'Dados duplicados';
         } else if (err.message.includes('invalid input')) {
@@ -108,9 +162,10 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
 
       if (error) throw error;
       
+      // Realtime will handle this, but update locally for immediate feedback
       if (result && Array.isArray(result) && result.length > 0) {
         const updatedItem = result[0];
-        if (updatedItem && typeof updatedItem === 'object' && updatedItem !== null && !Array.isArray(updatedItem)) {
+        if (updatedItem && typeof updatedItem === 'object') {
           setData(prev => prev.map(item => 
             item.id === id ? { ...item, ...(updatedItem as Record<string, any>) } : item
           ));
@@ -134,6 +189,7 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
 
       if (error) throw error;
       
+      // Realtime will handle this, but update locally for immediate feedback
       setData(prev => prev.filter(item => item.id !== id));
       
       return { error: null };
@@ -144,9 +200,9 @@ export const useSupabaseData = (table: TableName, userId?: string) => {
     }
   };
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     fetchData();
-  };
+  }, [fetchData]);
 
   return { 
     data, 
