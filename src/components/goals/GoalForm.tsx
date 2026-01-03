@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Target, Plus } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import TagSelector from "@/components/shared/TagSelector";
 
@@ -31,7 +31,7 @@ const GoalForm = () => {
   });
 
   const { user } = useSupabaseAuth();
-  const { insert } = useSupabaseData('goals', user?.id);
+  const { insert } = useRealtimeData('goals');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

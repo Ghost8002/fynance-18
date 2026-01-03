@@ -4,12 +4,12 @@ import AppLayout from "@/components/shared/AppLayout";
 import GoalForm from "@/components/goals/GoalForm";
 import GoalProgress from "@/components/goals/GoalProgress";
 import GoalEditForm from "@/components/goals/GoalEditForm";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { Target } from "lucide-react";
 
 const Goals = () => {
   const { user } = useAuth();
-  const { data: goals, refetch } = useSupabaseData('goals', user?.id);
+  const { data: goals, refetch } = useRealtimeData('goals');
   const [editingGoal, setEditingGoal] = useState<any>(null);
   const [showEditForm, setShowEditForm] = useState(false);
 
