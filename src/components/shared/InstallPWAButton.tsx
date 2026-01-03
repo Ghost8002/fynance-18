@@ -16,17 +16,37 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const InstallPWAButton = () => {
   const { isInstallable, isInstalled, isIOS, promptInstall } = usePWAInstall();
+  const { toast } = useToast();
   const [showIOSDialog, setShowIOSDialog] = useState(false);
 
   const handleInstall = async () => {
+    // iOS não permite prompt automático: só dá para orientar "Adicionar à Tela de Início"
     if (isIOS) {
       setShowIOSDialog(true);
       return;
     }
-    await promptInstall();
+
+    if (!isInstallable) {
+      toast({
+        title: 'Instalação ainda não disponível',
+        description:
+          'No Android, o botão de instalar aparece após abrir no Chrome e o app cumprir os requisitos de PWA. Tente atualizar e aguarde alguns segundos.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const accepted = await promptInstall();
+    toast({
+      title: accepted ? 'Instalando…' : 'Instalação cancelada',
+      description: accepted
+        ? 'O Android vai adicionar o app na tela inicial.'
+        : 'Se quiser, tente novamente.',
+    });
   };
 
   // Don't show if already installed
@@ -50,7 +70,7 @@ const InstallPWAButton = () => {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Instalar Fynance</p>
+            <p>{isIOS ? 'Adicionar à tela inicial' : 'Instalar Fynance'}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -63,7 +83,7 @@ const InstallPWAButton = () => {
               Instalar Fynance
             </DialogTitle>
             <DialogDescription>
-              Para instalar o Fynance no seu iPhone ou iPad:
+              No iPhone/iPad a Apple não permite instalação automática. Siga os passos:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -72,7 +92,7 @@ const InstallPWAButton = () => {
                 1
               </div>
               <p className="text-sm text-muted-foreground pt-1">
-                Toque no botão <strong>Compartilhar</strong> (ícone de quadrado com seta) na barra do Safari
+                Toque em <strong>Compartilhar</strong> (quadrado com seta) no Safari
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -80,7 +100,7 @@ const InstallPWAButton = () => {
                 2
               </div>
               <p className="text-sm text-muted-foreground pt-1">
-                Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong>
+                Role e toque em <strong>"Adicionar à Tela de Início"</strong>
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -88,7 +108,7 @@ const InstallPWAButton = () => {
                 3
               </div>
               <p className="text-sm text-muted-foreground pt-1">
-                Toque em <strong>"Adicionar"</strong> no canto superior direito
+                Toque em <strong>"Adicionar"</strong>
               </p>
             </div>
           </div>
