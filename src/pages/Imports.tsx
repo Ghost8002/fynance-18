@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/shared/AppLayout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Receipt, FileText, Database, Upload, CreditCard, TrendingUp, BarChart3, Clock } from "lucide-react";
+import { Receipt, FileText, Database, Upload, CreditCard, TrendingUp, BarChart3, Clock, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Imports = () => {
@@ -58,6 +58,16 @@ const Imports = () => {
     features: ["JSON estruturado", "Validação automática", "Importação rápida"],
     to: "/importacoes/json",
     comingSoon: false
+  }, {
+    id: "whatsapp",
+    title: "Importar do WhatsApp",
+    description: "Importe transações via conversas do WhatsApp",
+    icon: MessageCircle,
+    color: "bg-gradient-to-br from-green-400 to-green-500",
+    status: "Em breve",
+    features: ["Leitura de mensagens", "Extração automática", "IA integrada"],
+    to: "/importacoes/whatsapp",
+    comingSoon: true
   }, {
     id: "accounts",
     title: "Contas Bancárias",
