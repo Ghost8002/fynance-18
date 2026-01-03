@@ -34,44 +34,41 @@ export const PeriodSummary = ({
   
   return (
     <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-          <span className="truncate">
-            Resumo do Período: {format(startDate, "dd/MM/yyyy", { locale: ptBR })} - {format(endDate, "dd/MM/yyyy", { locale: ptBR })}
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <CardTitle className="flex flex-col gap-1 text-sm sm:text-base">
+          <span className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4 flex-shrink-0" />
+            Resumo do Período:
+          </span>
+          <span className="text-xs sm:text-sm font-normal text-muted-foreground">
+            {format(startDate, "dd/MM/yyyy", { locale: ptBR })} - {format(endDate, "dd/MM/yyyy", { locale: ptBR })}
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-center sm:text-left">
-            <div className="p-1.5 sm:p-2 rounded-full bg-yellow-100 dark:bg-yellow-900/20">
-              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" />
+      <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/20 flex-shrink-0">
+              <TrendingUp className="h-3 w-3 text-yellow-600" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">{pendingLabel}</p>
-              <p className="text-sm sm:text-lg font-semibold text-yellow-600 truncate">{formatCurrency(totalPending)}</p>
-            </div>
+            <span className="text-xs text-muted-foreground">{pendingLabel}</span>
+            <span className="text-sm font-semibold text-yellow-600 ml-auto">{formatCurrency(totalPending)}</span>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-center sm:text-left">
-            <div className="p-1.5 sm:p-2 rounded-full bg-green-100 dark:bg-green-900/20">
-              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-full bg-green-100 dark:bg-green-900/20 flex-shrink-0">
+              <TrendingUp className="h-3 w-3 text-green-600" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">{completedLabel}</p>
-              <p className="text-sm sm:text-lg font-semibold text-green-600 truncate">{formatCurrency(totalCompleted)}</p>
-            </div>
+            <span className="text-xs text-muted-foreground">{completedLabel}</span>
+            <span className="text-sm font-semibold text-green-600 ml-auto">{formatCurrency(totalCompleted)}</span>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-center sm:text-left">
-            <div className="p-1.5 sm:p-2 rounded-full bg-red-100 dark:bg-red-900/20">
-              <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-full bg-red-100 dark:bg-red-900/20 flex-shrink-0">
+              <TrendingDown className="h-3 w-3 text-red-600" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">Em Atraso</p>
-              <p className="text-sm sm:text-lg font-semibold text-red-600 truncate">{formatCurrency(totalOverdue)}</p>
-            </div>
+            <span className="text-xs text-muted-foreground">Em Atraso</span>
+            <span className="text-sm font-semibold text-red-600 ml-auto">{formatCurrency(totalOverdue)}</span>
           </div>
         </div>
       </CardContent>
