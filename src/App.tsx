@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { SubscriptionProvider } from "@/context/SubscriptionContext";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { Loader2 } from "lucide-react";
+import loadingGraph from "@/assets/loading-graph.gif";
 
 // Eager loaded pages (critical path)
 import LandingPage from "@/landingpage/LandingPage";
@@ -60,7 +60,7 @@ const queryClient = new QueryClient({
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
     <div className="flex flex-col items-center gap-4">
-      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <img src={loadingGraph} alt="Carregando" className="h-16 w-16" />
       <p className="text-muted-foreground">Carregando...</p>
     </div>
   </div>

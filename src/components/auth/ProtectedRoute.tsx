@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/context/SubscriptionContext';
-import { Loader2 } from 'lucide-react';
+import loadingGraph from '@/assets/loading-graph.gif';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, requireSubscription = true }: ProtectedRoute
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <img src={loadingGraph} alt="Carregando" className="h-16 w-16" />
           <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
