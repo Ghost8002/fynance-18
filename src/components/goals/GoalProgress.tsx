@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -42,7 +42,7 @@ interface GoalProgressProps {
 
 const GoalProgress = ({ goals, onAddProgress, onEdit, onDelete }: GoalProgressProps) => {
   const { user } = useSupabaseAuth();
-  const { remove } = useSupabaseData('goals', user?.id);
+  const { remove } = useRealtimeData('goals');
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

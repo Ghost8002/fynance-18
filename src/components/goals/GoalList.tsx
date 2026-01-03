@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Target, Calendar, Edit, Trash2, Plus } from "lucide-react";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import TransactionForm from "@/components/shared/TransactionForm";
@@ -44,7 +44,7 @@ const calculatePercentage = (current: number, target: number) => {
 
 const GoalList = () => {
   const { user } = useSupabaseAuth();
-  const { data: goals, loading, error, remove, refetch } = useSupabaseData('goals', user?.id);
+  const { data: goals, loading, error, remove, refetch } = useRealtimeData('goals');
   const { toast } = useToast();
 
   const handleDelete = async (id: string, title: string) => {

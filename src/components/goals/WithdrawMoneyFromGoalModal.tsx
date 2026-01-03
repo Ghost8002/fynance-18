@@ -18,7 +18,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowDown, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,8 +42,8 @@ const WithdrawMoneyFromGoalModal = ({
 }: WithdrawMoneyFromGoalModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { data: goals } = useSupabaseData('goals', user?.id);
+  const { data: accounts } = useRealtimeData('accounts');
+  const { data: goals } = useRealtimeData('goals');
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
