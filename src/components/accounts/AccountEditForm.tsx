@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import ColorPicker from "@/components/shared/ColorPicker";
 
@@ -42,7 +42,7 @@ const AccountEditForm = ({ account, isOpen, onClose, onSuccess }: AccountEditFor
   });
 
   const { user } = useSupabaseAuth();
-  const { update } = useSupabaseData('accounts', user?.id);
+  const { update } = useRealtimeData('accounts');
   const { toast } = useToast();
 
 

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, ArrowUpIcon, ArrowDownIcon, Edit, Trash2, TrendingUp } from "lucide-react";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
@@ -35,10 +35,10 @@ const AccountList = () => {
     error,
     remove,
     refetch
-  } = useSupabaseData('accounts', user?.id);
+  } = useRealtimeData('accounts');
   const {
     data: transactions
-  } = useSupabaseData('transactions', user?.id);
+  } = useRealtimeData('transactions');
   const {
     updateAccountBalance
   } = useBalanceUpdates();

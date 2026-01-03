@@ -13,7 +13,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Loader2, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useTransactionFormSubmit } from "@/hooks/useTransactionFormSubmit";
 import TransactionTypeSelector from "./TransactionTypeSelector";
@@ -41,9 +41,9 @@ const TransactionForm = ({
   forceOpen = false
 }: TransactionFormProps) => {
   const { user } = useAuth();
-  const { data: categories } = useSupabaseData('categories', user?.id);
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { data: cards } = useSupabaseData('cards', user?.id);
+  const { data: categories } = useRealtimeData('categories');
+  const { data: accounts } = useRealtimeData('accounts');
+  const { data: cards } = useRealtimeData('cards');
   
   const [open, setOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

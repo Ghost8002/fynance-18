@@ -11,7 +11,7 @@ import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt,
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useDebitsWithTags } from "@/hooks/useDebitsWithTags";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
@@ -150,19 +150,19 @@ const DebtList: React.FC<DebtListProps> = ({
   } = useDebitsWithTags();
   const {
     data: accounts
-  } = useSupabaseData('accounts', user?.id);
+  } = useRealtimeData('accounts');
   const {
     data: categories
-  } = useSupabaseData('categories', user?.id);
+  } = useRealtimeData('categories');
   const {
     data: subcategories
-  } = useSupabaseData('subcategories', user?.id);
+  } = useRealtimeData('subcategories');
   const {
     data: tags
-  } = useSupabaseData('tags', user?.id);
+  } = useRealtimeData('tags');
   const {
     data: cards
-  } = useSupabaseData('cards', user?.id);
+  } = useRealtimeData('cards');
   const {
     updateAccountBalance
   } = useBalanceUpdates();

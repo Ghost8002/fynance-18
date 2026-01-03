@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import TagSelector from "@/components/shared/TagSelector";
 import CategorySelector from "@/components/shared/CategorySelector";
@@ -53,19 +53,19 @@ const TransactionEditForm = ({
   } = useSupabaseAuth();
   const {
     update
-  } = useSupabaseData('transactions', user?.id);
+  } = useRealtimeData('transactions');
   const {
     data: categories = []
-  } = useSupabaseData('categories', user?.id);
+  } = useRealtimeData('categories');
   const {
     data: accounts = []
-  } = useSupabaseData('accounts', user?.id);
+  } = useRealtimeData('accounts');
   const {
     data: cards = []
-  } = useSupabaseData('cards', user?.id);
+  } = useRealtimeData('cards');
   const {
     data: tags = []
-  } = useSupabaseData('tags', user?.id);
+  } = useRealtimeData('tags');
   const {
     toast
   } = useToast();
