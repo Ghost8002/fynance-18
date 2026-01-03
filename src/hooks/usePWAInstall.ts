@@ -1,13 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+// Armazena o prompt globalmente para não perder se o evento disparar antes do componente montar
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+
+// Captura o evento assim que o script carrega (antes de qualquer React montar)
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e: Event) => {
+    console.log('[PWA] beforeinstallprompt captured globally');
+    e.preventDefault();
+    globalDeferredPrompt = e as BeforeInstallPromptEvent;
+  });
+}
+
 export const usePWAInstall = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
+  const [isInstallable, setIsInstallable] = useState(!!globalDeferredPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
@@ -19,17 +31,17 @@ export const usePWAInstall = () => {
       return;
     }
 
-    // Debug: helps us understand why install isn't available on some Android devices
-    console.log('[PWA] init', {
-      ua: navigator.userAgent,
-      isStandalone,
-      hasSW: 'serviceWorker' in navigator,
-    });
+    // Se o prompt global já existe, usa ele
+    if (globalDeferredPrompt) {
+      setDeferredPrompt(globalDeferredPrompt);
+      setIsInstallable(true);
+    }
 
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('[PWA] beforeinstallprompt fired');
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      globalDeferredPrompt = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(globalDeferredPrompt);
       setIsInstallable(true);
     };
 
@@ -38,17 +50,11 @@ export const usePWAInstall = () => {
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
+      globalDeferredPrompt = null;
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-
-    // If SW is ready but beforeinstallprompt doesn't fire (Chrome heuristics), we still allow showing guidance UI.
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready
-        .then(() => console.log('[PWA] service worker ready'))
-        .catch((err) => console.log('[PWA] service worker not ready', err));
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -56,29 +62,37 @@ export const usePWAInstall = () => {
     };
   }, []);
 
-  const promptInstall = async () => {
-    if (!deferredPrompt) {
-      // For iOS, show instructions
+  const promptInstall = useCallback(async () => {
+    const prompt = deferredPrompt || globalDeferredPrompt;
+    
+    if (!prompt) {
+      console.log('[PWA] No install prompt available');
       return false;
     }
 
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setIsInstallable(false);
+    try {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setIsInstallable(false);
+        globalDeferredPrompt = null;
+      }
+      
+      return outcome === 'accepted';
+    } catch (err) {
+      console.log('[PWA] Install prompt error', err);
+      return false;
     }
-    
-    return outcome === 'accepted';
-  };
+  }, [deferredPrompt]);
 
   const isIOS = () => {
     return /iPad|iPhone|iPod/.test(navigator.userAgent);
   };
 
   return {
-    isInstallable,
+    isInstallable: isInstallable || !!globalDeferredPrompt,
     isInstalled,
     isIOS: isIOS(),
     promptInstall
