@@ -105,15 +105,6 @@ const InstallPWAButton = () => {
             </div>
           </div>
           
-          {/* Exemplo visual */}
-          <div className="flex justify-center">
-            <img 
-              src="/images/android-install-example.png" 
-              alt="Exemplo de instalação" 
-              className="rounded-lg border border-border/50 max-w-[200px]"
-            />
-          </div>
-          
           <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
             <Download className="h-4 w-4 text-primary shrink-0" />
             <p className="text-xs text-muted-foreground">
