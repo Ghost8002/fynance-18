@@ -71,7 +71,7 @@ const navigationSections = [{
 }];
 export function AppSidebar() {
   const location = useLocation();
-  return <Sidebar className="border-r border-border glass backdrop-blur-xl">
+  return <Sidebar className="glass backdrop-blur-xl">
       <SidebarContent className="bg-background/95 backdrop-blur-xl">
         {/* Logo Section */}
         <div className="px-6 py-4 border-b border-border flex items-center">
