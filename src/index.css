@@ -81,8 +81,8 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
+    --border: 217 32% 22%;
+    --input: 217 32% 22%;
     --ring: 203 73% 37%;
 
     /* Finance specific dark mode variables */
@@ -100,9 +100,9 @@
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 203 73% 37%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 217 32% 17%;
+    --sidebar-accent: 217 32% 22%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 32% 17%;
+    --sidebar-border: 217 32% 25%;
     --sidebar-ring: 203 73% 37%;
   }
 }
