@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { FynanceLogo } from './FynanceLogo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import InstallPWAButton from './InstallPWAButton';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -109,6 +110,7 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
+          <InstallPWAButton />
           <ThemeToggle />
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
