@@ -40,19 +40,51 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user has a valid recovery session
+    // Listen for PASSWORD_RECOVERY event when user clicks the reset link
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event, session?.user?.email);
+        
+        if (event === 'PASSWORD_RECOVERY') {
+          // User clicked the password reset link and is now in recovery mode
+          setIsValidSession(true);
+          setCheckingSession(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          // User might already be authenticated from the recovery link
+          setIsValidSession(true);
+          setCheckingSession(false);
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          setIsValidSession(true);
+          setCheckingSession(false);
+        }
+      }
+    );
+
+    // Also check for existing session (in case page was refreshed after recovery)
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
         setIsValidSession(true);
+        setCheckingSession(false);
       } else {
-        setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
+        // Wait a bit for the auth state change to process the URL tokens
+        setTimeout(() => {
+          setCheckingSession(prevChecking => {
+            if (prevChecking) {
+              // Still no session after waiting, show error
+              setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
+              return false;
+            }
+            return prevChecking;
+          });
+        }, 3000);
       }
-      setCheckingSession(false);
     };
 
     checkSession();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const validateForm = (): boolean => {
