@@ -8,10 +8,11 @@ import { User } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { FynanceLogo } from './FynanceLogo';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
-  const { getDisplayName, getInitials, loading: profileLoading, fetchProfile, onProfileUpdated } = useUserProfile();
+  const { profile, getDisplayName, getInitials, loading: profileLoading, fetchProfile, onProfileUpdated } = useUserProfile();
 
   useEffect(() => {
     // Listen for profile updates and force refetch to bypass cache
@@ -112,9 +113,12 @@ const Navbar = () => {
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
               <div className="hidden sm:flex items-center space-x-3 px-4 py-2 bg-primary/5 rounded-full border border-border">
-                <div className="p-1 bg-primary/10 rounded-full">
-                  <User className="h-4 w-4 text-primary" />
-                </div>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="text-sm">
                   <span className="block text-muted-foreground text-xs">Bem-vindo,</span>
                   <span className="font-semibold text-foreground">
