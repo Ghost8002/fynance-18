@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
 import { FynanceLogo } from '../shared/FynanceLogo';
+import InstallPWAButton from '../shared/InstallPWAButton';
 
 export function MobileHeader() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -23,6 +24,7 @@ export function MobileHeader() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-1">
+          <InstallPWAButton />
           <ThemeToggle />
           {isAuthenticated && (
             <Button 
