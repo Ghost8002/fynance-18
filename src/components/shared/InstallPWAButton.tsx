@@ -104,6 +104,12 @@ const InstallPWAButton = () => {
               </p>
             </div>
           </div>
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <Download className="h-4 w-4 text-primary shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <strong>Dica:</strong> Você também pode tocar no botão <Download className="inline h-3 w-3" /> no <strong>canto inferior direito</strong> da tela para instalar.
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
 
