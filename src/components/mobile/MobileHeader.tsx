@@ -10,7 +10,7 @@ export function MobileHeader() {
   const { user, logout, isAuthenticated } = useAuth();
 
   return (
-    <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border">
+    <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border">
       <div className="flex items-center justify-between px-3 py-2">
         {/* Logo */}
         <Link to="/dashboard" className="flex items-center space-x-1.5">

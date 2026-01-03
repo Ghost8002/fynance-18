@@ -14,24 +14,24 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background w-full flex">
-        {/* Desktop Sidebar - Hidden on mobile */}
-        <div className="hidden md:block">
+        {/* Desktop Sidebar - Hidden on mobile + tablet */}
+        <div className="hidden lg:block">
           <AppSidebar />
         </div>
         
         <div className="flex-1 flex flex-col min-w-0 w-full">
-          {/* Desktop Navbar - Hidden on mobile */}
-          <div className="hidden md:block">
+          {/* Desktop Navbar - Hidden on mobile + tablet */}
+          <div className="hidden lg:block">
             <Navbar />
           </div>
 
-          {/* Mobile Header - Visible only on mobile */}
+          {/* Mobile/Tablet Header */}
           <MobileHeader />
           
           {/* Main Content */}
-          <main className="flex-1 overflow-auto pb-16 md:pb-0 pt-[49px] md:pt-[73px]">
+          <main className="flex-1 overflow-auto pb-16 lg:pb-0 pt-[49px] lg:pt-[73px]">
             <div className="section-padding">
-              <div className="max-w-7xl mx-auto py-3 md:py-8">
+              <div className="max-w-7xl mx-auto py-3 lg:py-8">
                 <div className="animate-fade-in">
                   {children}
                 </div>
@@ -39,7 +39,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </div>
           </main>
 
-          {/* Mobile Bottom Navigation - Visible only on mobile */}
+          {/* Mobile/Tablet Bottom Navigation */}
           <BottomNav />
         </div>
       </div>
