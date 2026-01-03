@@ -19,13 +19,22 @@ export const usePWAInstall = () => {
       return;
     }
 
+    // Debug: helps us understand why install isn't available on some Android devices
+    console.log('[PWA] init', {
+      ua: navigator.userAgent,
+      isStandalone,
+      hasSW: 'serviceWorker' in navigator,
+    });
+
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('[PWA] beforeinstallprompt fired');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
     const handleAppInstalled = () => {
+      console.log('[PWA] appinstalled');
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
@@ -33,6 +42,13 @@ export const usePWAInstall = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
+
+    // If SW is ready but beforeinstallprompt doesn't fire (Chrome heuristics), we still allow showing guidance UI.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready
+        .then(() => console.log('[PWA] service worker ready'))
+        .catch((err) => console.log('[PWA] service worker not ready', err));
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

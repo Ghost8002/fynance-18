@@ -16,12 +16,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 const InstallPWAButton = () => {
   const { isInstallable, isInstalled, isIOS, promptInstall } = usePWAInstall();
-  const { toast } = useToast();
   const [showIOSDialog, setShowIOSDialog] = useState(false);
+  const [showAndroidDialog, setShowAndroidDialog] = useState(false);
 
   const handleInstall = async () => {
     // iOS não permite prompt automático: só dá para orientar "Adicionar à Tela de Início"
@@ -30,32 +29,17 @@ const InstallPWAButton = () => {
       return;
     }
 
+    // Android: se o prompt nativo não estiver disponível (heurísticas do Chrome), mostramos instruções.
     if (!isInstallable) {
-      toast({
-        title: 'Instalação ainda não disponível',
-        description:
-          'No Android, o botão de instalar aparece após abrir no Chrome e o app cumprir os requisitos de PWA. Tente atualizar e aguarde alguns segundos.',
-        variant: 'destructive',
-      });
+      setShowAndroidDialog(true);
       return;
     }
 
-    const accepted = await promptInstall();
-    toast({
-      title: accepted ? 'Instalando…' : 'Instalação cancelada',
-      description: accepted
-        ? 'O Android vai adicionar o app na tela inicial.'
-        : 'Se quiser, tente novamente.',
-    });
+    await promptInstall();
   };
 
   // Don't show if already installed
   if (isInstalled) {
-    return null;
-  }
-
-  // No Android, só exibir quando o app for realmente instalável (evita "erro" ao clicar)
-  if (!isIOS && !isInstallable) {
     return null;
   }
 
@@ -79,6 +63,46 @@ const InstallPWAButton = () => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      <Dialog open={showAndroidDialog} onOpenChange={setShowAndroidDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FynanceLogo size="sm" className="h-6 w-6" />
+              Instalar no Android
+            </DialogTitle>
+            <DialogDescription>
+              O Chrome às vezes não libera o botão automático. Você ainda consegue instalar assim:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
+                1
+              </div>
+              <p className="text-sm text-muted-foreground pt-1">
+                Toque no menu <strong>⋮</strong> do Chrome
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
+                2
+              </div>
+              <p className="text-sm text-muted-foreground pt-1">
+                Toque em <strong>"Instalar app"</strong> ou <strong>"Adicionar à tela inicial"</strong>
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
+                3
+              </div>
+              <p className="text-sm text-muted-foreground pt-1">
+                Confirme em <strong>"Instalar"</strong>
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showIOSDialog} onOpenChange={setShowIOSDialog}>
         <DialogContent className="sm:max-w-md">
