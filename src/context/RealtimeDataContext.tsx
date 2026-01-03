@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { devLog, devError } from '@/utils/logger';
 
-type TableName = 'goals' | 'transactions' | 'accounts' | 'categories' | 'tags' | 'debts' | 'receivable_payments' | 'cards';
+type TableName = 'goals' | 'transactions' | 'accounts' | 'categories' | 'tags' | 'debts' | 'receivable_payments' | 'cards' | 'budgets' | 'subcategories';
 
 interface RealtimeDataState {
   [key: string]: any[];
@@ -22,7 +22,7 @@ interface RealtimeDataContextType {
 
 const RealtimeDataContext = createContext<RealtimeDataContextType | undefined>(undefined);
 
-const REALTIME_TABLES: TableName[] = ['goals', 'transactions', 'accounts', 'categories', 'tags', 'debts', 'receivable_payments', 'cards'];
+const REALTIME_TABLES: TableName[] = ['goals', 'transactions', 'accounts', 'categories', 'tags', 'debts', 'receivable_payments', 'cards', 'budgets', 'subcategories'];
 
 export const RealtimeDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();

@@ -7,7 +7,7 @@ import ReceivableList from "@/components/receivables/ReceivableList";
 import ReceivableStats from "@/components/receivables/ReceivableStats";
 import DebtList from "@/components/debts/DebtList";
 import DebtStats from "@/components/debts/DebtStats";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 
 const AccountsAndDebts = () => {
@@ -17,10 +17,10 @@ const AccountsAndDebts = () => {
   // Simple month navigation state
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const { data: payments, refetch: refetchPayments } = useSupabaseData('receivable_payments', user?.id);
-  const { data: debts, refetch: refetchDebts } = useSupabaseData('debts', user?.id);
-  const { data: categories } = useSupabaseData('categories', user?.id);
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
+  const { data: payments, refetch: refetchPayments } = useRealtimeData('receivable_payments');
+  const { data: debts, refetch: refetchDebts } = useRealtimeData('debts');
+  const { data: categories } = useRealtimeData('categories');
+  const { data: accounts } = useRealtimeData('accounts');
 
   // Calculate current month date range
   const monthStart = startOfMonth(currentMonth);

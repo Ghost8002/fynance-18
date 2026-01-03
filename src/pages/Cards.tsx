@@ -11,7 +11,7 @@ import { CardBill } from "@/components/cards/CardBill";
 import { CardInstallments } from "@/components/cards/CardInstallments";
 import { CardTransactions } from "@/components/cards/CardTransactions";
 import { CardLimitManagement } from "@/components/cards/CardLimitManagement";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useCardDebtsIntegration } from "@/hooks/useCardDebtsIntegration";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,7 +22,7 @@ import { CreditCard, RefreshCw } from "lucide-react";
 const Cards = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const { data: cards, refetch: refetchCards } = useSupabaseData('cards', user?.id);
+  const { data: cards, refetch: refetchCards } = useRealtimeData('cards');
   const { syncAllCardDebts, loadingBills } = useCardDebtsIntegration();
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
