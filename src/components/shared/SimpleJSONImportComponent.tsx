@@ -9,7 +9,6 @@ import {
   FileText,
   CheckCircle,
   AlertTriangle,
-  Loader2,
   X,
   Download,
   Info,
@@ -18,6 +17,7 @@ import {
   Eye,
   MessageSquare,
 } from "lucide-react";
+import loadingGraph from "@/assets/loading-graph.gif";
 import { useJSONImport } from "@/hooks/useJSONImport";
 import { ImportedTransaction } from "@/hooks/useImport";
 import { AccountSelector } from "./AccountSelector";
@@ -458,7 +458,7 @@ const SimpleJSONImportComponent: React.FC = () => {
           >
             {importing ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <img src={loadingGraph} alt="Carregando" className="mr-2 h-5 w-5" />
                 Importando...
               </>
             ) : (
