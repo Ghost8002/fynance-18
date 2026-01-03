@@ -23,19 +23,22 @@ const InstallPWAButton = () => {
   const [showAndroidDialog, setShowAndroidDialog] = useState(false);
 
   const handleInstall = async () => {
+    // Tenta sempre o prompt nativo primeiro (funciona no Android/Chrome)
+    if (isInstallable) {
+      const accepted = await promptInstall();
+      if (accepted) return;
+      // Se usuário cancelou, não mostra dialog
+      return;
+    }
+
     // iOS não permite prompt automático: só dá para orientar "Adicionar à Tela de Início"
     if (isIOS) {
       setShowIOSDialog(true);
       return;
     }
 
-    // Android: se o prompt nativo não estiver disponível (heurísticas do Chrome), mostramos instruções.
-    if (!isInstallable) {
-      setShowAndroidDialog(true);
-      return;
-    }
-
-    await promptInstall();
+    // Android: se o prompt nativo não estiver disponível, mostramos instruções.
+    setShowAndroidDialog(true);
   };
 
   // Don't show if already installed
