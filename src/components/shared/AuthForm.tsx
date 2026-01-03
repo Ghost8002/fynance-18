@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Command, Eye, EyeOff, Mail, Lock, User, Sparkles, ArrowLeft } from "lucide-react";
 import { FynanceLogo } from './FynanceLogo';
+import InstallPWAButton from './InstallPWAButton';
 
 // Email validation schema for forgot password
 const emailSchema = z.object({
@@ -182,6 +183,10 @@ const AuthForm = () => {
 
   return (
     <div className="min-h-screen h-screen flex overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Install PWA (mobile) */}
+      <div className="absolute top-3 right-3 z-20 lg:hidden">
+        <InstallPWAButton />
+      </div>
       {/* Background Decorativo Animado */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>

@@ -54,6 +54,11 @@ const InstallPWAButton = () => {
     return null;
   }
 
+  // No Android, só exibir quando o app for realmente instalável (evita "erro" ao clicar)
+  if (!isIOS && !isInstallable) {
+    return null;
+  }
+
   return (
     <>
       <TooltipProvider>
