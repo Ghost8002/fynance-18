@@ -22,6 +22,11 @@ export const useSubscription = () => {
   return context;
 };
 
+// Emails com acesso premium sem necessidade de assinatura
+const WHITELISTED_EMAILS = [
+  'salesdesouzamatheus@gmail.com'
+];
+
 export const SUBSCRIPTION_TIERS = {
   pro: {
     price_id: "price_1SjPFoA4lDqvdenye62OTC3B",
@@ -44,6 +49,17 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setIsSubscribed(false);
       setProductId(null);
       setSubscriptionEnd(null);
+      return;
+    }
+
+    // Verifica se o email está na whitelist
+    const userEmail = user?.email?.toLowerCase();
+    if (userEmail && WHITELISTED_EMAILS.includes(userEmail)) {
+      setIsSubscribed(true);
+      setProductId(SUBSCRIPTION_TIERS.pro.product_id);
+      setSubscriptionEnd(null);
+      setHasCheckedOnce(true);
+      setIsLoading(false);
       return;
     }
 
@@ -73,7 +89,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.access_token, hasCheckedOnce]);
+  }, [session?.access_token, user?.email, hasCheckedOnce]);
 
   const openCheckout = useCallback(async () => {
     if (!session?.access_token) {
