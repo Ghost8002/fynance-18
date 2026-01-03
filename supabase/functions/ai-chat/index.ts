@@ -136,6 +136,33 @@ serve(async (req) => {
       throw new Error('Message too long. Please keep messages under 1000 characters.');
     }
 
+    // Sanitize user input - remove potential injection patterns
+    const sanitizedMessage = message
+      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/\[INST\]|\[\/INST\]|\[\[.*?\]\]/gi, '') // Remove common injection patterns
+      .replace(/system:|assistant:|user:/gi, '') // Remove role markers
+      .trim();
+
+    if (sanitizedMessage.length === 0) {
+      throw new Error('Invalid message content');
+    }
+
+    // Check for suspicious patterns
+    const suspiciousPatterns = [
+      /ignore.*previous.*instructions/i,
+      /disregard.*above/i,
+      /forget.*everything/i,
+      /new.*instructions/i,
+      /pretend.*you.*are/i,
+      /act.*as.*if/i,
+    ];
+
+    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(sanitizedMessage));
+    if (isSuspicious) {
+      console.warn('Suspicious input detected:', sanitizedMessage.substring(0, 100));
+    }
+
     // Build system prompt - user message is now passed as a separate user role message
     let systemPromptContent = systemPrompt;
     if (!systemPromptContent && userData) {
@@ -157,7 +184,7 @@ serve(async (req) => {
         model: 'llama-3.1-8b-instant',
         messages: [
           { role: 'system', content: systemPromptContent },
-          { role: 'user', content: message }
+          { role: 'user', content: sanitizedMessage }
         ],
         max_tokens: 500,
         temperature: 0.7,
