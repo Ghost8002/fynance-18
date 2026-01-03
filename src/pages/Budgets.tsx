@@ -4,7 +4,7 @@ import AppLayout from "@/components/shared/AppLayout";
 import BudgetList from "@/components/budgets/BudgetList";
 import BudgetForm from "@/components/budgets/BudgetForm";
 import BudgetAlert from "@/components/budgets/BudgetAlert";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -13,9 +13,9 @@ import { parseLocalDate } from "@/utils/dateValidation";
 
 const Budgets = () => {
   const { user } = useAuth();
-  const { data: budgets } = useSupabaseData('budgets', user?.id);
-  const { data: categories } = useSupabaseData('categories', user?.id);
-  const { data: transactions } = useSupabaseData('transactions', user?.id);
+  const { data: budgets } = useRealtimeData('budgets');
+  const { data: categories } = useRealtimeData('categories');
+  const { data: transactions } = useRealtimeData('transactions');
 
   // Calculate budget statistics
   const budgetStats = useMemo(() => {

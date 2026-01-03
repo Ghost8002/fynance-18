@@ -12,7 +12,7 @@ import { usePeriodFilter } from "@/hooks/usePeriodFilter";
 import { useDashboardCustomization } from "@/hooks/useDashboardCustomization";
 import { FinancialDebugPanel } from "@/components/dashboard/FinancialDebugPanel";
 import { useFinancialPeriod } from "@/hooks/useFinancialPeriod";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FinancialSummaryMobile from "@/components/dashboard/mobile/FinancialSummaryMobile";
@@ -28,9 +28,9 @@ const Dashboard = () => {
   const { isWidgetVisible } = useDashboardCustomization();
   const { user } = useSupabaseAuth();
   const { getFinancialPeriod, filterTransactionsByPeriod } = useFinancialPeriod();
-  const { data: transactions } = useSupabaseData('transactions', user?.id);
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
-  const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: transactions } = useRealtimeData('transactions');
+  const { data: accounts } = useRealtimeData('accounts');
+  const { data: categories } = useRealtimeData('categories');
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: undefined,
     to: undefined
