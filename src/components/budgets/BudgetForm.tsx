@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PiggyBank } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import CategorySelector from "@/components/shared/CategorySelector";
 import { dateToLocalDateString } from "@/utils/dateValidation";
@@ -35,8 +35,8 @@ const BudgetForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { user } = useSupabaseAuth();
-  const { data: categories } = useSupabaseData('categories', user?.id);
-  const { insert } = useSupabaseData('budgets', user?.id);
+  const { data: categories } = useRealtimeData('categories');
+  const { insert } = useRealtimeData('budgets');
   const { toast } = useToast();
 
   // Filter expense categories only

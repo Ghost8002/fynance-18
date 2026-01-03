@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Search, MoreVertical, Edit2, Trash2, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -35,7 +35,7 @@ interface CardData {
 export const CardList = ({ onCardSelect, selectedCard }: CardListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: cards, loading, error, remove, refetch } = useSupabaseData('cards', user?.id);
+  const { data: cards, loading, error, remove, refetch } = useRealtimeData('cards');
   const { customBanks } = useCustomBanks();
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Plus, Trash2, Search, Filter, SortAsc, SortDesc, Calendar, DollarSign } from "lucide-react";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -22,9 +22,9 @@ const formatCurrency = (value: number) => {
 
 const BudgetList = () => {
   const { user } = useSupabaseAuth();
-  const { data: budgets, loading, error, remove } = useSupabaseData('budgets', user?.id);
-  const { data: categories } = useSupabaseData('categories', user?.id);
-  const { data: transactions } = useSupabaseData('transactions', user?.id);
+  const { data: budgets, loading, error, remove } = useRealtimeData('budgets');
+  const { data: categories } = useRealtimeData('categories');
+  const { data: transactions } = useRealtimeData('transactions');
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");

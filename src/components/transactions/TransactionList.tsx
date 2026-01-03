@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemo, useState } from "react";
 import TransactionEditForm from "./TransactionEditForm";
@@ -28,10 +28,10 @@ import { parseLocalDate, compareDateStrings } from "@/utils/dateValidation";
 
 const TransactionList = () => {
   const { user } = useAuth();
-  const { data: transactions = [], loading, error, remove, refetch } = useSupabaseData('transactions', user?.id);
-  const { data: categories = [] } = useSupabaseData('categories', user?.id);
-  const { data: accounts = [] } = useSupabaseData('accounts', user?.id);
-  const { data: cards = [] } = useSupabaseData('cards', user?.id);
+  const { data: transactions = [], loading, error, remove, refetch } = useRealtimeData('transactions');
+  const { data: categories = [] } = useRealtimeData('categories');
+  const { data: accounts = [] } = useRealtimeData('accounts');
+  const { data: cards = [] } = useRealtimeData('cards');
   const { toast } = useToast();
 
   const [selectedTransactionForEdit, setSelectedTransactionForEdit] = useState<any>(null);

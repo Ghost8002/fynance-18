@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Wallet } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import BankSelector from "@/components/shared/BankSelector";
 import ColorPicker from "@/components/shared/ColorPicker";
@@ -33,7 +33,7 @@ const AccountForm = () => {
   });
 
   const { user } = useSupabaseAuth();
-  const { insert } = useSupabaseData('accounts', user?.id);
+  const { insert } = useRealtimeData('accounts');
   const { toast } = useToast();
 
 

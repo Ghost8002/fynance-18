@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Plus } from "lucide-react";
 import TagSelector from "@/components/shared/TagSelector";
@@ -35,7 +35,7 @@ interface CardFormData {
 export const CardForm = ({ onCardAdded }: CardFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { insert } = useSupabaseData('cards', user?.id);
+  const { insert } = useRealtimeData('cards');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CardFormData>({
