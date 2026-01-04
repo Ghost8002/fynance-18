@@ -274,6 +274,18 @@ export default function PricingPage() {
                   </Button>
                 )}
 
+                {/* Botão Continuar Teste - apenas para quem está em trial */}
+                {isInTrial && (
+                  <Button 
+                    onClick={() => navigate('/dashboard')} 
+                    variant="outline"
+                    className="w-full h-12"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Continuar teste ({formatTimeRemaining(trialTimeRemaining)})
+                  </Button>
+                )}
+
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Shield className="h-4 w-4" />
                   <span>Pagamento seguro via Stripe</span>
