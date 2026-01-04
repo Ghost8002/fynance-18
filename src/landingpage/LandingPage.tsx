@@ -104,7 +104,7 @@ const LandingPage = () => {
       {/* Testimonials Section */}
       <SectionSpotlight intensity={0.05}>
         <div className="bg-gray-50 dark:bg-gray-800">
-          <TestimonialsSection />
+          
         </div>
       </SectionSpotlight>
 
