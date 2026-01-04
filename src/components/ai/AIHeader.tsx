@@ -20,26 +20,26 @@ const AIHeader = ({
 }: AIHeaderProps) => {
   return (
     <div className="sticky top-0 z-10 backdrop-blur-md bg-background/95 border-b border-border/50">
-      <div className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-              <Bot className="h-6 w-6 text-primary-foreground" />
+      <div className="p-3 sm:p-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shrink-0">
+              <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Assistente Financeiro IA
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent truncate">
+                Assistente IA
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                 Seu consultor financeiro pessoal inteligente
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {chatHistoryLength > 0 && (
-              <Badge variant="secondary" className="text-xs font-medium px-3 py-1">
-                {chatHistoryLength} {chatHistoryLength === 1 ? 'mensagem' : 'mensagens'}
+              <Badge variant="secondary" className="text-[10px] sm:text-xs font-medium px-1.5 sm:px-3 py-0.5 sm:py-1 hidden xs:flex">
+                {chatHistoryLength}
               </Badge>
             )}
             
@@ -48,7 +48,7 @@ const AIHeader = ({
               size="sm"
               onClick={onShowHistory}
               disabled={loading}
-              className="hover:bg-secondary/80 border-border/50"
+              className="hover:bg-secondary/80 border-border/50 h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
             >
               <History className="h-4 w-4" />
               <span className="ml-2 hidden sm:inline">Histórico</span>
@@ -59,10 +59,10 @@ const AIHeader = ({
               size="sm"
               onClick={onNewChat}
               disabled={loading}
-              className="hover:bg-primary/10 hover:text-primary border-primary/20"
+              className="hover:bg-primary/10 hover:text-primary border-primary/20 h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
             >
               <Plus className="h-4 w-4" />
-              <span className="ml-2 hidden sm:inline">Nova Conversa</span>
+              <span className="ml-2 hidden sm:inline">Nova</span>
             </Button>
             
             {chatHistoryLength > 0 && (
@@ -71,7 +71,7 @@ const AIHeader = ({
                 size="sm"
                 onClick={onClearHistory}
                 disabled={loading}
-                className="hover:bg-destructive/10 hover:text-destructive"
+                className="hover:bg-destructive/10 hover:text-destructive h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="ml-2 hidden sm:inline">Limpar</span>

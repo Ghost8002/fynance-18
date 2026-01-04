@@ -103,20 +103,19 @@ const AIChatInput = ({
     }
   };
   return <div className="sticky bottom-0 backdrop-blur-md bg-background/95 border-t border-border/50">
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-end gap-3">
+          <div className="flex items-end gap-1.5 sm:gap-3">
             <div className="flex-1">
-              <Input ref={inputRef} value={message} onChange={e => setMessage(e.target.value)} onKeyPress={handleKeyPress} placeholder="Digite sua pergunta sobre finanças..." disabled={loading} maxLength={500} className="min-h-[48px] text-base rounded-xl border-border/50 bg-card/50 backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20" />
-              
+              <Input ref={inputRef} value={message} onChange={e => setMessage(e.target.value)} onKeyPress={handleKeyPress} placeholder="Digite sua pergunta..." disabled={loading} maxLength={500} className="min-h-[44px] sm:min-h-[48px] text-sm sm:text-base rounded-xl border-border/50 bg-card/50 backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20 px-3 sm:px-4" />
             </div>
             
-            <Button onClick={toggleVoiceInput} disabled={loading} size="lg" variant={isListening ? "default" : "outline"} className={`h-12 w-12 rounded-xl transition-all duration-200 ${isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'hover:bg-accent'}`} title="Reconhecimento de voz">
-              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            <Button onClick={toggleVoiceInput} disabled={loading} size="lg" variant={isListening ? "default" : "outline"} className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl transition-all duration-200 ${isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'hover:bg-accent'}`} title="Reconhecimento de voz">
+              {isListening ? <MicOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Mic className="h-4 w-4 sm:h-5 sm:w-5" />}
             </Button>
 
-            <Button onClick={handleSendMessage} disabled={loading || !message.trim()} size="lg" className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+            <Button onClick={handleSendMessage} disabled={loading || !message.trim()} size="lg" className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
+              {loading ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <Send className="h-4 w-4 sm:h-5 sm:w-5" />}
             </Button>
           </div>
         </div>
