@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, Menu, PiggyBank } from 'lucide-react';
+import { LayoutDashboard, Receipt, CreditCard, Menu, PiggyBank, Bot } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PrefetchLink } from '@/components/shared/PrefetchLink';
@@ -21,20 +21,20 @@ const primaryNavItems = [
     href: '/cartoes'
   },
   {
-    title: 'Orçamentos',
-    icon: PiggyBank,
-    href: '/orcamentos'
+    title: 'IA',
+    icon: Bot,
+    href: '/assistente-ia'
   }
 ];
 
 const menuItems = [
+  { title: 'Orçamentos', href: '/orcamentos', icon: '💰' },
   { title: 'Calendário', href: '/calendario', icon: '📅' },
   { title: 'A Receber e Pagar', href: '/contas-dividas', icon: '📄' },
   { title: 'Contas Bancárias', href: '/contas', icon: '💳' },
   { title: 'Metas', href: '/metas', icon: '🎯' },
   { title: 'Investimentos', href: '/investimentos', icon: '📈' },
   { title: 'Relatórios', href: '/relatorios', icon: '📊' },
-  { title: 'Assistente IA', href: '/assistente-ia', icon: '🤖' },
   { title: 'Importações', href: '/importacoes', icon: '📥' },
   { title: 'Configurações', href: '/configuracoes', icon: '⚙️' },
   { title: 'Ajuda', href: '/ajuda', icon: '❓' }
