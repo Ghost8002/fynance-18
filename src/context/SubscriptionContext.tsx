@@ -2,11 +2,19 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
+// Duração do trial em milissegundos (10 minutos)
+const TRIAL_DURATION_MS = 10 * 60 * 1000;
+
 type SubscriptionContextType = {
   isSubscribed: boolean;
   productId: string | null;
   subscriptionEnd: string | null;
   isLoading: boolean;
+  // Trial
+  isInTrial: boolean;
+  trialEndsAt: Date | null;
+  trialTimeRemaining: number; // em milissegundos
+  isTrialExpired: boolean;
   checkSubscription: () => Promise<void>;
   openCheckout: () => Promise<void>;
   openCustomerPortal: () => Promise<void>;
@@ -43,6 +51,38 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasCheckedOnce, setHasCheckedOnce] = useState(false);
+  
+  // Trial state
+  const [trialEndsAt, setTrialEndsAt] = useState<Date | null>(null);
+  const [trialTimeRemaining, setTrialTimeRemaining] = useState(0);
+
+  // Calcula se está em trial baseado no created_at do usuário
+  const isInTrial = !isSubscribed && trialEndsAt !== null && trialTimeRemaining > 0;
+  const isTrialExpired = !isSubscribed && trialEndsAt !== null && trialTimeRemaining <= 0;
+
+  // Atualiza o tempo restante do trial a cada segundo
+  useEffect(() => {
+    if (!user?.created_at || isSubscribed) {
+      setTrialEndsAt(null);
+      setTrialTimeRemaining(0);
+      return;
+    }
+
+    const userCreatedAt = new Date(user.created_at);
+    const trialEnd = new Date(userCreatedAt.getTime() + TRIAL_DURATION_MS);
+    setTrialEndsAt(trialEnd);
+
+    const updateRemaining = () => {
+      const now = new Date();
+      const remaining = Math.max(0, trialEnd.getTime() - now.getTime());
+      setTrialTimeRemaining(remaining);
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+
+    return () => clearInterval(interval);
+  }, [user?.created_at, isSubscribed]);
 
   const checkSubscription = useCallback(async (showLoading = false) => {
     if (!session?.access_token) {
@@ -173,6 +213,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         productId,
         subscriptionEnd,
         isLoading,
+        isInTrial,
+        trialEndsAt,
+        trialTimeRemaining,
+        isTrialExpired,
         checkSubscription,
         openCheckout,
         openCustomerPortal,

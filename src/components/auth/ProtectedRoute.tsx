@@ -13,7 +13,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requireSubscription = true }: ProtectedRouteProps) => {
   const { isAuthenticated, loading } = useAuth();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, isInTrial, isTrialExpired } = useSubscription();
   const location = useLocation();
 
   // Prefetch critical routes when authenticated
@@ -36,8 +36,15 @@ const ProtectedRoute = ({ children, requireSubscription = true }: ProtectedRoute
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Redirect to pricing if subscription is required but user is not subscribed
-  if (requireSubscription && !isSubscribed) {
+  // Permite acesso se: está assinado, está em trial, ou não requer assinatura
+  const hasAccess = isSubscribed || isInTrial || !requireSubscription;
+
+  // Redireciona para pricing se o trial expirou e não está assinado
+  if (requireSubscription && isTrialExpired && !isSubscribed) {
+    return <Navigate to="/precos" state={{ from: location }} replace />;
+  }
+
+  if (requireSubscription && !hasAccess) {
     return <Navigate to="/precos" state={{ from: location }} replace />;
   }
 
