@@ -2,8 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
-// Duração do trial em milissegundos (10 minutos)
-const TRIAL_DURATION_MS = 10 * 60 * 1000;
+// Duração do trial em milissegundos (30 minutos)
+const TRIAL_DURATION_MS = 30 * 60 * 1000;
 
 type SubscriptionContextType = {
   isSubscribed: boolean;
