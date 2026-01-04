@@ -170,7 +170,7 @@ export const HeroSection = () => {
           opacity: 1
         }} transition={{
           delay: 0.8
-        }} className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border/50">
+        }} className="mt-6 sm:mt-8 pt-6 sm:pt-8">
             <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
