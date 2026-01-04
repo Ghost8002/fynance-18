@@ -18,20 +18,18 @@ const stats = [{
   decimals: 1
 }];
 export const HeroSection = () => {
-  return <motion.section initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    duration: 0.5
-  }} className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 md:pt-40 pb-16 md:pb-24">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background" />
-      
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-        {/* Left column - Text content */}
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="relative w-full pt-28 sm:pt-32 md:pt-40 pb-16 md:pb-24"
+    >
+      {/* Background (handled by SectionSpotlight wrapper) */}
+
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Left column - Text content */}
         <div className="relative z-10">
           {/* Floating badges */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
@@ -287,5 +285,7 @@ export const HeroSection = () => {
           </div>
         </motion.div>
       </div>
-    </motion.section>;
+    </div>
+    </motion.section>
+  );
 };

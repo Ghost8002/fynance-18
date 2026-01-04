@@ -117,6 +117,15 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Garante que #root não fique "preso" em max-width/padding de CSS legado */
+  #root {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-geist tracking-tight;
   }

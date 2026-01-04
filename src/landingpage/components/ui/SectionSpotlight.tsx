@@ -47,7 +47,7 @@ export const SectionSpotlight = ({
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300"
         style={{
           opacity: isActive ? intensity : 0,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(36, 113, 156, 0.2), transparent 40%)`,
+          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, hsl(var(--primary) / 0.18), transparent 40%)`,
         }}
       />
       <div className="relative z-10">

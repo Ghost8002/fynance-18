@@ -49,7 +49,7 @@ const benefits = [
 
 export const BenefitsSection = () => {
   return (
-    <section className="py-16 sm:py-20 md:py-24 bg-muted/30">
+    <section className="py-16 sm:py-20 md:py-24 bg-background">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
