@@ -47,6 +47,7 @@ const Subcategories = lazy(() => import("./pages/Subcategories"));
 const SubcategoryTest = lazy(() => import("./components/categories/SubcategoryTest"));
 const TestSubcategoryCreation = lazy(() => import("./components/categories/TestSubcategoryCreation"));
 const CostCenterAnalysis = lazy(() => import("./pages/CostCenterAnalysis"));
+const Investments = lazy(() => import("./pages/Investments"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +96,7 @@ const AppRoutes = () => {
         <Route path="/controle" element={<ProtectedRoute><Control /></ProtectedRoute>} />
         <Route path="/orcamentos" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
         <Route path="/metas" element={<ProtectedRoute><Goals /></ProtectedRoute>} />
+        <Route path="/investimentos" element={<ProtectedRoute><Investments /></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="/calendario" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
         <Route path="/assistente-ia" element={<ProtectedRoute><AIAssistantPage /></ProtectedRoute>} />

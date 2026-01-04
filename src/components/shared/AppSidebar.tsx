@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Shield, FileDown } from 'lucide-react';
+import { LayoutDashboard, Receipt, CreditCard, PiggyBank, BarChart3, Target, Settings, Calendar, Wallet, HelpCircle, FileText, Bot, Shield, FileDown, TrendingUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { FynanceLogo } from './FynanceLogo';
 
@@ -44,6 +44,10 @@ const navigationSections = [{
     title: 'Metas',
     icon: Target,
     href: '/metas'
+  }, {
+    title: 'Investimentos',
+    icon: TrendingUp,
+    href: '/investimentos'
   }, {
     title: 'Relatórios',
     icon: BarChart3,

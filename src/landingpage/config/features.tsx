@@ -8,8 +8,8 @@ export const features = [
     image: "/landingpage/lovable-uploads/86329743-ee49-4f2e-96f7-50508436273d.png"
   },
   {
-    title: "Controle de Patrimônio",
-    description: "Saiba exatamente quanto você tem. Acompanhe seus bens e investimentos crescendo mês a mês.",
+    title: "Investimentos e Patrimônio",
+    description: "Acompanhe sua carteira de investimentos, simule cenários com calculadoras financeiras e veja seu patrimônio crescer mês a mês.",
     icon: <Wallet className="w-6 h-6" />,
     image: "/landingpage/lovable-uploads/7335619d-58a9-41ad-a233-f7826f56f3e9.png"
   },
