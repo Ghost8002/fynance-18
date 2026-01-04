@@ -16,10 +16,6 @@ const faqs = [
     answer: "Absolutamente! Não há fidelidade ou multa de cancelamento. Você pode cancelar sua assinatura a qualquer momento diretamente pelo painel, sem burocracia.",
   },
   {
-    question: "Preciso conectar minha conta bancária?",
-    answer: "Não é obrigatório! Você pode adicionar suas transações manualmente ou importar extratos. A conexão bancária é opcional e oferece mais praticidade.",
-  },
-  {
     question: "Funciona para empresas também?",
     answer: "O Fynance foi desenhado para finanças pessoais e de pequenos empreendedores. Para empresas maiores, entre em contato conosco para soluções personalizadas.",
   },
