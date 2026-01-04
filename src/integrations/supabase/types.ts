@@ -787,6 +787,110 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_transactions: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          investment_id: string
+          notes: string | null
+          price: number
+          quantity: number
+          total_amount: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          investment_id: string
+          notes?: string | null
+          price?: number
+          quantity?: number
+          total_amount: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          investment_id?: string
+          notes?: string | null
+          price?: number
+          quantity?: number
+          total_amount?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_transactions_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investments: {
+        Row: {
+          average_price: number
+          created_at: string
+          current_price: number
+          id: string
+          index_type: string | null
+          institution: string | null
+          interest_rate: number | null
+          maturity_date: string | null
+          name: string
+          notes: string | null
+          purchase_date: string | null
+          quantity: number
+          ticker: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_price?: number
+          created_at?: string
+          current_price?: number
+          id?: string
+          index_type?: string | null
+          institution?: string | null
+          interest_rate?: number | null
+          maturity_date?: string | null
+          name: string
+          notes?: string | null
+          purchase_date?: string | null
+          quantity?: number
+          ticker?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_price?: number
+          created_at?: string
+          current_price?: number
+          id?: string
+          index_type?: string | null
+          institution?: string | null
+          interest_rate?: number | null
+          maturity_date?: string | null
+          name?: string
+          notes?: string | null
+          purchase_date?: string | null
+          quantity?: number
+          ticker?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       receivable_payment_tags: {
         Row: {
           created_at: string

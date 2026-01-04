@@ -32,6 +32,7 @@ const menuItems = [
   { title: 'A Receber e Pagar', href: '/contas-dividas', icon: '📄' },
   { title: 'Contas Bancárias', href: '/contas', icon: '💳' },
   { title: 'Metas', href: '/metas', icon: '🎯' },
+  { title: 'Investimentos', href: '/investimentos', icon: '📈' },
   { title: 'Relatórios', href: '/relatorios', icon: '📊' },
   { title: 'Assistente IA', href: '/assistente-ia', icon: '🤖' },
   { title: 'Importações', href: '/importacoes', icon: '📥' },
