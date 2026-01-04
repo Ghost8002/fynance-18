@@ -12,11 +12,11 @@ const guarantees = [
 
 export const FinalCTASection = () => {
   return (
-    <section className="py-24 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
+    <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -top-20 -right-20 sm:-top-40 sm:-right-40 w-40 h-40 sm:w-80 sm:h-80 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 sm:-bottom-40 sm:-left-40 w-40 h-40 sm:w-80 sm:h-80 bg-primary/10 rounded-full blur-3xl" />
       </div>
 
       <div className="container px-4 relative z-10">
@@ -30,20 +30,21 @@ export const FinalCTASection = () => {
             initial={{ scale: 0.9 }}
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-finance-green/10 text-finance-green text-sm font-medium mb-6"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-finance-green/10 text-finance-green text-xs sm:text-sm font-medium mb-4 sm:mb-6"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Oferta especial por tempo limitado
           </motion.div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-            Comece a organizar suas<br />
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 px-2">
+            Comece a organizar suas
+            <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>
             <span className="text-gradient">finanças hoje mesmo</span>
           </h2>
 
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Junte-se a mais de 10.000 pessoas que já transformaram sua relação com o dinheiro. 
-            Seu eu do futuro vai agradecer.
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+            Junte-se a mais de 10.000 pessoas que já transformaram sua relação com o dinheiro.
           </p>
 
           {/* Price highlight */}
@@ -51,14 +52,14 @@ export const FinalCTASection = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-flex flex-col items-center gap-2 mb-8 p-6 rounded-2xl bg-card border-2 border-primary/20"
+            className="inline-flex flex-col items-center gap-1.5 sm:gap-2 mb-6 sm:mb-8 p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-card border-2 border-primary/20"
           >
-            <span className="text-muted-foreground">Acesso completo por apenas</span>
+            <span className="text-sm sm:text-base text-muted-foreground">Acesso completo por apenas</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-5xl md:text-6xl font-bold text-foreground">R$ 15</span>
-              <span className="text-xl text-muted-foreground">/mês</span>
+              <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground">R$ 15</span>
+              <span className="text-lg sm:text-xl text-muted-foreground">/mês</span>
             </div>
-            <span className="text-sm text-finance-green font-medium">
+            <span className="text-xs sm:text-sm text-finance-green font-medium">
               Menos de R$ 0,50 por dia
             </span>
           </motion.div>
@@ -68,12 +69,12 @@ export const FinalCTASection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
-            <Link to="/auth">
-              <Button size="lg" className="button-gradient text-lg px-12 py-7 h-auto shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all">
+            <Link to="/auth" className="inline-block w-full sm:w-auto">
+              <Button size="lg" className="button-gradient text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-7 h-auto shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all w-full sm:w-auto">
                 Quero começar agora
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
           </motion.div>
@@ -83,12 +84,12 @@ export const FinalCTASection = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="flex flex-wrap justify-center gap-6"
+            className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-3 sm:gap-6"
           >
             {guarantees.map((guarantee, index) => (
-              <span key={index} className="flex items-center gap-2 text-muted-foreground">
-                <Check className="w-5 h-5 text-finance-green" />
-                {guarantee}
+              <span key={index} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-finance-green flex-shrink-0" />
+                <span>{guarantee}</span>
               </span>
             ))}
           </motion.div>

@@ -15,16 +15,16 @@ const features = [
 
 export const PricingSection = () => {
   return (
-    <section id="pricing" className="container px-4 py-24 bg-background">
-      <div className="max-w-3xl mx-auto text-center mb-16">
+    <section id="pricing" className="container px-4 py-16 sm:py-20 md:py-24 bg-background">
+      <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="inline-flex items-center gap-2 bg-finance-green/10 text-finance-green rounded-full px-4 py-2 mb-6"
+          className="inline-flex items-center gap-1.5 sm:gap-2 bg-finance-green/10 text-finance-green rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6"
         >
-          <Gift className="w-4 h-4" />
-          <span className="text-sm font-medium">7 dias grátis para testar</span>
+          <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span className="text-xs sm:text-sm font-medium">7 dias grátis para testar</span>
         </motion.div>
         
         <motion.h2
@@ -32,9 +32,11 @@ export const PricingSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1, duration: 0.5 }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground"
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-6 text-foreground px-2"
         >
-          Um plano simples.<br />
+          Um plano simples.
+          <br className="hidden sm:block" />
+          <span className="sm:hidden"> </span>
           <span className="text-gradient">Acesso a tudo.</span>
         </motion.h2>
         
@@ -43,9 +45,9 @@ export const PricingSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-lg text-muted-foreground max-w-2xl mx-auto"
+          className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-2"
         >
-          Sem pegadinhas, sem planos confusos. Um valor único que cabe no seu bolso.
+          Sem pegadinhas. Um valor único que cabe no seu bolso.
         </motion.p>
       </div>
 
@@ -59,32 +61,32 @@ export const PricingSection = () => {
         <CardSpotlight className="border-2 border-primary bg-card overflow-hidden relative">
           {/* Popular badge */}
           <div className="absolute -top-px left-1/2 -translate-x-1/2">
-            <div className="bg-primary text-primary-foreground px-6 py-1.5 text-sm font-semibold rounded-b-lg shadow-lg">
+            <div className="bg-primary text-primary-foreground px-4 sm:px-6 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-b-lg shadow-lg">
               Mais popular
             </div>
           </div>
           
-          <div className="relative p-8 md:p-10 pt-12">
+          <div className="relative p-5 sm:p-8 md:p-10 pt-10 sm:pt-12">
             {/* Price comparison */}
-            <div className="text-center mb-8">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-lg text-muted-foreground line-through">R$ 49</span>
-                <span className="px-2 py-0.5 rounded bg-finance-green/10 text-finance-green text-sm font-medium">
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
+                <span className="text-base sm:text-lg text-muted-foreground line-through">R$ 49</span>
+                <span className="px-2 py-0.5 rounded bg-finance-green/10 text-finance-green text-xs sm:text-sm font-medium">
                   -70% OFF
                 </span>
               </div>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-6xl md:text-7xl font-bold text-foreground">R$ 15</span>
-                <span className="text-xl text-muted-foreground">/mês</span>
+                <span className="text-5xl sm:text-6xl md:text-7xl font-bold text-foreground">R$ 15</span>
+                <span className="text-lg sm:text-xl text-muted-foreground">/mês</span>
               </div>
-              <p className="text-muted-foreground mt-2 flex items-center justify-center gap-2">
-                <Clock className="w-4 h-4" />
+              <p className="text-sm sm:text-base text-muted-foreground mt-2 flex items-center justify-center gap-2">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Menos de R$ 0,50 por dia
               </p>
             </div>
             
             {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
               {features.map((feature, index) => (
                 <motion.div
                   key={index}
@@ -92,37 +94,37 @@ export const PricingSection = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
+                  className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg bg-muted/50"
                 >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <feature.icon className="w-5 h-5 text-primary" />
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </div>
-                  <span className="text-sm text-foreground">{feature.text}</span>
+                  <span className="text-xs sm:text-sm text-foreground">{feature.text}</span>
                 </motion.div>
               ))}
             </div>
             
             {/* CTA Button */}
-            <Link to="/auth">
-              <Button className="button-gradient w-full text-lg py-6 shadow-lg shadow-primary/25" size="lg">
+            <Link to="/auth" className="block">
+              <Button className="button-gradient w-full text-base sm:text-lg py-5 sm:py-6 shadow-lg shadow-primary/25" size="lg">
                 Começar 7 Dias Grátis
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
             
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-finance-green" />
-                <span>Sem cartão de crédito</span>
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
+                <span>Sem cartão</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-finance-green" />
-                <span>Cancele a qualquer momento</span>
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
+                <span>Cancele quando quiser</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-finance-green" />
-                <span>Dados criptografados</span>
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
+                <span>Dados seguros</span>
               </div>
             </div>
           </div>

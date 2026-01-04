@@ -66,12 +66,8 @@ const Navigation = () => {
     name: "Preços",
     href: "#pricing",
     onClick: () => scrollToSection('pricing')
-  }, {
-    name: "Depoimentos",
-    href: "#testimonials",
-    onClick: () => scrollToSection('testimonials')
   }];
-  
+
   return (
     <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 rounded-full ${
       isScrolled 

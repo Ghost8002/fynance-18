@@ -34,27 +34,29 @@ const features = [
 
 export const FeaturesGrid = () => {
   return (
-    <section id="features" className="py-24 bg-muted/20">
+    <section id="features" className="py-16 sm:py-20 md:py-24 bg-muted/20">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+          <span className="inline-block px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium mb-3 sm:mb-4">
             Funcionalidades
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Tudo que você precisa para<br />
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4 px-2">
+            Tudo que você precisa para
+            <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>
             <span className="text-gradient">dominar suas finanças</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Ferramentas profissionais em uma interface simples. Desenvolvido por pessoas que entendem de finanças pessoais.
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
+            Ferramentas profissionais em uma interface simples.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -62,24 +64,24 @@ export const FeaturesGrid = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative bg-card rounded-2xl p-8 border border-border hover:border-primary/50 hover:shadow-xl transition-all duration-300"
+              className="group relative bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 border border-border hover:border-primary/50 hover:shadow-xl transition-all duration-300"
             >
-              <div className={`w-14 h-14 rounded-xl bg-${feature.color}/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                <feature.icon className={`w-7 h-7 text-${feature.color}`} />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform">
+                <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary" />
               </div>
               
-              <h3 className="text-2xl font-bold text-foreground mb-3">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 sm:mb-3">
                 {feature.title}
               </h3>
               
-              <p className="text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
                 {feature.description}
               </p>
               
-              <ul className="space-y-2">
+              <ul className="space-y-1.5 sm:space-y-2">
                 {feature.highlights.map((highlight, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="w-4 h-4 text-finance-green flex-shrink-0" />
+                  <li key={i} className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green flex-shrink-0" />
                     {highlight}
                   </li>
                 ))}
