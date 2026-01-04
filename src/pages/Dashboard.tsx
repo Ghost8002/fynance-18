@@ -21,6 +21,7 @@ import BudgetProgressMobile from "@/components/dashboard/mobile/BudgetProgressMo
 import GoalTrackerMobile from "@/components/dashboard/mobile/GoalTrackerMobile";
 import CardOverviewMobile from "@/components/dashboard/mobile/CardOverviewMobile";
 import RecentTransactionsMobile from "@/components/dashboard/mobile/RecentTransactionsMobile";
+import { TrialBanner } from "@/components/shared/TrialBanner";
 
 const Dashboard = () => {
   const isMobile = useIsMobile();
@@ -97,6 +98,9 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className={isMobile ? "space-y-3" : "space-y-6"}>
+        {/* Trial Banner */}
+        <TrialBanner compact={isMobile} />
+
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
