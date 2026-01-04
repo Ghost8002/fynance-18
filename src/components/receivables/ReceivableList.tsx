@@ -526,74 +526,61 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
       </Card>;
   }
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Summary Cards - Grid 2x2 no mobile */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pendente</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Pendente</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{formatCurrency(totals.pending)}</div>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-base sm:text-2xl font-bold text-yellow-600">{formatCurrency(totals.pending)}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Recebido</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(totals.received)}</div>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-base sm:text-2xl font-bold text-green-600">{formatCurrency(totals.received)}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total em Atraso</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Em Atraso</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{formatCurrency(totals.overdue)}</div>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-base sm:text-2xl font-bold text-red-600">{formatCurrency(totals.overdue)}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Geral</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Geral</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totals.total)}</div>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-base sm:text-2xl font-bold">{formatCurrency(totals.total)}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters and Actions */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <CardTitle>Pagamentos a Receber</CardTitle>
-              
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={onPreviousMonth}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="text-sm font-medium px-2">
-                {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
-              </div>
-              <Button variant="outline" size="sm" onClick={onNextMonth}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              
+        <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base sm:text-xl">A Receber</CardTitle>
               <Dialog open={showForm} onOpenChange={setShowForm}>
                 <DialogTrigger asChild>
-                  <Button onClick={() => setSelectedReceivable(null)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Pagamento
+                  <Button size="sm" className="h-8 sm:h-9 text-xs sm:text-sm" onClick={() => setSelectedReceivable(null)}>
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Novo Pagamento</span>
+                    <span className="sm:hidden">Novo</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{selectedReceivable ? 'Editar Pagamento' : 'Novo Pagamento'}</DialogTitle>
                   </DialogHeader>
@@ -601,8 +588,19 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                 </DialogContent>
               </Dialog>
             </div>
+            
+            <div className="flex items-center justify-center gap-2">
+              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={onPreviousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="text-xs sm:text-sm font-medium min-w-[100px] sm:min-w-[140px] text-center capitalize">
+                {format(currentMonth, "MMM yyyy", { locale: ptBR })}
+              </div>
+              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={onNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          
         </CardHeader>
         
         <CardContent>
