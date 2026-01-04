@@ -1,10 +1,7 @@
-
 import { Github, Twitter } from "lucide-react";
 import { Button } from "@/landingpage/components/ui/button";
-
 const Footer = () => {
-  return (
-    <footer className="w-full py-12 mt-20">
+  return <footer className="w-full py-12 mt-20">
       <div className="container px-4">
         <div className="glass glass-hover rounded-xl p-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -48,9 +45,7 @@ const Footer = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">
-                    Análise de Investimentos
-                  </a>
+                  <a href="#" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">Relatórios avançados</a>
                 </li>
               </ul>
             </div>
@@ -79,8 +74,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
