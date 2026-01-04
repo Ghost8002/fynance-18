@@ -42,10 +42,10 @@ const CalendarFilters = ({
   return (
     <div className="bg-card rounded-lg border shadow-sm">
       
-      <div className="p-4 space-y-4">
+      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {/* Busca */}
-        <div className="space-y-2">
-          <Label htmlFor="search" className="text-sm font-medium flex items-center gap-2">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="search" className="text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2">
             <Search className="h-3 w-3" />
             Buscar eventos
           </Label>
@@ -55,14 +55,14 @@ const CalendarFilters = ({
               placeholder="Digite para buscar..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-8"
+              className="pl-8 h-8 sm:h-10 text-xs sm:text-sm"
             />
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2 sm:top-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             {searchTerm && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1 h-6 w-6 p-0"
+                className="absolute right-1 top-0.5 sm:top-1 h-6 w-6 p-0"
                 onClick={() => onSearchChange('')}
               >
                 <X className="h-3 w-3" />
@@ -72,14 +72,14 @@ const CalendarFilters = ({
         </div>
 
         {/* Tipos de evento */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Tipos de evento</Label>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-2 sm:space-y-3">
+          <Label className="text-xs sm:text-sm font-medium">Tipos de evento</Label>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {(Object.keys(eventTypeLabels) as CalendarEventType[]).map((type) => (
               <Badge
                 key={type}
                 variant={eventTypes.includes(type) ? "default" : "outline"}
-                className={`cursor-pointer transition-colors ${
+                className={`cursor-pointer transition-colors text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 ${
                   eventTypes.includes(type) ? eventTypeColors[type] : 'hover:bg-muted'
                 }`}
                 onClick={() => onToggleEventType(type)}
