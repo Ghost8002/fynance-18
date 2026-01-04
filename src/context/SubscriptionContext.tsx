@@ -49,7 +49,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // isLoading começa true para evitar flash para a tela de preços antes da verificação
+  const [isLoading, setIsLoading] = useState(true);
   const [hasCheckedOnce, setHasCheckedOnce] = useState(false);
   
   // Trial state
@@ -192,6 +193,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       setProductId(null);
       setSubscriptionEnd(null);
       setHasCheckedOnce(false);
+      setIsLoading(false); // Não está autenticado, não precisa mostrar loading
     }
   }, [isAuthenticated, session?.access_token, checkSubscription]);
 
