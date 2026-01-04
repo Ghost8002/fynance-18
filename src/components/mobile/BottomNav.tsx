@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { LayoutDashboard, Receipt, CreditCard, Menu, PiggyBank, Bot } from 'lucide-react';
+import { LayoutDashboard, Receipt, CreditCard, Menu, Bot, PiggyBank, Calendar, FileText, Wallet, Target, TrendingUp, BarChart3, FileDown, Settings, HelpCircle, LucideIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PrefetchLink } from '@/components/shared/PrefetchLink';
@@ -27,17 +27,23 @@ const primaryNavItems = [
   }
 ];
 
-const menuItems = [
-  { title: 'Orçamentos', href: '/orcamentos', icon: '💰' },
-  { title: 'Calendário', href: '/calendario', icon: '📅' },
-  { title: 'A Receber e Pagar', href: '/contas-dividas', icon: '📄' },
-  { title: 'Contas Bancárias', href: '/contas', icon: '💳' },
-  { title: 'Metas', href: '/metas', icon: '🎯' },
-  { title: 'Investimentos', href: '/investimentos', icon: '📈' },
-  { title: 'Relatórios', href: '/relatorios', icon: '📊' },
-  { title: 'Importações', href: '/importacoes', icon: '📥' },
-  { title: 'Configurações', href: '/configuracoes', icon: '⚙️' },
-  { title: 'Ajuda', href: '/ajuda', icon: '❓' }
+interface MenuItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+const menuItems: MenuItem[] = [
+  { title: 'Orçamentos', href: '/orcamentos', icon: PiggyBank },
+  { title: 'Calendário', href: '/calendario', icon: Calendar },
+  { title: 'A Receber e Pagar', href: '/contas-dividas', icon: FileText },
+  { title: 'Contas Bancárias', href: '/contas', icon: Wallet },
+  { title: 'Metas', href: '/metas', icon: Target },
+  { title: 'Investimentos', href: '/investimentos', icon: TrendingUp },
+  { title: 'Relatórios', href: '/relatorios', icon: BarChart3 },
+  { title: 'Importações', href: '/importacoes', icon: FileDown },
+  { title: 'Configurações', href: '/configuracoes', icon: Settings },
+  { title: 'Ajuda', href: '/ajuda', icon: HelpCircle }
 ];
 
 export function BottomNav() {
@@ -94,7 +100,7 @@ export function BottomNav() {
                           : 'hover:bg-accent text-foreground'
                       }`}
                     >
-                      <span className="text-xl">{item.icon}</span>
+                      <item.icon className="h-5 w-5" />
                       <span className="text-sm">{item.title}</span>
                     </PrefetchLink>
                   );
