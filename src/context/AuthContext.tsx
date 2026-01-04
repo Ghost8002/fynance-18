@@ -17,6 +17,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, options?: any) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,6 +51,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+
+      // Create profile for OAuth users (Google, etc.) if it doesn't exist
+      if (event === 'SIGNED_IN' && session?.user) {
+        setTimeout(async () => {
+          const { data: existingProfile } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (!existingProfile) {
+            await supabase.from('user_profiles').insert({
+              user_id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: session.user.user_metadata?.avatar_url || null,
+            });
+          }
+        }, 0);
+      }
     });
 
     // THEN check for existing session and validate it against the API
@@ -219,6 +239,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        toast.error('Erro ao fazer login com Google');
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      toast.error('Erro ao fazer login com Google');
+      return { error };
+    }
+  };
+
   const logout = async () => {
     try {
       // Always clear local session even if the server session no longer exists
@@ -253,6 +294,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signIn,
         signUp,
         resetPassword,
+        signInWithGoogle,
       }}
     >
       {children}
