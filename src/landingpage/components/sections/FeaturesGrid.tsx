@@ -1,36 +1,114 @@
 import { motion } from "framer-motion";
-import { BarChart3, ShieldCheck, Wallet, ArrowUpDown, Check } from "lucide-react";
+import { BarChart3, ShieldCheck, Wallet, ArrowUpDown, Check, Smartphone, Bell, Calendar } from "lucide-react";
 
 const features = [
   {
     title: "Dashboard Inteligente",
-    description: "Visualize sua saúde financeira em tempo real com gráficos intuitivos e indicadores que importam.",
+    description: "Visualize sua saúde financeira em tempo real com gráficos intuitivos.",
     icon: BarChart3,
     highlights: ["Gráficos interativos", "Resumo mensal automático", "Comparativo período a período"],
     color: "primary",
+    preview: {
+      type: "chart",
+      data: [30, 50, 40, 70, 55, 80, 65],
+    },
   },
   {
     title: "Gestão de Patrimônio",
-    description: "Acompanhe todos os seus ativos e investimentos em um só lugar. Saiba exatamente quanto você tem.",
+    description: "Acompanhe todos os seus ativos e investimentos em um só lugar.",
     icon: Wallet,
     highlights: ["Valorização automática", "Histórico de evolução", "Múltiplas categorias"],
     color: "finance-green",
+    preview: {
+      type: "balance",
+      value: "R$ 24.580",
+      change: "+12.5%",
+    },
   },
   {
-    title: "Segurança Bancária",
-    description: "Seus dados protegidos com criptografia de nível militar. Privacidade em primeiro lugar.",
-    icon: ShieldCheck,
-    highlights: ["Criptografia AES-256", "Backup automático", "Autenticação 2FA"],
+    title: "Calendário Financeiro",
+    description: "Nunca perca uma conta. Visualize todas as datas importantes.",
+    icon: Calendar,
+    highlights: ["Lembretes automáticos", "Contas recorrentes", "Visão mensal"],
     color: "finance-purple",
+    preview: {
+      type: "calendar",
+    },
   },
   {
     title: "Relatórios Avançados",
-    description: "Análises detalhadas que revelam padrões ocultos e oportunidades de economia.",
+    description: "Análises detalhadas que revelam padrões e oportunidades.",
     icon: ArrowUpDown,
     highlights: ["Exportar para Excel", "Gráficos personalizados", "Insights com IA"],
     color: "finance-yellow",
+    preview: {
+      type: "stats",
+      items: [
+        { label: "Economia", value: "23%" },
+        { label: "Meta", value: "87%" },
+      ],
+    },
   },
 ];
+
+const FeaturePreview = ({ preview }: { preview: typeof features[0]["preview"] }) => {
+  if (preview.type === "chart") {
+    return (
+      <div className="flex items-end justify-between h-12 gap-1 px-2">
+        {preview.data.map((height, i) => (
+          <div
+            key={i}
+            className="flex-1 bg-gradient-to-t from-primary/80 to-primary/40 rounded-t transition-all group-hover:from-primary group-hover:to-primary/60"
+            style={{ height: `${height}%` }}
+          />
+        ))}
+      </div>
+    );
+  }
+  
+  if (preview.type === "balance") {
+    return (
+      <div className="px-3 py-2">
+        <p className="text-lg font-bold text-foreground">{preview.value}</p>
+        <p className="text-xs text-finance-green font-medium">{preview.change} este mês</p>
+      </div>
+    );
+  }
+  
+  if (preview.type === "calendar") {
+    return (
+      <div className="grid grid-cols-7 gap-0.5 px-2 py-1">
+        {[...Array(7)].map((_, i) => (
+          <div
+            key={i}
+            className={`w-4 h-4 rounded text-[8px] flex items-center justify-center ${
+              i === 2 ? "bg-primary text-primary-foreground" : 
+              i === 5 ? "bg-finance-red/20 text-finance-red" : 
+              "bg-muted text-muted-foreground"
+            }`}
+          >
+            {15 + i}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  if (preview.type === "stats") {
+    return (
+      <div className="flex gap-3 px-3 py-1">
+        {preview.items.map((item, i) => (
+          <div key={i} className="text-center">
+            <p className="text-sm font-bold text-foreground">{item.value}</p>
+            <p className="text-[10px] text-muted-foreground">{item.label}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  return null;
+};
 
 export const FeaturesGrid = () => {
   return (
@@ -66,8 +144,15 @@ export const FeaturesGrid = () => {
               transition={{ delay: index * 0.1 }}
               className="group relative bg-card rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 border border-border hover:border-primary/50 hover:shadow-xl transition-all duration-300"
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform">
-                <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary" />
+              <div className="flex items-start justify-between mb-4 sm:mb-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary" />
+                </div>
+                
+                {/* Mini preview */}
+                <div className="hidden sm:block bg-muted/50 rounded-lg overflow-hidden border border-border/50">
+                  <FeaturePreview preview={feature.preview} />
+                </div>
               </div>
               
               <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-2 sm:mb-3">
