@@ -5,21 +5,35 @@ import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-ef
 import { FynanceLogo } from "@/components/shared/FynanceLogo";
 import { Link } from "react-router-dom";
 import { AnimatedCounter } from "@/landingpage/components/ui/AnimatedCounter";
-
-const stats = [
-  { icon: Users, value: 2340, label: "Usuários ativos", suffix: "" },
-  { icon: TrendingUp, value: 4.7, label: "Milhões gerenciados", prefix: "R$ ", suffix: "M", decimals: 1 },
-  { icon: Shield, value: 99.9, label: "Uptime", suffix: "%", decimals: 1 },
-];
-
+const stats = [{
+  icon: Users,
+  value: 2340,
+  label: "Usuários ativos",
+  suffix: ""
+}, {
+  icon: TrendingUp,
+  value: 4.7,
+  label: "Milhões gerenciados",
+  prefix: "R$ ",
+  suffix: "M",
+  decimals: 1
+}, {
+  icon: Shield,
+  value: 99.9,
+  label: "Uptime",
+  suffix: "%",
+  decimals: 1
+}];
 export const HeroSection = () => {
-  return (
-    <motion.section 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="relative container px-4 pt-28 sm:pt-32 md:pt-40 pb-16 md:pb-24"
-    >
+  return <motion.section initial={{
+    opacity: 0,
+    y: 20
+  }} animate={{
+    opacity: 1,
+    y: 0
+  }} transition={{
+    duration: 0.5
+  }} className="relative container px-4 pt-28 sm:pt-32 md:pt-40 pb-16 md:pb-24">
       {/* Background */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background" />
       
@@ -28,38 +42,26 @@ export const HeroSection = () => {
         <div className="relative z-10">
           {/* Floating badges */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20"
-            >
+            <motion.div initial={{
+            opacity: 0,
+            scale: 0.9
+          }} animate={{
+            opacity: 1,
+            scale: 1
+          }} transition={{
+            delay: 0.2
+          }} className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20">
               <FynanceLogo size="sm" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="text-xs sm:text-sm font-medium text-primary">
                 #1 em Gestão Financeira
               </span>
               <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
-                ))}
+                {[...Array(5)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />)}
               </div>
             </motion.div>
             
             {/* Urgency badge */}
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-finance-green/10 border border-finance-green/20"
-            >
-              <div className="relative flex items-center justify-center">
-                <div className="absolute w-2 h-2 bg-finance-green rounded-full animate-pulse" />
-                <div className="w-2 h-2 bg-finance-green rounded-full" />
-              </div>
-              <span className="text-xs sm:text-sm font-medium text-finance-green">
-                <span className="font-bold">127</span> pessoas testando agora
-              </span>
-            </motion.div>
+            
           </div>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-left">
@@ -72,24 +74,30 @@ export const HeroSection = () => {
             </span>
           </h1>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-xl text-left leading-relaxed"
-          >
+          <motion.p initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.4
+        }} className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-xl text-left leading-relaxed">
             Chega de planilhas bagunçadas. Com o Fynance, você tem{" "}
             <span className="text-foreground font-semibold">visão completa</span> das suas finanças e{" "}
             <span className="text-foreground font-semibold">IA</span> que te ajuda a economizar.
           </motion.p>
 
           {/* Quick benefit highlight */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
-            className="flex items-center gap-2 mb-6 sm:mb-8 text-sm sm:text-base"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 10
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.45
+        }} className="flex items-center gap-2 mb-6 sm:mb-8 text-sm sm:text-base">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-finance-green/10 border border-finance-green/20">
               <Clock className="w-4 h-4 text-finance-green" />
               <span className="text-finance-green font-medium">Comece em menos de 2 minutos</span>
@@ -97,32 +105,28 @@ export const HeroSection = () => {
           </motion.div>
           
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.5
+        }} className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10">
             <Link to="/login" className="w-full sm:w-auto group">
-              <Button 
-                size="lg" 
-                className="button-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 w-full sm:w-auto relative overflow-hidden animate-pulse-subtle"
-              >
+              <Button size="lg" className="button-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 w-full sm:w-auto relative overflow-hidden animate-pulse-subtle">
                 <span className="relative z-10 flex items-center">
                   Começar agora
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  animate={{
-                    x: ["-100%", "100%"],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 3,
-                    ease: "linear",
-                  }}
-                />
+                <motion.div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" animate={{
+                x: ["-100%", "100%"]
+              }} transition={{
+                repeat: Infinity,
+                duration: 3,
+                ease: "linear"
+              }} />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto border-2 w-full sm:w-auto" asChild>
@@ -133,49 +137,48 @@ export const HeroSection = () => {
           </motion.div>
 
           {/* Micro-copy under CTA */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8"
-          >
+          <motion.p initial={{
+          opacity: 0
+        }} animate={{
+          opacity: 1
+        }} transition={{
+          delay: 0.6
+        }} className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">
             ✓ Cancele quando quiser • ✓ Acesso imediato
           </motion.p>
 
           {/* Social Proof */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-6"
-          >
-            {stats.map((stat, index) => (
-              <div key={index} className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-3 text-center sm:text-left">
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.7
+        }} className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-6">
+            {stats.map((stat, index) => <div key={index} className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-3 text-center sm:text-left">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-base sm:text-xl font-bold text-foreground">
                     {stat.prefix || ""}
-                    <AnimatedCounter 
-                      value={stat.value} 
-                      decimals={stat.decimals || 0}
-                      suffix={stat.suffix || ""}
-                    />
+                    <AnimatedCounter value={stat.value} decimals={stat.decimals || 0} suffix={stat.suffix || ""} />
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </motion.div>
 
           {/* Trust indicators */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border/50"
-          >
+          <motion.div initial={{
+          opacity: 0
+        }} animate={{
+          opacity: 1
+        }} transition={{
+          delay: 0.8
+        }} className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border/50">
             <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
@@ -190,12 +193,16 @@ export const HeroSection = () => {
         </div>
 
         {/* Right column - Product mockup */}
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="relative hidden lg:block"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        x: 50
+      }} animate={{
+        opacity: 1,
+        x: 0
+      }} transition={{
+        delay: 0.4,
+        duration: 0.6
+      }} className="relative hidden lg:block">
           {/* Main dashboard mockup */}
           <div className="relative">
             {/* Glow effect */}
@@ -248,13 +255,9 @@ export const HeroSection = () => {
               {/* Chart placeholder */}
               <div className="bg-muted/30 rounded-lg p-4">
                 <div className="flex items-end justify-between h-20 gap-2">
-                  {[40, 65, 45, 80, 55, 70, 90].map((height, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 bg-gradient-to-t from-primary to-primary/60 rounded-t"
-                      style={{ height: `${height}%` }}
-                    />
-                  ))}
+                  {[40, 65, 45, 80, 55, 70, 90].map((height, i) => <div key={i} className="flex-1 bg-gradient-to-t from-primary to-primary/60 rounded-t" style={{
+                  height: `${height}%`
+                }} />)}
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                   <span>Seg</span>
@@ -269,12 +272,16 @@ export const HeroSection = () => {
             </div>
 
             {/* Floating notification card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.4 }}
-              className="absolute -bottom-4 -left-4 bg-card border border-border rounded-xl p-3 shadow-xl"
-            >
+            <motion.div initial={{
+            opacity: 0,
+            y: 20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 1,
+            duration: 0.4
+          }} className="absolute -bottom-4 -left-4 bg-card border border-border rounded-xl p-3 shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-finance-green/10 flex items-center justify-center">
                   <TrendingUp className="w-4 h-4 text-finance-green" />
@@ -288,6 +295,5 @@ export const HeroSection = () => {
           </div>
         </motion.div>
       </div>
-    </motion.section>
-  );
+    </motion.section>;
 };
