@@ -22,7 +22,6 @@ const AIAssistant = () => {
   } = useAI();
   const [showHistory, setShowHistory] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>();
-  const [suggestedMessage, setSuggestedMessage] = useState<string>('');
 
   useEffect(() => {
     loadChatHistory();
@@ -69,14 +68,6 @@ const AIAssistant = () => {
     loadChatHistory();
   };
 
-  const handleQuestionSelect = (question: string) => {
-    setSuggestedMessage(question);
-  };
-
-  const clearSuggestedMessage = () => {
-    setSuggestedMessage('');
-  };
-
   if (showHistory) {
     return (
       <div className="h-[calc(100vh-8rem)] flex flex-col bg-gradient-to-br from-background via-background to-muted/10 rounded-lg overflow-hidden border shadow-sm">
@@ -103,10 +94,7 @@ const AIAssistant = () => {
         <ScrollArea className="flex-1">
           <div className="p-3 sm:p-6">
             {chatHistory.length === 0 && !isStreaming ? (
-              <AIWelcome 
-                loading={loading}
-                onQuestionSelect={handleQuestionSelect}
-              />
+              <AIWelcome />
             ) : (
               <AIChatHistory 
                 chatHistory={chatHistory}
@@ -121,8 +109,6 @@ const AIAssistant = () => {
         <AIChatInput 
           loading={loading}
           onSendMessage={handleSendMessage}
-          suggestedMessage={suggestedMessage}
-          onClearSuggestion={clearSuggestedMessage}
         />
       </div>
     </div>
