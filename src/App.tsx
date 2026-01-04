@@ -9,7 +9,7 @@ import { SubscriptionProvider } from "@/context/SubscriptionContext";
 import { RealtimeDataProvider } from "@/context/RealtimeDataContext";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import loadingGraph from "@/assets/loading-graph.gif";
+
 
 // Eager loaded pages (critical path)
 import LandingPage from "@/landingpage/LandingPage";
@@ -58,15 +58,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Loading fallback for lazy loaded components
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="flex flex-col items-center gap-4">
-      <img src={loadingGraph} alt="Carregando" className="h-32 w-32" />
-      <p className="text-muted-foreground">Carregando...</p>
-    </div>
-  </div>
-);
+// Minimal loading fallback - skeleton appears inside layout via ProtectedRoute
+const PageLoader = () => null;
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();

@@ -1,10 +1,10 @@
-
 import { ReactNode } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from './AppSidebar';
 import Navbar from './Navbar';
 import { BottomNav } from '../mobile/BottomNav';
 import { MobileHeader } from '../mobile/MobileHeader';
+import { TopProgressBar } from './TopProgressBar';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -13,6 +13,7 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <SidebarProvider>
+      <TopProgressBar />
       <div className="min-h-screen bg-background w-full flex">
         {/* Desktop Sidebar - Hidden on mobile + tablet */}
         <div className="hidden lg:block">

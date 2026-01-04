@@ -24,7 +24,31 @@ const routeImports: Record<string, () => Promise<unknown>> = {
   '/tags': () => import('@/pages/TagsDashboard'),
   '/categories': () => import('@/pages/Categories'),
   '/controle': () => import('@/pages/Control'),
+  '/investimentos': () => import('@/pages/Investments'),
 };
+
+// Critical routes to prefetch on app load
+const criticalRoutes = [
+  '/dashboard',
+  '/transacoes',
+  '/calendario',
+  '/controle',
+  '/contas-dividas',
+  '/investimentos',
+];
+
+// Prefetch all critical routes after login or initial load
+export function prefetchCriticalRoutes(): void {
+  if ('requestIdleCallback' in window) {
+    (window as Window & { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(() => {
+      criticalRoutes.forEach(route => prefetchRoute(route));
+    });
+  } else {
+    setTimeout(() => {
+      criticalRoutes.forEach(route => prefetchRoute(route));
+    }, 100);
+  }
+}
 
 // Cache of already prefetched routes
 const prefetchedRoutes = new Set<string>();

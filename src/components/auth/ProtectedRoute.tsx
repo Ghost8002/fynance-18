@@ -1,8 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/context/SubscriptionContext';
-import loadingGraph from '@/assets/loading-graph.gif';
+import AppLayout from '@/components/shared/AppLayout';
+import { ContentSkeleton } from '@/components/skeletons/ContentSkeleton';
+import { prefetchCriticalRoutes } from '@/utils/routePrefetch';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -14,15 +16,19 @@ const ProtectedRoute = ({ children, requireSubscription = true }: ProtectedRoute
   const { isSubscribed } = useSubscription();
   const location = useLocation();
 
-  // Only show loader for initial auth check, not for subscription
+  // Prefetch critical routes when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      prefetchCriticalRoutes();
+    }
+  }, [isAuthenticated]);
+
+  // Show skeleton inside layout during auth check - keeps sidebar/navbar visible
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <img src={loadingGraph} alt="Carregando" className="h-32 w-32" />
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </div>
+      <AppLayout>
+        <ContentSkeleton variant="dashboard" />
+      </AppLayout>
     );
   }
 
