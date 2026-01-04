@@ -88,7 +88,7 @@ export default function PricingPage() {
             <CardTitle className="text-2xl">{SUBSCRIPTION_TIERS.pro.name}</CardTitle>
             <CardDescription>Acesso completo a todas as funcionalidades</CardDescription>
             <div className="mt-6">
-              <span className="text-5xl font-bold text-foreground">R$ 5,00</span>
+              <span className="text-5xl font-bold text-foreground">R$ 15,00</span>
               <span className="text-muted-foreground">/mês</span>
             </div>
           </CardHeader>

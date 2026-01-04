@@ -34,7 +34,7 @@ export const PricingSection = () => {
           className="text-4xl md:text-5xl lg:text-6xl font-normal mb-6 text-gray-900 dark:text-gray-100"
         >
           Acesso completo por apenas{" "}
-          <span className="text-gradient font-bold">R$ 5/mês</span>
+          <span className="text-gradient font-bold">R$ 15/mês</span>
         </motion.h2>
         
         <motion.p
@@ -63,7 +63,7 @@ export const PricingSection = () => {
             {/* Price */}
             <div className="text-center mb-8">
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-6xl md:text-7xl font-bold text-gray-900 dark:text-gray-100">R$ 5</span>
+                <span className="text-6xl md:text-7xl font-bold text-gray-900 dark:text-gray-100">R$ 15</span>
                 <span className="text-xl text-gray-500 dark:text-gray-400">/mês</span>
               </div>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
