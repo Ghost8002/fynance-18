@@ -10,40 +10,36 @@ import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
 import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-effect";
 import { useNavigate } from "react-router-dom";
 import { FynanceLogo } from "@/components/shared/FynanceLogo";
-
 const LandingPage = () => {
   const navigate = useNavigate();
-
   const handleGetStarted = () => {
     navigate('/login');
   };
-
   const handleViewFeatures = () => {
     const featuresSection = document.getElementById('features');
     if (featuresSection) {
-      featuresSection.scrollIntoView({ behavior: 'smooth' });
+      featuresSection.scrollIntoView({
+        behavior: 'smooth'
+      });
     }
   };
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-foreground overflow-x-hidden">
+  return <div className="min-h-screen bg-white dark:bg-gray-900 text-foreground overflow-x-hidden">
       <Navigation />
       
       {/* Hero Section */}
       <section className="relative container mx-auto px-4 pt-32 pb-16 sm:pt-40 sm:pb-20">
         {/* Background */}
-        <div 
-          className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900"
-        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900" />
         
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="inline-block mb-6 px-4 py-2 rounded-full glass"
-        >
+        <motion.div initial={{
+        opacity: 0
+      }} animate={{
+        opacity: 1
+      }} transition={{
+        delay: 0.2
+      }} className="inline-block mb-6 px-4 py-2 rounded-full glass">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
-            <span className="w-4 h-4 mr-2 inline-flex"><FynanceLogo size="sm" className="h-4 w-4" /></span>
+            
             Sistema completo de gestão financeira
           </span>
         </motion.div>
@@ -59,22 +55,28 @@ const LandingPage = () => {
             </span>
           </h1>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl text-left"
-          >
+          <motion.p initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.4
+        }} className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl text-left">
             Tenha controle total sobre suas finanças pessoais e empresariais com análises avançadas, planejamento inteligente e segurança de nível bancário.{" "}
             <span className="text-gray-900 dark:text-gray-100 font-medium">Comece agora mesmo.</span>
           </motion.p>
           
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 items-start"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.5
+        }} className="flex flex-col sm:flex-row gap-4 items-start">
             <Button size="lg" className="button-gradient w-full sm:w-auto" onClick={handleGetStarted}>
               Comece Grátis
             </Button>
@@ -109,20 +111,20 @@ const LandingPage = () => {
       {/* CTA Section */}
       <SectionSpotlight intensity={0.1}>
         <section className="container mx-auto px-4 py-16 sm:py-20 relative bg-white dark:bg-gray-900">
-          <div 
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: 'url("/landingpage/lovable-uploads/21f3edfb-62b5-4e35-9d03-7339d803b980.png")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl p-6 sm:p-8 md:p-12 text-center relative z-10 shadow-xl max-w-4xl mx-auto"
-          >
+          <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'url("/landingpage/lovable-uploads/21f3edfb-62b5-4e35-9d03-7339d803b980.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }} />
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.5
+        }} className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl p-6 sm:p-8 md:p-12 text-center relative z-10 shadow-xl max-w-4xl mx-auto">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               Pronto para transformar suas finanças?
             </h2>
@@ -141,8 +143,6 @@ const LandingPage = () => {
       <div className="bg-gray-50 dark:bg-gray-800">
         <Footer />
       </div>
-    </div>
-  );
+    </div>;
 };
-
-export default LandingPage; 
+export default LandingPage;
