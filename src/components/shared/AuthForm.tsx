@@ -181,6 +181,19 @@ const AuthForm = () => {
     setFieldErrors({});
   };
   return <div className="min-h-screen h-screen flex overflow-hidden bg-background">
+      {/* Botão Voltar */}
+      <div className="absolute top-4 left-4 z-20">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Button>
+      </div>
+
       {/* Install PWA (mobile) */}
       <div className="absolute top-3 right-3 z-20 lg:hidden">
         <InstallPWAButton />
