@@ -1,7 +1,7 @@
 import { devLog, devError } from '@/utils/logger';
 
 const DB_NAME = 'fynance-offline-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Increment version to add new store
 
 interface PendingOperation {
   id: string;
@@ -9,6 +9,15 @@ interface PendingOperation {
   operation: 'INSERT' | 'UPDATE' | 'DELETE';
   data: any;
   timestamp: number;
+}
+
+export interface PendingAIMessage {
+  id: string;
+  message: string;
+  audioBlob?: string; // Base64 encoded audio
+  timestamp: number;
+  status: 'pending' | 'sending' | 'failed';
+  retryCount: number;
 }
 
 class OfflineStorage {
@@ -45,6 +54,13 @@ class OfflineStorage {
         if (!db.objectStoreNames.contains('pendingOperations')) {
           const store = db.createObjectStore('pendingOperations', { keyPath: 'id' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
+        }
+
+        // Store for pending AI messages (offline chat)
+        if (!db.objectStoreNames.contains('pendingAIMessages')) {
+          const store = db.createObjectStore('pendingAIMessages', { keyPath: 'id' });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+          store.createIndex('status', 'status', { unique: false });
         }
 
         devLog('OfflineStorage: Database upgraded');
@@ -212,6 +228,98 @@ class OfflineStorage {
 
     const filteredData = cachedData.filter(item => item.id !== itemId);
     await this.cacheData(table, userId, filteredData);
+  }
+
+  // Pending AI Messages Management
+  async addPendingAIMessage(msg: PendingAIMessage): Promise<void> {
+    await this.init();
+    if (!this.db) return;
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['pendingAIMessages'], 'readwrite');
+      const store = transaction.objectStore('pendingAIMessages');
+
+      const request = store.put(msg);
+
+      request.onsuccess = () => {
+        devLog(`OfflineStorage: Added pending AI message ${msg.id}`);
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getPendingAIMessages(): Promise<PendingAIMessage[]> {
+    await this.init();
+    if (!this.db) return [];
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['pendingAIMessages'], 'readonly');
+      const store = transaction.objectStore('pendingAIMessages');
+      const index = store.index('timestamp');
+
+      const request = index.getAll();
+
+      request.onsuccess = () => {
+        const messages = request.result || [];
+        devLog(`OfflineStorage: Retrieved ${messages.length} pending AI messages`);
+        resolve(messages);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async updatePendingAIMessage(id: string, updates: Partial<PendingAIMessage>): Promise<void> {
+    await this.init();
+    if (!this.db) return;
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['pendingAIMessages'], 'readwrite');
+      const store = transaction.objectStore('pendingAIMessages');
+
+      const getRequest = store.get(id);
+
+      getRequest.onsuccess = () => {
+        const existing = getRequest.result;
+        if (!existing) {
+          resolve();
+          return;
+        }
+
+        const updated = { ...existing, ...updates };
+        const putRequest = store.put(updated);
+
+        putRequest.onsuccess = () => {
+          devLog(`OfflineStorage: Updated pending AI message ${id}`);
+          resolve();
+        };
+        putRequest.onerror = () => reject(putRequest.error);
+      };
+      getRequest.onerror = () => reject(getRequest.error);
+    });
+  }
+
+  async removePendingAIMessage(id: string): Promise<void> {
+    await this.init();
+    if (!this.db) return;
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['pendingAIMessages'], 'readwrite');
+      const store = transaction.objectStore('pendingAIMessages');
+
+      const request = store.delete(id);
+
+      request.onsuccess = () => {
+        devLog(`OfflineStorage: Removed pending AI message ${id}`);
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getPendingAIMessagesCount(): Promise<number> {
+    const messages = await this.getPendingAIMessages();
+    return messages.length;
   }
 }
 
