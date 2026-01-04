@@ -1,16 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Loader2, Mic, MicOff } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff, WifiOff, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { devError } from '@/utils/logger';
+import { cn } from '@/lib/utils';
+
 interface AIChatInputProps {
   loading: boolean;
+  isOnline: boolean;
   onSendMessage: (message: string) => Promise<void>;
+  onQueueMessage: (message: string) => Promise<void>;
 }
+
 const AIChatInput = ({
   loading,
-  onSendMessage
+  isOnline,
+  onSendMessage,
+  onQueueMessage,
 }: AIChatInputProps) => {
   const [message, setMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -28,14 +35,24 @@ const AIChatInput = ({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [loading]);
+
   const handleSendMessage = async () => {
     if (!message.trim() || loading) return;
     const userMessage = message.trim();
     setMessage('');
+
     try {
-      await onSendMessage(userMessage);
+      if (isOnline) {
+        await onSendMessage(userMessage);
+      } else {
+        // Queue for later when offline
+        await onQueueMessage(userMessage);
+        toast.info('Mensagem salva! Será enviada quando a internet voltar.', {
+          icon: <Clock className="h-4 w-4" />,
+        });
+      }
     } catch (error) {
-      // Error is already handled in useAI hook
+      // Error is already handled
     }
 
     // Focus back to input
@@ -43,45 +60,71 @@ const AIChatInput = ({
       inputRef.current?.focus();
     }, 100);
   };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
+
   const toggleVoiceInput = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast.error('Reconhecimento de voz não suportado neste navegador');
       return;
     }
+
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
       return;
     }
+
     try {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.lang = 'pt-BR';
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
+
       recognitionRef.current.onstart = () => {
         setIsListening(true);
         toast.success('Escutando... Fale agora!');
       };
-      recognitionRef.current.onresult = (event: any) => {
+
+      recognitionRef.current.onresult = async (event: any) => {
         const transcript = event.results[0][0].transcript;
         setMessage(transcript);
-        toast.success('Texto capturado!');
+        
+        // Auto-send after voice capture
+        if (transcript.trim()) {
+          setIsListening(false);
+          
+          // Small delay to show the text before sending
+          setTimeout(async () => {
+            if (isOnline) {
+              await onSendMessage(transcript.trim());
+            } else {
+              await onQueueMessage(transcript.trim());
+              toast.info('Mensagem de voz salva! Será enviada quando a internet voltar.', {
+                icon: <Clock className="h-4 w-4" />,
+              });
+            }
+            setMessage('');
+          }, 300);
+        }
       };
+
       recognitionRef.current.onerror = (event: any) => {
         devError('Erro no reconhecimento de voz:', event.error);
         toast.error('Erro ao capturar voz');
         setIsListening(false);
       };
+
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
+
       recognitionRef.current.start();
     } catch (error) {
       devError('Erro ao iniciar reconhecimento de voz:', error);
@@ -89,24 +132,78 @@ const AIChatInput = ({
       setIsListening(false);
     }
   };
-  return <div className="sticky bottom-0 backdrop-blur-md bg-background/95 border-t border-border/50">
+
+  return (
+    <div className="sticky bottom-0 backdrop-blur-md bg-background/95 border-t border-border/50">
+      {/* Offline indicator */}
+      {!isOnline && (
+        <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400 text-sm">
+          <WifiOff className="h-4 w-4" />
+          <span>Modo offline - mensagens serão enviadas quando a internet voltar</span>
+        </div>
+      )}
+
       <div className="p-2 sm:p-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end gap-1.5 sm:gap-3">
             <div className="flex-1">
-              <Input ref={inputRef} value={message} onChange={e => setMessage(e.target.value)} onKeyPress={handleKeyPress} placeholder="Digite sua pergunta..." disabled={loading} maxLength={500} className="min-h-[44px] sm:min-h-[48px] text-sm sm:text-base rounded-xl border-border/50 bg-card/50 backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20 px-3 sm:px-4" />
+              <Input
+                ref={inputRef}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={isOnline ? "Digite sua pergunta..." : "Digite (será enviado quando online)..."}
+                disabled={loading}
+                maxLength={500}
+                className={cn(
+                  "min-h-[44px] sm:min-h-[48px] text-sm sm:text-base rounded-xl border-border/50 bg-card/50 backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20 px-3 sm:px-4",
+                  !isOnline && "border-amber-500/30"
+                )}
+              />
             </div>
-            
-            <Button onClick={toggleVoiceInput} disabled={loading} size="lg" variant={isListening ? "default" : "outline"} className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl transition-all duration-200 ${isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'hover:bg-accent'}`} title="Reconhecimento de voz">
-              {isListening ? <MicOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Mic className="h-4 w-4 sm:h-5 sm:w-5" />}
+
+            <Button
+              onClick={toggleVoiceInput}
+              disabled={loading}
+              size="lg"
+              variant={isListening ? "default" : "outline"}
+              className={cn(
+                "h-10 w-10 sm:h-12 sm:w-12 rounded-xl transition-all duration-200",
+                isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'hover:bg-accent'
+              )}
+              title="Reconhecimento de voz"
+            >
+              {isListening ? (
+                <MicOff className="h-4 w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
             </Button>
 
-            <Button onClick={handleSendMessage} disabled={loading || !message.trim()} size="lg" className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
-              {loading ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <Send className="h-4 w-4 sm:h-5 sm:w-5" />}
+            <Button
+              onClick={handleSendMessage}
+              disabled={loading || !message.trim()}
+              size="lg"
+              className={cn(
+                "h-10 w-10 sm:h-12 sm:w-12 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200",
+                isOnline
+                  ? "bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  : "bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+              )}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+              ) : !isOnline ? (
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
             </Button>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default AIChatInput;

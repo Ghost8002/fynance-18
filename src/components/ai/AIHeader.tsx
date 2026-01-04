@@ -1,7 +1,7 @@
-
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Trash2, Plus, History } from 'lucide-react';
+import { Bot, Trash2, Plus, History, Cloud, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface AIHeaderProps {
   chatHistoryLength: number;
@@ -9,6 +9,8 @@ interface AIHeaderProps {
   onClearHistory: () => void;
   onNewChat: () => void;
   onShowHistory: () => void;
+  pendingCount?: number;
+  isSyncing?: boolean;
 }
 
 const AIHeader = ({ 
@@ -16,7 +18,9 @@ const AIHeader = ({
   loading, 
   onClearHistory, 
   onNewChat,
-  onShowHistory
+  onShowHistory,
+  pendingCount = 0,
+  isSyncing = false,
 }: AIHeaderProps) => {
   return (
     <div className="sticky top-0 z-10 backdrop-blur-md bg-background/95 border-b border-border/50">
@@ -37,6 +41,26 @@ const AIHeader = ({
           </div>
           
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+            {/* Pending sync indicator */}
+            {pendingCount > 0 && (
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px] sm:text-xs font-medium px-1.5 sm:px-3 py-0.5 sm:py-1 gap-1",
+                  isSyncing 
+                    ? "border-primary/50 text-primary bg-primary/5" 
+                    : "border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-500/5"
+                )}
+              >
+                {isSyncing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Cloud className="h-3 w-3" />
+                )}
+                <span>{pendingCount}</span>
+              </Badge>
+            )}
+
             {chatHistoryLength > 0 && (
               <Badge variant="secondary" className="text-[10px] sm:text-xs font-medium px-1.5 sm:px-3 py-0.5 sm:py-1 hidden xs:flex">
                 {chatHistoryLength}

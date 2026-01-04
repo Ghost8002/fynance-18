@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from 'react';
 import { useAI } from '@/hooks/useAI';
+import { useOfflineAIMessages } from '@/hooks/useOfflineAIMessages';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import AIHeader from './AIHeader';
@@ -8,6 +8,7 @@ import AIWelcome from './AIWelcome';
 import AIChatHistory from './AIChatHistory';
 import AIChatInput from './AIChatInput';
 import AIChatSessions from './AIChatSessions';
+import AIPendingMessages from './AIPendingMessages';
 
 const AIAssistant = () => {
   const { 
@@ -20,6 +21,17 @@ const AIAssistant = () => {
     startNewConversation, 
     permanentlyDeleteHistory 
   } = useAI();
+  
+  const {
+    pendingMessages,
+    isSyncing,
+    isOnline,
+    queueMessage,
+    retryMessage,
+    removeMessage,
+    pendingCount,
+  } = useOfflineAIMessages({ onSendMessage: sendMessage });
+
   const [showHistory, setShowHistory] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>();
 
@@ -33,6 +45,10 @@ const AIAssistant = () => {
     } catch (error) {
       // Error is already handled in useAI hook
     }
+  };
+
+  const handleQueueMessage = async (userMessage: string) => {
+    await queueMessage(userMessage);
   };
 
   const handleClearHistory = async () => {
@@ -88,12 +104,24 @@ const AIAssistant = () => {
         onClearHistory={handleClearHistory}
         onNewChat={handleNewChat}
         onShowHistory={handleShowHistory}
+        pendingCount={pendingCount}
+        isSyncing={isSyncing}
       />
 
       <div className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-1">
           <div className="p-3 sm:p-6">
-            {chatHistory.length === 0 && !isStreaming ? (
+            {/* Pending messages (offline queue) */}
+            {pendingMessages.length > 0 && (
+              <AIPendingMessages
+                messages={pendingMessages}
+                onRetry={retryMessage}
+                onRemove={removeMessage}
+                isOnline={isOnline}
+              />
+            )}
+
+            {chatHistory.length === 0 && !isStreaming && pendingMessages.length === 0 ? (
               <AIWelcome />
             ) : (
               <AIChatHistory 
@@ -108,7 +136,9 @@ const AIAssistant = () => {
 
         <AIChatInput 
           loading={loading}
+          isOnline={isOnline}
           onSendMessage={handleSendMessage}
+          onQueueMessage={handleQueueMessage}
         />
       </div>
     </div>
