@@ -16,7 +16,7 @@ import { ContentSkeleton } from "@/components/skeletons/ContentSkeleton";
 // Eager loaded pages (critical path)
 import LandingPage from "@/landingpage/LandingPage";
 import Login from "./pages/Login";
-import Auth from "./pages/Auth";
+
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Pricing from "./pages/Pricing";
@@ -87,7 +87,7 @@ const AppRoutes = () => {
         {/* Public routes */}
         <Route path="/" element={isAuthenticated ? <Dashboard /> : <LandingPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/auth" element={<Auth />} />
+        
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/termos" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
