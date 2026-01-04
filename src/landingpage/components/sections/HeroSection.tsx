@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Users, TrendingUp, Shield, Star, BarChart3, Wallet, Calendar } from "lucide-react";
+import { ArrowRight, Users, TrendingUp, Shield, Star, BarChart3, Wallet, Calendar, Zap, Clock } from "lucide-react";
 import { Button } from "@/landingpage/components/ui/button";
 import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-effect";
 import { FynanceLogo } from "@/components/shared/FynanceLogo";
 import { Link } from "react-router-dom";
+import { AnimatedCounter } from "@/landingpage/components/ui/AnimatedCounter";
 
 const stats = [
-  { icon: Users, value: "10.000+", label: "Usuários ativos" },
-  { icon: TrendingUp, value: "R$ 50M+", label: "Gerenciados" },
-  { icon: Shield, value: "99.9%", label: "Uptime" },
+  { icon: Users, value: 12847, label: "Usuários ativos", suffix: "" },
+  { icon: TrendingUp, value: 52.3, label: "Milhões gerenciados", prefix: "R$ ", suffix: "M", decimals: 1 },
+  { icon: Shield, value: 99.9, label: "Uptime", suffix: "%", decimals: 1 },
 ];
 
 export const HeroSection = () => {
@@ -25,23 +26,41 @@ export const HeroSection = () => {
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         {/* Left column - Text content */}
         <div className="relative z-10">
-          {/* Floating badge */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20"
-          >
-            <FynanceLogo size="sm" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="text-xs sm:text-sm font-medium text-primary">
-              #1 em Gestão Financeira
-            </span>
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
-              ))}
-            </div>
-          </motion.div>
+          {/* Floating badges */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20"
+            >
+              <FynanceLogo size="sm" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="text-xs sm:text-sm font-medium text-primary">
+                #1 em Gestão Financeira
+              </span>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+            </motion.div>
+            
+            {/* Urgency badge */}
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-finance-green/10 border border-finance-green/20"
+            >
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-2 h-2 bg-finance-green rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-finance-green rounded-full" />
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-finance-green">
+                <span className="font-bold">127</span> pessoas testando agora
+              </span>
+            </motion.div>
+          </div>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-left">
             <span className="text-foreground">
@@ -63,6 +82,19 @@ export const HeroSection = () => {
             <span className="text-foreground font-semibold">visão completa</span> das suas finanças e{" "}
             <span className="text-foreground font-semibold">IA</span> que te ajuda a economizar.
           </motion.p>
+
+          {/* Quick benefit highlight */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="flex items-center gap-2 mb-6 sm:mb-8 text-sm sm:text-base"
+          >
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-finance-green/10 border border-finance-green/20">
+              <Clock className="w-4 h-4 text-finance-green" />
+              <span className="text-finance-green font-medium">Comece em menos de 2 minutos</span>
+            </div>
+          </motion.div>
           
           {/* CTA Buttons */}
           <motion.div
@@ -71,10 +103,26 @@ export const HeroSection = () => {
             transition={{ delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10"
           >
-            <Link to="/auth" className="w-full sm:w-auto">
-              <Button size="lg" className="button-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto shadow-lg shadow-primary/25 w-full sm:w-auto">
-                Começar 7 Dias Grátis
-                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+            <Link to="/auth" className="w-full sm:w-auto group">
+              <Button 
+                size="lg" 
+                className="button-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 w-full sm:w-auto relative overflow-hidden animate-pulse-subtle"
+              >
+                <span className="relative z-10 flex items-center">
+                  Começar 7 Dias Grátis
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 3,
+                    ease: "linear",
+                  }}
+                />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto border-2 w-full sm:w-auto" asChild>
@@ -84,11 +132,21 @@ export const HeroSection = () => {
             </Button>
           </motion.div>
 
+          {/* Micro-copy under CTA */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8"
+          >
+            ✓ Sem cartão de crédito • ✓ Cancele quando quiser • ✓ Acesso imediato
+          </motion.p>
+
           {/* Social Proof */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.7 }}
             className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-6"
           >
             {stats.map((stat, index) => (
@@ -97,7 +155,14 @@ export const HeroSection = () => {
                   <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-base sm:text-xl font-bold text-foreground">{stat.value}</p>
+                  <p className="text-base sm:text-xl font-bold text-foreground">
+                    {stat.prefix || ""}
+                    <AnimatedCounter 
+                      value={stat.value} 
+                      decimals={stat.decimals || 0}
+                      suffix={stat.suffix || ""}
+                    />
+                  </p>
                   <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
                 </div>
               </div>

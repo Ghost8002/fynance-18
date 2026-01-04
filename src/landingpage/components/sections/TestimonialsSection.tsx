@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, CheckCircle2, TrendingUp } from "lucide-react";
 
 const testimonials = [
   {
@@ -8,6 +8,8 @@ const testimonials = [
     avatar: "MC",
     rating: 5,
     text: "Finalmente consegui organizar minhas finanças pessoais e da empresa em um só lugar. O Fynance mudou minha relação com dinheiro!",
+    result: "Economizou R$ 4.200 em 4 meses",
+    verified: true,
   },
   {
     name: "Rafael Souza",
@@ -15,6 +17,8 @@ const testimonials = [
     avatar: "RS",
     rating: 5,
     text: "A interface é linda e intuitiva. Não preciso ser expert em finanças para entender meus gastos. Recomendo demais!",
+    result: "Identificou R$ 800/mês em gastos desnecessários",
+    verified: true,
   },
   {
     name: "Ana Paula Lima",
@@ -22,6 +26,8 @@ const testimonials = [
     avatar: "AL",
     rating: 5,
     text: "Os gráficos e relatórios são incríveis. Consigo ver exatamente onde posso economizar. Já guardei R$ 3.000 em 3 meses!",
+    result: "Economizou R$ 3.000 em 3 meses",
+    verified: true,
   },
   {
     name: "Carlos Eduardo",
@@ -29,6 +35,8 @@ const testimonials = [
     avatar: "CE",
     rating: 5,
     text: "Com a rotina corrida, precisava de algo simples e eficiente. O Fynance é perfeito: cadastro rápido e controle total.",
+    result: "Reduziu 6h/mês de trabalho manual",
+    verified: true,
   },
   {
     name: "Juliana Mendes",
@@ -36,6 +44,8 @@ const testimonials = [
     avatar: "JM",
     rating: 5,
     text: "A funcionalidade de contas a pagar e receber salvou minha organização. Nunca mais perdi um prazo de pagamento.",
+    result: "Evitou R$ 1.200 em multas e juros",
+    verified: true,
   },
   {
     name: "Bruno Ferreira",
@@ -43,6 +53,8 @@ const testimonials = [
     avatar: "BF",
     rating: 5,
     text: "Uso o Fynance há 6 meses e minha reserva de emergência saiu do zero. A IA realmente ajuda a identificar onde cortar gastos.",
+    result: "Construiu reserva de R$ 8.500 em 6 meses",
+    verified: true,
   },
 ];
 
@@ -88,18 +100,35 @@ export const TestimonialsSection = () => {
               </div>
               
               {/* Text */}
-              <p className="text-sm sm:text-base text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 leading-relaxed">
                 "{testimonial.text}"
               </p>
               
-              {/* Author */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground text-sm font-bold">
-                  {testimonial.avatar}
+              {/* Result highlight */}
+              {testimonial.result && (
+                <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-finance-green/10 border border-finance-green/20">
+                  <TrendingUp className="w-4 h-4 text-finance-green flex-shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-finance-green">
+                    {testimonial.result}
+                  </span>
                 </div>
-                <div>
-                  <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
-                  <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+              )}
+              
+              {/* Author */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground text-sm font-bold">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
+                      {testimonial.verified && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-finance-green" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                  </div>
                 </div>
               </div>
             </motion.div>

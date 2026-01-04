@@ -71,13 +71,39 @@ export const FinalCTASection = () => {
             viewport={{ once: true }}
             className="mb-6 sm:mb-8"
           >
-            <Link to="/auth" className="inline-block w-full sm:w-auto">
-              <Button size="lg" className="button-gradient text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-7 h-auto shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all w-full sm:w-auto">
-                Quero começar agora
-                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+            <Link to="/auth" className="inline-block w-full sm:w-auto group">
+              <Button 
+                size="lg" 
+                className="button-gradient text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-7 h-auto shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all w-full sm:w-auto relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center">
+                  Quero começar agora
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 3,
+                    ease: "linear",
+                  }}
+                />
               </Button>
             </Link>
           </motion.div>
+
+          {/* Urgency message */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-xs sm:text-sm text-muted-foreground mb-4"
+          >
+            ⚡ <span className="font-semibold text-foreground">Últimas 24h:</span> 89 pessoas começaram a economizar hoje
+          </motion.p>
 
           {/* Guarantees */}
           <motion.div

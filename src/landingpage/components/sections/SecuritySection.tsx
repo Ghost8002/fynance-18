@@ -89,19 +89,49 @@ export const SecuritySection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="mt-12 sm:mt-16 flex flex-wrap items-center justify-center gap-6 sm:gap-10"
+          className="mt-12 sm:mt-16"
         >
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Shield className="w-5 h-5 text-finance-green" />
-            <span className="text-sm font-medium">SSL Certificado</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Lock className="w-5 h-5 text-finance-green" />
-            <span className="text-sm font-medium">256-bit Encryption</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <FileCheck className="w-5 h-5 text-finance-green" />
-            <span className="text-sm font-medium">LGPD Compliant</span>
+          <div className="bg-card border-2 border-finance-green/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto">
+            <div className="text-center mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">
+                Certificações e Segurança
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Seus dados protegidos com os mais altos padrões de segurança
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              <div className="flex flex-col items-center gap-3 p-4 rounded-xl bg-muted/50 border border-finance-green/10 hover:border-finance-green/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-finance-green/10 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-finance-green" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-foreground mb-1">SSL Certificado</p>
+                  <p className="text-xs text-muted-foreground">Conexão segura</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-3 p-4 rounded-xl bg-muted/50 border border-finance-green/10 hover:border-finance-green/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-finance-green/10 flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-finance-green" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-foreground mb-1">256-bit Encryption</p>
+                  <p className="text-xs text-muted-foreground">Criptografia bancária</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-3 p-4 rounded-xl bg-muted/50 border border-finance-green/10 hover:border-finance-green/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-finance-green/10 flex items-center justify-center">
+                  <FileCheck className="w-6 h-6 text-finance-green" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-foreground mb-1">LGPD Compliant</p>
+                  <p className="text-xs text-muted-foreground">100% conforme</p>
+                </div>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
