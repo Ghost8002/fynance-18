@@ -2,8 +2,12 @@ import Navigation from "@/landingpage/components/Navigation";
 import Footer from "@/landingpage/components/Footer";
 import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
 import { HeroSection } from "@/landingpage/components/sections/HeroSection";
+import { MediaLogosSection } from "@/landingpage/components/sections/MediaLogosSection";
 import { BenefitsSection } from "@/landingpage/components/sections/BenefitsSection";
+import { HowItWorksSection } from "@/landingpage/components/sections/HowItWorksSection";
 import { FeaturesGrid } from "@/landingpage/components/sections/FeaturesGrid";
+import { TestimonialsSection } from "@/landingpage/components/sections/TestimonialsSection";
+import { SecuritySection } from "@/landingpage/components/sections/SecuritySection";
 import { PricingSection } from "@/landingpage/components/pricing/PricingSection";
 import { FAQSection } from "@/landingpage/components/sections/FAQSection";
 import { FinalCTASection } from "@/landingpage/components/sections/FinalCTASection";
@@ -18,13 +22,25 @@ const Index = () => {
         <HeroSection />
       </SectionSpotlight>
 
+      {/* Media Logos - Social Proof */}
+      <MediaLogosSection />
+
       {/* Benefits Section */}
       <BenefitsSection />
+
+      {/* How It Works Section */}
+      <HowItWorksSection />
 
       {/* Features Section */}
       <SectionSpotlight intensity={0.06}>
         <FeaturesGrid />
       </SectionSpotlight>
+
+      {/* Testimonials Section */}
+      <TestimonialsSection />
+
+      {/* Security Section */}
+      <SecuritySection />
 
       {/* Pricing Section */}
       <SectionSpotlight intensity={0.08}>
