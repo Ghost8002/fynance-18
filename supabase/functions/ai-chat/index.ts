@@ -1,8 +1,7 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const groqApiKey = Deno.env.get('GROQ_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,233 +12,318 @@ interface UserFinancialData {
   monthlyIncome: number;
   monthlyExpenses: number;
   savingsRate: number;
-  categories: Array<{ name: string; amount: number; percentage: number }>;
-  goals: Array<{ title: string; progress: number; target: number }>;
+  categories: Array<{ id: string; name: string; color: string; type: string }>;
+  goals: Array<{ id: string; title: string; progress: number; target: number }>;
+  accounts: Array<{ id: string; name: string; balance: number; type: string }>;
   totalBalance: number;
-}
-
-interface CRUDResult {
-  success: boolean;
-  message: string;
-  data?: any;
 }
 
 interface ChatRequest {
   message: string;
-  systemPrompt?: string;
   userData?: UserFinancialData;
-  crudResult?: CRUDResult;
+  stream?: boolean;
 }
 
-function buildSystemPrompt(userData: UserFinancialData, crudResult?: CRUDResult): string {
-  const { monthlyIncome, monthlyExpenses, savingsRate, categories, goals, totalBalance } = userData;
+// Tool definitions for CRUD operations
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "create_transaction",
+      description: "Criar uma nova transação financeira (despesa ou receita)",
+      parameters: {
+        type: "object",
+        properties: {
+          description: { type: "string", description: "Descrição da transação" },
+          amount: { type: "number", description: "Valor da transação em reais" },
+          date: { type: "string", description: "Data da transação (YYYY-MM-DD). Use data de hoje se não especificado." },
+          type: { type: "string", enum: ["income", "expense"], description: "Tipo: income (receita) ou expense (despesa)" },
+          category_name: { type: "string", description: "Nome da categoria" },
+          account_name: { type: "string", description: "Nome da conta (opcional)" }
+        },
+        required: ["description", "amount", "type"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_transactions_by_filter",
+      description: "Atualizar transações que correspondem a um filtro (ex: mudar categoria de transações do McDonald's para Alimentação)",
+      parameters: {
+        type: "object",
+        properties: {
+          filter_description: { type: "string", description: "Texto que deve estar na descrição das transações" },
+          new_category_name: { type: "string", description: "Nova categoria para as transações" }
+        },
+        required: ["filter_description", "new_category_name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_transaction",
+      description: "Excluir uma transação específica",
+      parameters: {
+        type: "object",
+        properties: {
+          description_contains: { type: "string", description: "Texto na descrição da transação a ser excluída" },
+          confirm: { type: "boolean", description: "Confirmação para excluir" }
+        },
+        required: ["description_contains"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_category",
+      description: "Criar uma nova categoria de transações",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Nome da categoria" },
+          type: { type: "string", enum: ["income", "expense"], description: "Tipo: income (receita) ou expense (despesa)" },
+          color: { type: "string", description: "Cor em hexadecimal (ex: #3B82F6)" }
+        },
+        required: ["name", "type"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_goal",
+      description: "Criar uma nova meta financeira",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Título da meta" },
+          target_amount: { type: "number", description: "Valor alvo da meta" },
+          deadline: { type: "string", description: "Data limite (YYYY-MM-DD)" },
+          description: { type: "string", description: "Descrição da meta" }
+        },
+        required: ["title", "target_amount"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_goal",
+      description: "Atualizar uma meta existente (adicionar progresso, mudar valor, etc)",
+      parameters: {
+        type: "object",
+        properties: {
+          goal_title: { type: "string", description: "Título da meta a ser atualizada" },
+          add_amount: { type: "number", description: "Valor a adicionar ao progresso" },
+          new_target: { type: "number", description: "Novo valor alvo (opcional)" },
+          new_deadline: { type: "string", description: "Nova data limite (opcional)" }
+        },
+        required: ["goal_title"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_account",
+      description: "Criar uma nova conta bancária/carteira",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Nome da conta" },
+          type: { type: "string", enum: ["checking", "savings", "investment", "wallet"], description: "Tipo da conta" },
+          balance: { type: "number", description: "Saldo inicial" },
+          bank: { type: "string", description: "Nome do banco (opcional)" }
+        },
+        required: ["name", "type"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_transactions",
+      description: "Listar transações com filtros opcionais",
+      parameters: {
+        type: "object",
+        properties: {
+          category_name: { type: "string", description: "Filtrar por categoria" },
+          description_contains: { type: "string", description: "Filtrar por texto na descrição" },
+          type: { type: "string", enum: ["income", "expense"], description: "Filtrar por tipo" },
+          limit: { type: "number", description: "Número máximo de resultados" }
+        }
+      }
+    }
+  }
+];
+
+function buildSystemPrompt(userData: UserFinancialData): string {
+  const { monthlyIncome, monthlyExpenses, savingsRate, categories, goals, accounts, totalBalance } = userData;
   
   const topCategories = categories
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5)
-    .map(cat => `${cat.name}: R$ ${cat.amount.toFixed(2)} (${cat.percentage.toFixed(1)}%)`)
+    .slice(0, 10)
+    .map(cat => `${cat.name} (${cat.type}, id: ${cat.id})`)
     .join(', ');
 
   const goalsProgress = goals
-    .map(goal => `${goal.title}: ${((goal.progress / goal.target) * 100).toFixed(1)}% concluída (R$ ${goal.progress.toFixed(2)} de R$ ${goal.target.toFixed(2)})`)
+    .map(goal => `${goal.title}: ${((goal.progress / goal.target) * 100).toFixed(1)}% (R$ ${goal.progress.toFixed(2)} de R$ ${goal.target.toFixed(2)}, id: ${goal.id})`)
     .join(', ');
 
-  let crudContext = '';
-  if (crudResult) {
-    crudContext = `\n\nOPERAÇÃO CRUD EXECUTADA:
-- Status: ${crudResult.success ? 'SUCESSO' : 'ERRO'}
-- Resultado: ${crudResult.message}
-${crudResult.data ? `- Dados: ${JSON.stringify(crudResult.data)}` : ''}
+  const accountsList = accounts
+    .map(acc => `${acc.name}: R$ ${acc.balance.toFixed(2)} (${acc.type}, id: ${acc.id})`)
+    .join(', ');
 
-IMPORTANTE: A operação CRUD já foi executada. Comente sobre o resultado na sua resposta.`;
-  }
+  const today = new Date().toISOString().split('T')[0];
 
-  return `Você é um assistente financeiro especializado em finanças pessoais brasileiras com capacidades CRUD completas.
-Você pode analisar dados, fornecer conselhos E TAMBÉM alterar dados do sistema quando solicitado.
+  return `Você é um assistente financeiro inteligente especializado em finanças pessoais brasileiras.
+Você pode analisar dados, fornecer conselhos personalizados E executar operações CRUD quando solicitado.
+
+DATA DE HOJE: ${today}
 
 DADOS FINANCEIROS DO USUÁRIO:
 - Renda mensal: R$ ${monthlyIncome.toFixed(2)}
 - Gastos mensais: R$ ${monthlyExpenses.toFixed(2)}
 - Taxa de poupança: ${savingsRate.toFixed(1)}%
-- Saldo total em contas: R$ ${totalBalance.toFixed(2)}
-- Principais categorias de gastos: ${topCategories || 'Nenhuma categoria encontrada'}
-- Metas financeiras: ${goalsProgress || 'Nenhuma meta encontrada'}${crudContext}
+- Saldo total: R$ ${totalBalance.toFixed(2)}
+- Categorias disponíveis: ${topCategories || 'Nenhuma categoria'}
+- Contas: ${accountsList || 'Nenhuma conta'}
+- Metas: ${goalsProgress || 'Nenhuma meta'}
 
-CAPACIDADES CRUD DISPONÍVEIS:
-Você pode executar operações nos dados:
-- CRIAR: Novas transações, categorias, contas, cartões, metas
-- LER: Consultar e filtrar dados existentes
-- ATUALIZAR: Modificar transações, categorias, valores, etc.
-- DELETAR: Excluir registros específicos
+CAPACIDADES:
+Você tem acesso a ferramentas (tools) para executar operações nos dados do usuário.
+Use as ferramentas quando o usuário solicitar:
+- Criar transações: "comprei café por R$ 15", "recebi salário de R$ 5000"
+- Alterar transações: "mude transações do Uber para Transporte"
+- Criar categorias: "crie categoria Freelance"
+- Criar/atualizar metas: "quero juntar R$ 10000 para viagem"
+- Listar/buscar dados: "quais minhas compras no iFood?"
 
-EXEMPLOS DE COMANDOS SUPORTADOS:
-- "Altere todas as transações do McDonald's para a categoria Alimentação"
-- "Mude a categoria das transações que contém 'Uber' para Transporte"
-- "Crie uma nova categoria chamada Investimentos com cor azul"
-- "Exclua a transação com descrição 'teste'"
-
-INSTRUÇÕES PARA RESPOSTA:
-- Responda sempre em português brasileiro
-- Se uma operação CRUD foi executada, comente sobre o resultado
-- Use linguagem clara, motivacional e prática
-- Forneça conselhos específicos baseados nos dados apresentados
-- Inclua números e percentuais quando relevante
-- Seja encorajador mas realista
-- Limite a resposta a no máximo 300 palavras
-- Use formatação clara com tópicos quando apropriado
-
-Se o usuário solicitar alterações nos dados, explique que a operação foi executada (se aplicável) e forneça orientações sobre o resultado.`;
+INSTRUÇÕES:
+- Responda em português brasileiro
+- Use as ferramentas disponíveis para operações CRUD
+- Para datas não especificadas, use a data de hoje
+- Forneça conselhos práticos baseados nos dados
+- Seja encorajador e motivacional
+- Limite respostas a 250 palavras
+- Use formatação markdown quando apropriado`;
 }
 
 function getDefaultSystemPrompt(): string {
-  return `Você é um assistente financeiro especializado em finanças pessoais brasileiras.
+  const today = new Date().toISOString().split('T')[0];
+  return `Você é um assistente financeiro inteligente especializado em finanças pessoais brasileiras.
+DATA DE HOJE: ${today}
 
-INSTRUÇÕES PARA RESPOSTA:
-- Responda sempre em português brasileiro
-- Use linguagem clara, motivacional e prática
-- Seja encorajador mas realista
-- Limite a resposta a no máximo 300 palavras
-- Forneça dicas práticas sobre gestão financeira`;
+Você tem acesso a ferramentas para gerenciar dados financeiros do usuário.
+Responda em português brasileiro de forma clara e motivacional.
+Limite respostas a 250 palavras.`;
 }
 
 serve(async (req) => {
-  console.log('Request received:', req.method, req.url);
+  console.log('Request received:', req.method);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    if (!groqApiKey) {
-      console.error('GROQ_API_KEY not found in environment');
-      throw new Error('Groq API key not configured. Please add GROQ_API_KEY to your Supabase Edge Function secrets.');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not found');
+      throw new Error('API key not configured');
     }
 
-    let body;
-    try {
-      body = await req.json();
-    } catch (error) {
-      console.error('Error parsing request body:', error);
-      throw new Error('Invalid JSON in request body');
-    }
-    
-    console.log('Received request body:', JSON.stringify(body, null, 2));
-    
-    const { message, systemPrompt, userData, crudResult }: ChatRequest = body;
+    const body: ChatRequest = await req.json();
+    const { message, userData, stream = true } = body;
 
     if (!message || typeof message !== 'string') {
-      throw new Error('Message is required and must be a string');
+      throw new Error('Message is required');
     }
 
-    // Validate message length
-    if (message.length > 1000) {
-      throw new Error('Message too long. Please keep messages under 1000 characters.');
+    if (message.length > 2000) {
+      throw new Error('Message too long');
     }
 
-    // Sanitize user input - remove potential injection patterns
+    // Sanitize input
     const sanitizedMessage = message
-      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/\[INST\]|\[\/INST\]|\[\[.*?\]\]/gi, '') // Remove common injection patterns
-      .replace(/system:|assistant:|user:/gi, '') // Remove role markers
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\[INST\]|\[\/INST\]|\[\[.*?\]\]/gi, '')
+      .replace(/system:|assistant:|user:/gi, '')
       .trim();
 
-    if (sanitizedMessage.length === 0) {
-      throw new Error('Invalid message content');
+    if (!sanitizedMessage) {
+      throw new Error('Invalid message');
     }
 
-    // Check for suspicious patterns
-    const suspiciousPatterns = [
-      /ignore.*previous.*instructions/i,
-      /disregard.*above/i,
-      /forget.*everything/i,
-      /new.*instructions/i,
-      /pretend.*you.*are/i,
-      /act.*as.*if/i,
-    ];
+    const systemPrompt = userData ? buildSystemPrompt(userData) : getDefaultSystemPrompt();
 
-    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(sanitizedMessage));
-    if (isSuspicious) {
-      console.warn('Suspicious input detected:', sanitizedMessage.substring(0, 100));
-    }
-
-    // Build system prompt - user message is now passed as a separate user role message
-    let systemPromptContent = systemPrompt;
-    if (!systemPromptContent && userData) {
-      systemPromptContent = buildSystemPrompt(userData, crudResult);
-    } else if (!systemPromptContent) {
-      systemPromptContent = getDefaultSystemPrompt();
-    }
-
-    console.log('Using system prompt length:', systemPromptContent.length);
-
-    // Use proper message roles to prevent prompt injection
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    console.log('Calling Lovable AI Gateway...');
+    
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: systemPromptContent },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: sanitizedMessage }
         ],
-        max_tokens: 500,
-        temperature: 0.7,
-        stream: false,
+        tools: tools,
+        stream: stream,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Groq API error:', response.status, errorText);
+      console.error('AI Gateway error:', response.status, errorText);
       
-      if (response.status === 401) {
-        throw new Error('Invalid Groq API key. Please check your GROQ_API_KEY configuration.');
-      } else if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a moment.');
-      } else {
-        throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns segundos.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'Créditos insuficientes. Por favor, adicione créditos.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
+    // Stream response back to client
+    if (stream) {
+      return new Response(response.body, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
+      });
+    }
+
+    // Non-streaming response
     const data = await response.json();
-    console.log('Groq API response:', JSON.stringify(data, null, 2));
-    
     const aiResponse = data.choices?.[0]?.message?.content;
-
-    if (!aiResponse) {
-      console.error('No response content from Groq API:', data);
-      throw new Error('No response generated by AI. Please try again.');
-    }
-
-    console.log('AI response generated successfully, length:', aiResponse.length);
+    const toolCalls = data.choices?.[0]?.message?.tool_calls;
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
+      toolCalls: toolCalls,
       tokensUsed: data.usage?.total_tokens || 0 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    // Log detailed error server-side only
-    console.error('Error in ai-chat function:', error);
-    if (error instanceof Error) {
-      console.error('Stack trace:', error.stack);
-    }
+    console.error('Error in ai-chat:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro interno';
     
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    const statusCode = errorMessage.includes('API key') ? 401 : 
-                      errorMessage.includes('Rate limit') ? 429 : 500;
-    
-    // Return generic error to client - no stack traces exposed
-    return new Response(JSON.stringify({ 
-      error: errorMessage
-    }), {
-      status: statusCode,
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

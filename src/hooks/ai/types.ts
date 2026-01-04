@@ -9,7 +9,9 @@ export interface ChatMessage {
   isUser: boolean;
   crudOperation?: {
     executed: boolean;
-    operation: CRUDOperation;
+    operation?: CRUDOperation;
+    operations?: string[];
+    results?: Array<{ success: boolean; message: string; data?: any }>;
     result?: any;
   };
 }
@@ -18,7 +20,7 @@ export interface UserFinancialData {
   monthlyIncome: number;
   monthlyExpenses: number;
   savingsRate: number;
-  categories: Array<{ name: string; amount: number; percentage: number }>;
-  goals: Array<{ title: string; progress: number; target: number }>;
+  categories: Array<{ name: string; amount: number; percentage: number }> | Array<{ id: string; name: string; color: string; type: string }>;
+  goals: Array<{ title: string; progress: number; target: number }> | Array<{ id: string; title: string; progress: number; target: number }>;
   totalBalance: number;
 }

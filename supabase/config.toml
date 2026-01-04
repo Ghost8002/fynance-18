@@ -1,5 +1,8 @@
 project_id = "vwactcwdsfkytqmsdkde"
 
+[functions.ai-chat]
+verify_jwt = false
+
 [functions.create-checkout]
 verify_jwt = false
 

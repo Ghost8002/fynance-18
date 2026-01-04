@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useAI } from '@/hooks/useAI';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -10,7 +10,16 @@ import AIChatInput from './AIChatInput';
 import AIChatSessions from './AIChatSessions';
 
 const AIAssistant = () => {
-  const { sendMessage, loading, chatHistory, loadChatHistory, startNewConversation, permanentlyDeleteHistory } = useAI();
+  const { 
+    sendMessage, 
+    loading, 
+    isStreaming,
+    streamingMessage,
+    chatHistory, 
+    loadChatHistory, 
+    startNewConversation, 
+    permanentlyDeleteHistory 
+  } = useAI();
   const [showHistory, setShowHistory] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>();
   const [suggestedMessage, setSuggestedMessage] = useState<string>('');
@@ -22,7 +31,6 @@ const AIAssistant = () => {
   const handleSendMessage = async (userMessage: string) => {
     try {
       await sendMessage(userMessage);
-      toast.success('Resposta recebida do assistente!');
     } catch (error) {
       // Error is already handled in useAI hook
     }
@@ -94,7 +102,7 @@ const AIAssistant = () => {
       <div className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-1">
           <div className="p-6">
-            {chatHistory.length === 0 ? (
+            {chatHistory.length === 0 && !isStreaming ? (
               <AIWelcome 
                 loading={loading}
                 onQuestionSelect={handleQuestionSelect}
@@ -103,6 +111,8 @@ const AIAssistant = () => {
               <AIChatHistory 
                 chatHistory={chatHistory}
                 loading={loading}
+                isStreaming={isStreaming}
+                streamingMessage={streamingMessage}
               />
             )}
           </div>
