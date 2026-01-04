@@ -2,7 +2,6 @@ import Navigation from "@/landingpage/components/Navigation";
 import Footer from "@/landingpage/components/Footer";
 import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
 import { HeroSection } from "@/landingpage/components/sections/HeroSection";
-import { MediaLogosSection } from "@/landingpage/components/sections/MediaLogosSection";
 import { BenefitsSection } from "@/landingpage/components/sections/BenefitsSection";
 import { HowItWorksSection } from "@/landingpage/components/sections/HowItWorksSection";
 import { FeaturesGrid } from "@/landingpage/components/sections/FeaturesGrid";
@@ -21,9 +20,6 @@ const Index = () => {
       <SectionSpotlight intensity={0.05}>
         <HeroSection />
       </SectionSpotlight>
-
-      {/* Media Logos - Social Proof */}
-      <MediaLogosSection />
 
       {/* Benefits Section */}
       <BenefitsSection />

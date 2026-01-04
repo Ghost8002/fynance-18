@@ -7,8 +7,8 @@ import { Link } from "react-router-dom";
 import { AnimatedCounter } from "@/landingpage/components/ui/AnimatedCounter";
 
 const stats = [
-  { icon: Users, value: 12847, label: "Usuários ativos", suffix: "" },
-  { icon: TrendingUp, value: 52.3, label: "Milhões gerenciados", prefix: "R$ ", suffix: "M", decimals: 1 },
+  { icon: Users, value: 2340, label: "Usuários ativos", suffix: "" },
+  { icon: TrendingUp, value: 4.7, label: "Milhões gerenciados", prefix: "R$ ", suffix: "M", decimals: 1 },
   { icon: Shield, value: 99.9, label: "Uptime", suffix: "%", decimals: 1 },
 ];
 
