@@ -5,7 +5,7 @@ import { Button } from "@/landingpage/components/ui/button";
 import Navigation from "@/landingpage/components/Navigation";
 import { FeaturesSection } from "@/landingpage/components/features/FeaturesSection";
 import { PricingSection } from "@/landingpage/components/pricing/PricingSection";
-import TestimonialsSection from "@/landingpage/components/TestimonialsSection";
+
 import Footer from "@/landingpage/components/Footer";
 import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-effect";
 import { SectionSpotlight } from "@/landingpage/components/ui/SectionSpotlight";
@@ -93,12 +93,6 @@ const Index = () => {
         </div>
       </SectionSpotlight>
 
-      {/* Testimonials Section */}
-      <SectionSpotlight intensity={0.05}>
-        <div className="bg-gray-50 dark:bg-gray-800">
-          <TestimonialsSection />
-        </div>
-      </SectionSpotlight>
 
       {/* CTA Section */}
       <SectionSpotlight intensity={0.1}>
