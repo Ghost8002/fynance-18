@@ -12,6 +12,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AppLayout from "@/components/shared/AppLayout";
 import { ContentSkeleton } from "@/components/skeletons/ContentSkeleton";
 import { usePWAStandalone } from "@/hooks/useMobileDetect";
+import { OfflineBanner } from "@/components/shared/OfflineBanner";
 
 
 // Eager loaded pages (critical path)
@@ -175,6 +176,7 @@ const App = () => (
             <RealtimeDataProvider>
               <ThemeProvider>
                 <TooltipProvider>
+                  <OfflineBanner />
                   <Toaster />
                   <Sonner />
                   <AppRoutes />
