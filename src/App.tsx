@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AppLayout from "@/components/shared/AppLayout";
 import { ContentSkeleton } from "@/components/skeletons/ContentSkeleton";
+import { usePWAStandalone } from "@/hooks/useMobileDetect";
 
 
 // Eager loaded pages (critical path)
@@ -80,12 +81,20 @@ const PageLoader = () => {
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
+  const isStandalone = usePWAStandalone();
+  
+  // When app is installed (standalone mode), show AI Assistant as home for authenticated users
+  const getHomeElement = () => {
+    if (!isAuthenticated) return <LandingPage />;
+    if (isStandalone) return <AIAssistantPage />;
+    return <Dashboard />;
+  };
   
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={isAuthenticated ? <Dashboard /> : <LandingPage />} />
+        <Route path="/" element={getHomeElement()} />
         <Route path="/login" element={<Login />} />
         
         <Route path="/privacidade" element={<PrivacyPolicy />} />
