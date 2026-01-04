@@ -139,7 +139,7 @@ export const HeroSection = () => {
             transition={{ delay: 0.6 }}
             className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8"
           >
-            ✓ Sem cartão de crédito • ✓ Cancele quando quiser • ✓ Acesso imediato
+            ✓ Cancele quando quiser • ✓ Acesso imediato
           </motion.p>
 
           {/* Social Proof */}
@@ -180,10 +180,6 @@ export const HeroSection = () => {
               <span className="flex items-center gap-2">
                 <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
                 Dados criptografados
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-finance-green" />
-                Sem cartão para começar
               </span>
               <span className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-finance-green" />

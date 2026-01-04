@@ -106,10 +106,6 @@ export const PricingSection = () => {
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center gap-1 sm:gap-1.5">
                 <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
-                <span>Sem cartão</span>
-              </div>
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-finance-green" />
                 <span>Cancele quando quiser</span>
               </div>
               <div className="flex items-center gap-1 sm:gap-1.5">
