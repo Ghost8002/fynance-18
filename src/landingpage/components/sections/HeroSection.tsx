@@ -109,7 +109,7 @@ export const HeroSection = () => {
                 className="button-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 w-full sm:w-auto relative overflow-hidden animate-pulse-subtle"
               >
                 <span className="relative z-10 flex items-center">
-                  Começar 7 Dias Grátis
+                  Começar agora
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <motion.div

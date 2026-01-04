@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, Sparkles, Zap, Shield, BarChart3, CreditCard, HeadphonesIcon, Clock, Gift, ArrowRight } from "lucide-react";
+import { Check, Sparkles, Zap, Shield, BarChart3, CreditCard, HeadphonesIcon, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/landingpage/components/ui/button";
 import { CardSpotlight } from "./CardSpotlight";
 import { Link } from "react-router-dom";
@@ -17,16 +17,6 @@ export const PricingSection = () => {
   return (
     <section id="pricing" className="container px-4 py-16 sm:py-20 md:py-24 bg-background">
       <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="inline-flex items-center gap-1.5 sm:gap-2 bg-finance-green/10 text-finance-green rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6"
-        >
-          <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span className="text-xs sm:text-sm font-medium">7 dias grátis para testar</span>
-        </motion.div>
-        
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -107,7 +97,7 @@ export const PricingSection = () => {
             {/* CTA Button */}
             <Link to="/auth" className="block">
               <Button className="button-gradient w-full text-base sm:text-lg py-5 sm:py-6 shadow-lg shadow-primary/25" size="lg">
-                Começar 7 Dias Grátis
+                Assinar agora
                 <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>

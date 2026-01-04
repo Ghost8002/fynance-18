@@ -16,10 +16,6 @@ const faqs = [
     answer: "Absolutamente! Não há fidelidade ou multa de cancelamento. Você pode cancelar sua assinatura a qualquer momento diretamente pelo painel, sem burocracia.",
   },
   {
-    question: "Como funciona o período de teste grátis?",
-    answer: "Você tem 7 dias para testar todas as funcionalidades premium sem compromisso. Não pedimos cartão de crédito para iniciar o teste. Só paga se decidir continuar.",
-  },
-  {
     question: "Preciso conectar minha conta bancária?",
     answer: "Não é obrigatório! Você pode adicionar suas transações manualmente ou importar extratos. A conexão bancária é opcional e oferece mais praticidade.",
   },

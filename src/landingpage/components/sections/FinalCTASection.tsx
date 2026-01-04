@@ -4,7 +4,6 @@ import { Button } from "@/landingpage/components/ui/button";
 import { Link } from "react-router-dom";
 
 const guarantees = [
-  "7 dias grátis para testar",
   "Sem cartão de crédito",
   "Cancele quando quiser",
   "Suporte humanizado",
