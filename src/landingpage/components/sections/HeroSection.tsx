@@ -26,7 +26,7 @@ export const HeroSection = () => {
     y: 0
   }} transition={{
     duration: 0.5
-  }} className="relative container px-4 pt-28 sm:pt-32 md:pt-40 pb-16 md:pb-24">
+  }} className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 md:pt-40 pb-16 md:pb-24">
       {/* Background */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-background" />
       
