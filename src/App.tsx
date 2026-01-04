@@ -9,6 +9,8 @@ import { SubscriptionProvider } from "@/context/SubscriptionContext";
 import { RealtimeDataProvider } from "@/context/RealtimeDataContext";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import AppLayout from "@/components/shared/AppLayout";
+import { ContentSkeleton } from "@/components/skeletons/ContentSkeleton";
 
 
 // Eager loaded pages (critical path)
@@ -58,8 +60,22 @@ const queryClient = new QueryClient({
   },
 });
 
-// Minimal loading fallback - skeleton appears inside layout via ProtectedRoute
-const PageLoader = () => null;
+// Loading fallback that shows skeleton inside layout for authenticated routes
+const PageLoader = () => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  // If authenticated or checking auth, show skeleton in layout
+  if (isAuthenticated || loading) {
+    return (
+      <AppLayout>
+        <ContentSkeleton variant="dashboard" />
+      </AppLayout>
+    );
+  }
+  
+  // For public routes, just return null (they load fast)
+  return null;
+};
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
