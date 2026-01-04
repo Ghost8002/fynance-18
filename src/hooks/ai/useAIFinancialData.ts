@@ -12,11 +12,11 @@ export const useAIFinancialData = () => {
   const { data: goals } = useSupabaseData('goals', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
 
-  const prepareUserData = (): UserFinancialData => {
+  const prepareUserData = (): UserFinancialData & { 
+    categories: Array<{ id: string; name: string; color: string; type: string }>;
+    accounts: Array<{ id: string; name: string; balance: number; type: string }>;
+  } => {
     devLog('Preparing user data...');
-    devLog('Accounts:', accounts);
-    devLog('Transactions:', transactions);
-    devLog('Goals:', goals);
 
     // Calculate monthly income and expenses
     const currentMonth = new Date().getMonth();
@@ -28,19 +28,17 @@ export const useAIFinancialData = () => {
              transactionDate.getFullYear() === currentYear;
     });
 
-    devLog('Monthly transactions:', monthlyTransactions);
-
     const monthlyIncome = monthlyTransactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + Number(t.amount), 0);
 
     const monthlyExpenses = monthlyTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
     const savingsRate = monthlyIncome > 0 ? ((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100 : 0;
 
-    // Calculate category breakdown using category names
+    // Calculate category breakdown
     const categoryMap = new Map<string, number>();
     monthlyTransactions
       .filter(t => t.type === 'expense')
@@ -48,7 +46,7 @@ export const useAIFinancialData = () => {
         const category = categories.find(c => c.id === t.category_id);
         const categoryName = category ? category.name : 'Outros';
         const current = categoryMap.get(categoryName) || 0;
-        categoryMap.set(categoryName, current + Number(t.amount));
+        categoryMap.set(categoryName, current + Math.abs(Number(t.amount)));
       });
 
     const categoriesData = Array.from(categoryMap.entries()).map(([name, amount]) => ({
@@ -63,26 +61,39 @@ export const useAIFinancialData = () => {
       return sum + balance;
     }, 0);
 
-    devLog('Calculated total balance:', totalBalance);
-
-    // Prepare goals data
+    // Prepare goals data with IDs
     const goalsData = goals.map(goal => ({
+      id: goal.id,
       title: goal.title,
       progress: Number(goal.current_amount) || 0,
       target: Number(goal.target_amount) || 0
     }));
 
-    const userData = {
+    // Format categories with IDs for AI tool calls
+    const formattedCategories = categories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      color: cat.color,
+      type: cat.type
+    }));
+
+    // Format accounts with IDs for AI tool calls
+    const formattedAccounts = accounts.map(acc => ({
+      id: acc.id,
+      name: acc.name,
+      balance: Number(acc.balance) || 0,
+      type: acc.type
+    }));
+
+    return {
       monthlyIncome,
       monthlyExpenses,
       savingsRate,
-      categories: categoriesData,
+      categories: formattedCategories,
+      accounts: formattedAccounts,
       goals: goalsData,
       totalBalance
     };
-
-    devLog('Final user data:', userData);
-    return userData;
   };
 
   return {

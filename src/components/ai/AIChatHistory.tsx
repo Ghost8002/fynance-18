@@ -1,22 +1,23 @@
 
 import { useEffect, useRef } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Bot, User, CheckCircle, XCircle } from 'lucide-react';
+import { Bot, User, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { ChatMessage } from '@/hooks/ai/types';
 import MarkdownRenderer from './MarkdownRenderer';
 
 interface AIChatHistoryProps {
   chatHistory: ChatMessage[];
   loading: boolean;
+  isStreaming?: boolean;
+  streamingMessage?: string;
 }
 
-const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
+const AIChatHistory = ({ chatHistory, loading, isStreaming, streamingMessage }: AIChatHistoryProps) => {
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll para a última mensagem
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory, loading]);
+  }, [chatHistory, loading, streamingMessage]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-4">
@@ -43,8 +44,38 @@ const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
                 <p className="text-sm leading-relaxed">{chat.message}</p>
               </div>
               
-              {/* CRUD Operation Status */}
-              {chat.crudOperation && (
+              {/* CRUD Operations Results */}
+              {chat.crudOperation?.results && chat.crudOperation.results.length > 0 && (
+                <div className="space-y-2">
+                  {chat.crudOperation.results.map((result, idx) => (
+                    <div key={idx} className={`rounded-lg p-3 border flex items-center gap-2 ${
+                      result.success 
+                        ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' 
+                        : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                    }`}>
+                      {result.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${
+                        result.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
+                      }`}>
+                        {result.message}
+                      </span>
+                      {chat.crudOperation?.operations?.[idx] && (
+                        <span className="ml-auto text-xs bg-background/50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Zap className="h-3 w-3" />
+                          {chat.crudOperation.operations[idx]}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Legacy single CRUD operation display */}
+              {chat.crudOperation?.result && !chat.crudOperation.results && (
                 <div className={`rounded-lg p-3 border ${
                   chat.crudOperation.result?.success 
                     ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' 
@@ -84,10 +115,29 @@ const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
         </div>
       ))}
 
-      {/* Marcador de fim das mensagens para auto-scroll */}
-      <div ref={endOfMessagesRef} />
+      {/* Streaming Message */}
+      {isStreaming && streamingMessage && (
+        <div className="flex items-start gap-4">
+          <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm flex-shrink-0 mt-1">
+            <Bot className="h-4 w-4 text-white" />
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">Assistente IA</p>
+              <span className="text-xs text-emerald-600 animate-pulse">digitando...</span>
+            </div>
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-50/50 dark:from-emerald-950/50 dark:to-emerald-950/20 rounded-2xl rounded-tl-md p-4 shadow-sm border border-emerald-200/50 dark:border-emerald-800/50">
+              <div className="text-sm leading-relaxed text-foreground">
+                <MarkdownRenderer content={streamingMessage} />
+                <span className="inline-block w-2 h-4 bg-emerald-500 animate-pulse ml-0.5"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {loading && (
+      {/* Loading state when no streaming message yet */}
+      {loading && !isStreaming && (
         <div className="flex items-start gap-4">
           <div className="p-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-sm flex-shrink-0 mt-1">
             <Bot className="h-4 w-4 text-white" />
@@ -107,6 +157,9 @@ const AIChatHistory = ({ chatHistory, loading }: AIChatHistoryProps) => {
           </div>
         </div>
       )}
+
+      {/* Marcador de fim das mensagens para auto-scroll */}
+      <div ref={endOfMessagesRef} />
     </div>
   );
 };
