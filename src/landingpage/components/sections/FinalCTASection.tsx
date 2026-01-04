@@ -97,7 +97,8 @@ export const FinalCTASection = () => {
           opacity: 1
         }} viewport={{
           once: true
-        }} className="text-xs sm:text-sm text-muted-foreground mb-4">⚡ Últimas 24h: 27 pessoas começaram a economizar hoje<span className="font-semibold text-foreground">Últimas 24h:</span> 89 pessoas começaram a economizar hoje
+        }} className="text-xs sm:text-sm text-muted-foreground mb-4">
+            ⚡ Últimas 24h: 27 pessoas começaram a economizar hoje
           </motion.p>
 
           {/* Guarantees */}
