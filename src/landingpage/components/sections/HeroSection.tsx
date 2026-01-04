@@ -103,7 +103,7 @@ export const HeroSection = () => {
             transition={{ delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10"
           >
-            <Link to="/auth" className="w-full sm:w-auto group">
+            <Link to="/login" className="w-full sm:w-auto group">
               <Button 
                 size="lg" 
                 className="button-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 w-full sm:w-auto relative overflow-hidden animate-pulse-subtle"
