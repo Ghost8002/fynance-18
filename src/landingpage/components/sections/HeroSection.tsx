@@ -11,13 +11,6 @@ const stats = [{
   label: "Usuários ativos",
   suffix: ""
 }, {
-  icon: TrendingUp,
-  value: 4.7,
-  label: "Milhões gerenciados",
-  prefix: "R$ ",
-  suffix: "M",
-  decimals: 1
-}, {
   icon: Shield,
   value: 99.9,
   label: "Uptime",
@@ -156,14 +149,13 @@ export const HeroSection = () => {
           y: 0
         }} transition={{
           delay: 0.7
-        }} className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-6">
+        }} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
             {stats.map((stat, index) => <div key={index} className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-3 text-center sm:text-left">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-base sm:text-xl font-bold text-foreground">
-                    {stat.prefix || ""}
                     <AnimatedCounter value={stat.value} decimals={stat.decimals || 0} suffix={stat.suffix || ""} />
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
