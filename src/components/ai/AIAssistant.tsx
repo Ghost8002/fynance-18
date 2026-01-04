@@ -90,7 +90,7 @@ const AIAssistant = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col bg-gradient-to-br from-background via-background to-muted/10 rounded-lg overflow-hidden border shadow-sm">
+    <div className="h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)] flex flex-col bg-gradient-to-br from-background via-background to-muted/10 rounded-lg overflow-hidden border shadow-sm">
       <AIHeader 
         chatHistoryLength={chatHistory.length}
         loading={loading}
@@ -101,7 +101,7 @@ const AIAssistant = () => {
 
       <div className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-1">
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {chatHistory.length === 0 && !isStreaming ? (
               <AIWelcome 
                 loading={loading}
