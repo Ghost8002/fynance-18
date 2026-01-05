@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Loader2, Mic, MicOff, WifiOff, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { devError } from '@/utils/logger';
+import { devError, devLog } from '@/utils/logger';
 import { cn } from '@/lib/utils';
 
 interface AIChatInputProps {
@@ -13,6 +13,26 @@ interface AIChatInputProps {
   onQueueMessage: (message: string) => Promise<void>;
 }
 
+// Mapeamento de erros de reconhecimento de voz para mensagens amigáveis
+const getVoiceErrorMessage = (error: string): string => {
+  switch (error) {
+    case 'no-speech':
+      return 'Nenhuma fala detectada. Tente novamente.';
+    case 'audio-capture':
+      return 'Microfone não encontrado. Verifique as permissões.';
+    case 'not-allowed':
+      return 'Permissão de microfone negada. Habilite nas configurações.';
+    case 'network':
+      return 'Erro de rede. Verifique sua conexão.';
+    case 'aborted':
+      return 'Captura de voz cancelada.';
+    case 'service-not-allowed':
+      return 'Serviço de voz não permitido neste navegador.';
+    default:
+      return 'Erro ao capturar voz. Tente novamente.';
+  }
+};
+
 const AIChatInput = ({
   loading,
   isOnline,
@@ -21,8 +41,26 @@ const AIChatInput = ({
 }: AIChatInputProps) => {
   const [message, setMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [voiceRetryCount, setVoiceRetryCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+  const isMountedRef = useRef(true);
+
+  // Track component mount state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Cleanup recognition on unmount
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
+    };
+  }, []);
 
   // Atalho de teclado "/" para focar no input
   useEffect(() => {
@@ -68,70 +106,168 @@ const AIChatInput = ({
     }
   };
 
-  const toggleVoiceInput = () => {
+  // Função para parar reconhecimento de forma segura
+  const stopRecognition = useCallback(() => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {
+        devError('Erro ao parar reconhecimento:', e);
+      }
+      recognitionRef.current = null;
+    }
+    if (isMountedRef.current) {
+      setIsListening(false);
+    }
+  }, []);
+
+  // Função para iniciar reconhecimento com retry
+  const startRecognition = useCallback(async () => {
+    // Verificar suporte
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast.error('Reconhecimento de voz não suportado neste navegador');
-      return;
+      return false;
     }
 
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-      return;
+    // Verificar permissão de microfone primeiro
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Liberar o stream imediatamente após verificar permissão
+      stream.getTracks().forEach(track => track.stop());
+    } catch (error: any) {
+      devError('Erro de permissão do microfone:', error);
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        toast.error('Permissão de microfone negada. Habilite nas configurações do navegador.');
+      } else if (error.name === 'NotFoundError') {
+        toast.error('Microfone não encontrado. Conecte um microfone e tente novamente.');
+      } else {
+        toast.error('Erro ao acessar microfone. Verifique as permissões.');
+      }
+      return false;
     }
 
     try {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.lang = 'pt-BR';
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      const recognition = new SpeechRecognition();
+      
+      recognition.lang = 'pt-BR';
+      recognition.continuous = false;
+      recognition.interimResults = true; // Mostrar resultados intermediários
+      recognition.maxAlternatives = 1;
 
-      recognitionRef.current.onstart = () => {
-        setIsListening(true);
-        toast.success('Escutando... Fale agora!');
+      recognition.onstart = () => {
+        if (isMountedRef.current) {
+          setIsListening(true);
+          setVoiceRetryCount(0);
+          toast.success('🎤 Escutando... Fale agora!', { duration: 2000 });
+        }
       };
 
-      recognitionRef.current.onresult = async (event: any) => {
-        const transcript = event.results[0][0].transcript;
+      recognition.onresult = async (event: any) => {
+        if (!isMountedRef.current) return;
+
+        const results = event.results;
+        const lastResult = results[results.length - 1];
+        const transcript = lastResult[0].transcript;
+        const isFinal = lastResult.isFinal;
+
+        // Atualizar texto conforme fala (resultados intermediários)
         setMessage(transcript);
-        
-        // Auto-send after voice capture
-        if (transcript.trim()) {
+
+        // Quando finalizado, enviar a mensagem
+        if (isFinal && transcript.trim()) {
+          devLog('Transcrição final:', transcript);
           setIsListening(false);
-          
-          // Small delay to show the text before sending
+          recognitionRef.current = null;
+
+          // Delay para mostrar o texto antes de enviar
           setTimeout(async () => {
-            if (isOnline) {
-              await onSendMessage(transcript.trim());
-            } else {
-              await onQueueMessage(transcript.trim());
-              toast.info('Mensagem de voz salva! Será enviada quando a internet voltar.', {
-                icon: <Clock className="h-4 w-4" />,
-              });
+            if (!isMountedRef.current) return;
+            
+            try {
+              if (isOnline) {
+                await onSendMessage(transcript.trim());
+              } else {
+                await onQueueMessage(transcript.trim());
+                toast.info('Mensagem de voz salva! Será enviada quando a internet voltar.', {
+                  icon: <Clock className="h-4 w-4" />,
+                });
+              }
+              setMessage('');
+            } catch (error) {
+              devError('Erro ao enviar mensagem de voz:', error);
+              // Manter o texto no input para o usuário tentar novamente
+              toast.error('Erro ao enviar. Tente novamente.');
             }
-            setMessage('');
           }, 300);
         }
       };
 
-      recognitionRef.current.onerror = (event: any) => {
+      recognition.onerror = (event: any) => {
+        if (!isMountedRef.current) return;
+        
+        const errorMessage = getVoiceErrorMessage(event.error);
         devError('Erro no reconhecimento de voz:', event.error);
-        toast.error('Erro ao capturar voz');
-        setIsListening(false);
+
+        // Para erros de "no-speech", tentar novamente automaticamente (máximo 2 vezes)
+        if (event.error === 'no-speech' && voiceRetryCount < 2) {
+          setVoiceRetryCount(prev => prev + 1);
+          toast.info('Nenhuma fala detectada. Tentando novamente...', { duration: 2000 });
+          
+          // Pequeno delay antes de reiniciar
+          setTimeout(() => {
+            if (isMountedRef.current && isListening) {
+              try {
+                recognition.start();
+              } catch (e) {
+                stopRecognition();
+                toast.error(errorMessage);
+              }
+            }
+          }, 500);
+          return;
+        }
+
+        // Para erros abortados pelo usuário, não mostrar erro
+        if (event.error === 'aborted') {
+          setIsListening(false);
+          return;
+        }
+
+        stopRecognition();
+        toast.error(errorMessage);
       };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
+      recognition.onend = () => {
+        // Só atualizar estado se não for um retry
+        if (isMountedRef.current && voiceRetryCount >= 2) {
+          setIsListening(false);
+          recognitionRef.current = null;
+        }
       };
 
-      recognitionRef.current.start();
+      recognitionRef.current = recognition;
+      recognition.start();
+      return true;
     } catch (error) {
       devError('Erro ao iniciar reconhecimento de voz:', error);
-      toast.error('Erro ao ativar reconhecimento de voz');
-      setIsListening(false);
+      toast.error('Erro ao ativar reconhecimento de voz. Tente novamente.');
+      if (isMountedRef.current) {
+        setIsListening(false);
+      }
+      return false;
     }
-  };
+  }, [isOnline, onSendMessage, onQueueMessage, voiceRetryCount, isListening, stopRecognition]);
+
+  const toggleVoiceInput = useCallback(async () => {
+    if (isListening) {
+      stopRecognition();
+      toast.info('Captura de voz cancelada');
+      return;
+    }
+
+    await startRecognition();
+  }, [isListening, stopRecognition, startRecognition]);
 
   return (
     <div className="sticky bottom-0 backdrop-blur-md bg-background/95 border-t border-border/50">
