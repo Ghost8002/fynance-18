@@ -5,18 +5,6 @@ import { TextGenerateEffect } from "@/landingpage/components/ui/text-generate-ef
 import { FynanceLogo } from "@/components/shared/FynanceLogo";
 import { Link } from "react-router-dom";
 import { AnimatedCounter } from "@/landingpage/components/ui/AnimatedCounter";
-const stats = [{
-  icon: Users,
-  value: 2340,
-  label: "Usuários ativos",
-  suffix: ""
-}, {
-  icon: Shield,
-  value: 99.9,
-  label: "Uptime",
-  suffix: "%",
-  decimals: 1
-}];
 export const HeroSection = () => {
   return (
     <motion.section
@@ -138,28 +126,6 @@ export const HeroSection = () => {
             ✓ Cancele quando quiser • ✓ Acesso imediato
           </motion.p>
 
-          {/* Social Proof */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.7
-        }} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
-            {stats.map((stat, index) => <div key={index} className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-3 text-center sm:text-left">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-base sm:text-xl font-bold text-foreground">
-                    <AnimatedCounter value={stat.value} decimals={stat.decimals || 0} suffix={stat.suffix || ""} />
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
-                </div>
-              </div>)}
-          </motion.div>
 
           {/* Trust indicators */}
           <motion.div initial={{
