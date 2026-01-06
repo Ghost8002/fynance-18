@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-
 const TermsOfService = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="container max-w-4xl py-8 px-4">
         <div className="mb-8">
           <Link to="/">
@@ -209,15 +207,13 @@ const TermsOfService = () => {
               </p>
               <div className="mt-3 p-4 bg-muted rounded-lg">
                 <p className="font-medium">Fynance - Gestão Financeira</p>
-                <p className="text-muted-foreground">E-mail: contato@fynance.app</p>
-                <p className="text-muted-foreground">Suporte: suporte@fynance.app</p>
+                <p className="text-muted-foreground">E-mail: fynance.online@gmail.com</p>
+                <p className="text-muted-foreground">Suporte: fynance.organizacao@gmail.com</p>
               </div>
             </section>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default TermsOfService;
