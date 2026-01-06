@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-
 const PrivacyPolicy = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="container max-w-4xl py-8 px-4">
         <div className="mb-8">
           <Link to="/">
@@ -155,15 +153,13 @@ const PrivacyPolicy = () => {
               </p>
               <div className="mt-3 p-4 bg-muted rounded-lg">
                 <p className="font-medium">Fynance - Gestão Financeira</p>
-                <p className="text-muted-foreground">E-mail: privacidade@fynance.app</p>
-                <p className="text-muted-foreground">Encarregado de Dados (DPO): dpo@fynance.app</p>
+                <p className="text-muted-foreground">E-mail: fynance.online@gmail.com</p>
+                
               </div>
             </section>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PrivacyPolicy;
