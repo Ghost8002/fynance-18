@@ -1,22 +1,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, ArrowUpIcon, ArrowDownIcon, Edit, Trash2, TrendingUp } from "lucide-react";
+import { Building2, Edit, Trash2, TrendingUp } from "lucide-react";
 import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
+import { useAccountBalance } from "@/hooks/useAccountBalance";
 import TransactionForm from "@/components/shared/TransactionForm";
 import { AccountBalanceHistory } from "./AccountBalanceHistory";
 import { AccountTransfer } from "./AccountTransfer";
 import AccountEditForm from "./AccountEditForm";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import BankLogo from "@/components/shared/BankLogo";
 import { getBankById } from "@/utils/banks/bankDatabase";
 import { useCustomBanks } from "@/hooks/useCustomBanks";
-import { devLog, devError } from "@/utils/logger";
+import { devError } from "@/utils/logger";
 
 // Helper function to format Brazilian currency
 const formatCurrency = (value: number) => {
@@ -25,10 +25,9 @@ const formatCurrency = (value: number) => {
     currency: 'BRL'
   }).format(value);
 };
+
 const AccountList = () => {
-  const {
-    user
-  } = useSupabaseAuth();
+  const { user } = useSupabaseAuth();
   const {
     data: accounts,
     loading,
@@ -36,27 +35,13 @@ const AccountList = () => {
     remove,
     refetch
   } = useRealtimeData('accounts');
-  const {
-    data: transactions
-  } = useRealtimeData('transactions');
-  const {
-    updateAccountBalance
-  } = useBalanceUpdates();
-  const {
-    toast
-  } = useToast();
+  const { calculateAccountBalance } = useAccountBalance();
+  const { toast } = useToast();
   const { customBanks } = useCustomBanks();
   const [selectedAccountForHistory, setSelectedAccountForHistory] = useState<string | null>(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-
-  // Get the account balance directly from stored value
-  // The balance is already updated automatically when transactions are added via useBalanceUpdates
-  const getAccountBalance = (accountId: string) => {
-    const account = accounts?.find(acc => acc.id === accountId);
-    return Number(account?.balance) || 0;
-  };
   const handleDelete = async (id: string, name: string) => {
     try {
       const {
@@ -176,7 +161,7 @@ const AccountList = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {accounts?.map(account => {
         // Calculate the real balance based on transactions
-        const calculatedBalance = getAccountBalance(account.id);
+        const calculatedBalance = calculateAccountBalance(account.id);
         // Use calculated balance instead of stored balance for display
         const displayBalance = calculatedBalance;
         const bankInfo = getBankInfo(account.bank);
@@ -279,7 +264,7 @@ const AccountList = () => {
             <DialogTitle>Histórico de Saldo</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto">
-            {selectedAccount && <AccountBalanceHistory accountId={selectedAccount.id} accountName={selectedAccount.name} currentBalance={getAccountBalance(selectedAccount.id)} />}
+            {selectedAccount && <AccountBalanceHistory accountId={selectedAccount.id} accountName={selectedAccount.name} currentBalance={calculateAccountBalance(selectedAccount.id)} />}
           </div>
         </DialogContent>
       </Dialog>

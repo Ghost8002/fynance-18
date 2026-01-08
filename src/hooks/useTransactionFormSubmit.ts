@@ -4,6 +4,7 @@ import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/hooks/useAuth";
 import { useBalanceUpdates } from "@/hooks/useBalanceUpdates";
 import { useTags } from "@/hooks/useTags";
+import { useAccountBalance } from "@/hooks/useAccountBalance";
 
 interface FormData {
   type: string;
@@ -24,9 +25,9 @@ export const useTransactionFormSubmit = (
   const { user } = useAuth();
   const { toast } = useToast();
   const { insert, refetch } = useSupabaseData('transactions', user?.id);
-  const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: cards } = useSupabaseData('cards', user?.id);
-  const { updateAccountBalance, updateCardUsedAmount, updateGoalProgress } = useBalanceUpdates();
+  const { updateCardUsedAmount, updateGoalProgress } = useBalanceUpdates();
+  const { calculateAccountBalance } = useAccountBalance();
   const { tags } = useTags();
   const [loading, setLoading] = useState(false);
 
@@ -79,18 +80,16 @@ export const useTransactionFormSubmit = (
     // Check balance for expenses
     if (formData.type === 'expense') {
       if (formData.account_id) {
-        const account = accounts?.find(acc => acc.id === formData.account_id);
-        if (account) {
-          const currentBalance = parseFloat(account.balance);
-          if (amount > currentBalance) {
-            console.log('Insufficient account balance:', { balance: currentBalance, amount });
-            toast({
-              title: "Saldo Insuficiente",
-              description: `Saldo atual: R$ ${currentBalance.toFixed(2)}. Valor da transação: R$ ${amount.toFixed(2)}`,
-              variant: "destructive",
-            });
-            return false;
-          }
+        // Use dynamically calculated balance
+        const currentBalance = calculateAccountBalance(formData.account_id);
+        if (amount > currentBalance) {
+          console.log('Insufficient account balance:', { balance: currentBalance, amount });
+          toast({
+            title: "Saldo Insuficiente",
+            description: `Saldo atual: R$ ${currentBalance.toFixed(2)}. Valor da transação: R$ ${amount.toFixed(2)}`,
+            variant: "destructive",
+          });
+          return false;
         }
       }
 
@@ -164,14 +163,9 @@ export const useTransactionFormSubmit = (
       const createdTransaction = transactionResult[0];
       console.log('Transaction created successfully:', createdTransaction);
 
-      // Update balances and limits
-      console.log('Updating balances for amount:', amount);
-      
-      if (formData.account_id) {
-        console.log('Updating account balance for account:', formData.account_id);
-        await updateAccountBalance(formData.account_id, amount, formData.type as 'income' | 'expense');
-      }
-      
+      // Note: Account balances are calculated dynamically from transactions
+      // so we don't need to update the stored balance here.
+      // Card used amounts still need to be updated for credit limit tracking.
       if (formData.card_id && formData.type === 'expense') {
         console.log('Updating card used amount for card:', formData.card_id);
         await updateCardUsedAmount(formData.card_id, amount);
