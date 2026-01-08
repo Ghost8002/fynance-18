@@ -1091,6 +1091,8 @@ export type Database = {
           parent_transaction_id: string | null
           subcategory_id: string | null
           tags: Json | null
+          transfer_from_account_id: string | null
+          transfer_to_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -1113,6 +1115,8 @@ export type Database = {
           parent_transaction_id?: string | null
           subcategory_id?: string | null
           tags?: Json | null
+          transfer_from_account_id?: string | null
+          transfer_to_account_id?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -1135,6 +1139,8 @@ export type Database = {
           parent_transaction_id?: string | null
           subcategory_id?: string | null
           tags?: Json | null
+          transfer_from_account_id?: string | null
+          transfer_to_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -1173,6 +1179,20 @@ export type Database = {
             columns: ["subcategory_id"]
             isOneToOne: false
             referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_transfer_from_account_id_fkey"
+            columns: ["transfer_from_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_transfer_to_account_id_fkey"
+            columns: ["transfer_to_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]

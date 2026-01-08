@@ -71,44 +71,17 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
         throw new Error('Conta de destino não encontrada');
       }
 
-      // Atualiza saldo da conta origem (debita)
-      const { error: fromError } = await updateAccount(fromAccountId, {
-        balance: fromAccountBalance - amount
-      });
-
-      if (fromError) throw new Error(fromError);
-
-      // Atualiza saldo da conta destino (credita)
-      const { error: toError } = await updateAccount(formData.toAccountId, {
-        balance: Number(toAccount.balance) + amount
-      });
-
-      if (toError) {
-        // Rollback da conta origem
-        await updateAccount(fromAccountId, { balance: fromAccountBalance });
-        throw new Error(toError);
-      }
-
-      // Cria transação de saída
+      // Create a single transfer transaction
+      // The balance is calculated dynamically, so we just need to create the transaction
       await insertTransaction({
         user_id: user?.id,
         account_id: fromAccountId,
-        type: 'expense',
+        transfer_to_account_id: formData.toAccountId,
+        type: 'transfer',
         amount: amount,
-        description: `${formData.description} - para ${toAccount.name}`,
+        description: formData.description || 'Transferência entre contas',
         date: getCurrentLocalDateString(),
-        notes: `Transferência para conta ${toAccount.name}`
-      });
-
-      // Cria transação de entrada
-      await insertTransaction({
-        user_id: user?.id,
-        account_id: formData.toAccountId,
-        type: 'income',
-        amount: amount,
-        description: `${formData.description} - de ${fromAccountName}`,
-        date: getCurrentLocalDateString(),
-        notes: `Transferência da conta ${fromAccountName}`
+        notes: `Transferência de ${fromAccountName} para ${toAccount.name}`
       });
 
       toast({

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpCircle, ArrowDownCircle, Edit, Trash2, Loader2, Check, X } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, ArrowRightLeft, Edit, Trash2, Loader2, Check, X } from "lucide-react";
 import { parseLocalDate } from "@/utils/dateValidation";
 import TransactionEditForm from "./TransactionEditForm";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -674,7 +674,13 @@ const TransactionTableRow = ({
           </Popover>
         </TableCell>
         <TableCell>
-          {transaction.account_id 
+          {transaction.type === 'transfer' ? (
+            <div className="flex items-center gap-1 text-sm">
+              <span className="text-red-600 font-medium">{accountMap[transaction.account_id] || 'Conta'}</span>
+              <ArrowRightLeft size={14} className="text-muted-foreground mx-1" />
+              <span className="text-green-600 font-medium">{accountMap[transaction.transfer_to_account_id] || 'Conta'}</span>
+            </div>
+          ) : transaction.account_id 
             ? accountMap[transaction.account_id] || 'Conta removida'
             : transaction.card_id 
             ? cardMap[transaction.card_id] || 'Cartão removido'
@@ -686,6 +692,11 @@ const TransactionTableRow = ({
             <div className="flex items-center gap-1 text-green-600">
               <ArrowUpCircle size={16} />
               <span>Receita</span>
+            </div>
+          ) : transaction.type === "transfer" ? (
+            <div className="flex items-center gap-1 text-blue-600">
+              <ArrowRightLeft size={16} />
+              <span>Transferência</span>
             </div>
           ) : (
             <div className="flex items-center gap-1 text-red-600">

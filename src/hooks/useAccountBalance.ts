@@ -27,7 +27,17 @@ export const useAccountBalance = () => {
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
 
-    return initialBalance + totalIncome - totalExpense;
+    // Handle transfer transactions: subtract when this account is the source (account_id)
+    // and add when this account is the destination (transfer_to_account_id)
+    const transfersOut = transactions
+      .filter(t => t.type === 'transfer' && t.account_id === accountId)
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
+    
+    const transfersIn = transactions
+      .filter(t => t.type === 'transfer' && t.transfer_to_account_id === accountId)
+      .reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
+
+    return initialBalance + totalIncome - totalExpense - transfersOut + transfersIn;
   };
 
   const getAccountCurrentBalance = (accountId: string): number => {
