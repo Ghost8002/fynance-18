@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { getCurrentLocalDateString } from "@/utils/dateValidation";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AccountTransferProps {
   fromAccountId: string;
@@ -20,7 +21,7 @@ interface AccountTransferProps {
 
 export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBalance, onTransferComplete }: AccountTransferProps) => {
   const { user } = useSupabaseAuth();
-  const { data: accounts, update: updateAccount, insert: insertTransaction } = useSupabaseData('accounts', user?.id);
+  const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,18 +72,23 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
         throw new Error('Conta de destino não encontrada');
       }
 
-      // Create a single transfer transaction
-      // The balance is calculated dynamically, so we just need to create the transaction
-      await insertTransaction({
-        user_id: user?.id,
-        account_id: fromAccountId,
-        transfer_to_account_id: formData.toAccountId,
-        type: 'transfer',
-        amount: amount,
-        description: formData.description || 'Transferência entre contas',
-        date: getCurrentLocalDateString(),
-        notes: `Transferência de ${fromAccountName} para ${toAccount.name}`
-      });
+      // Create a single transfer transaction using supabase directly
+      const { error } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user?.id,
+          account_id: fromAccountId,
+          transfer_to_account_id: formData.toAccountId,
+          type: 'transfer',
+          amount: amount,
+          description: formData.description || 'Transferência entre contas',
+          date: getCurrentLocalDateString(),
+          notes: `Transferência de ${fromAccountName} para ${toAccount.name}`
+        });
+
+      if (error) {
+        throw error;
+      }
 
       toast({
         title: "Sucesso",
