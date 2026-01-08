@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useTransactionFormSubmit } from "@/hooks/useTransactionFormSubmit";
+import { useAccountBalance } from "@/hooks/useAccountBalance";
 import TransactionTypeSelector from "./TransactionTypeSelector";
 import TransactionFormFields from "./TransactionFormFields";
 import { getCurrentLocalDateString } from "@/utils/dateValidation";
@@ -42,8 +43,8 @@ const TransactionForm = ({
 }: TransactionFormProps) => {
   const { user } = useAuth();
   const { data: categories } = useRealtimeData('categories');
-  const { data: accounts } = useRealtimeData('accounts');
   const { data: cards } = useRealtimeData('cards');
+  const { calculateAccountBalance, accounts } = useAccountBalance();
   
   const [open, setOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -84,11 +85,11 @@ const TransactionForm = ({
       return;
     }
 
-    // Check account balance
+    // Check account balance - use dynamically calculated balance
     if (formData.account_id) {
       const account = accounts?.find(acc => acc.id === formData.account_id);
       if (account) {
-        const currentBalance = parseFloat(account.balance);
+        const currentBalance = calculateAccountBalance(formData.account_id);
         if (amount > currentBalance) {
           setBalanceError(`Saldo insuficiente na conta ${account.name}. Saldo atual: R$ ${currentBalance.toFixed(2)}`);
           return;
