@@ -51,29 +51,11 @@ const AccountList = () => {
   const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Calculate real account balances based on transactions
-  const calculateAccountBalance = (accountId: string) => {
-    if (!transactions) return 0;
-
-    // Find the account to get initial balance
+  // Get the account balance directly from stored value
+  // The balance is already updated automatically when transactions are added via useBalanceUpdates
+  const getAccountBalance = (accountId: string) => {
     const account = accounts?.find(acc => acc.id === accountId);
-    const initialBalance = Number(account?.balance) || 0;
-    devLog(`Account ${account?.name} - Initial Balance:`, initialBalance);
-
-    // Get all transactions for this account
-    const accountTransactions = transactions.filter(t => t.account_id === accountId);
-    devLog(`Account ${account?.name} - Total transactions:`, accountTransactions.length);
-
-    // Calculate incomes and expenses separately
-    const incomes = accountTransactions.filter(t => t.type === 'income');
-    const expenses = accountTransactions.filter(t => t.type === 'expense');
-    const totalIncome = incomes.reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
-    const totalExpense = expenses.reduce((sum, t) => sum + Math.abs(Number(t.amount) || 0), 0);
-    devLog(`Account ${account?.name} - Total Income:`, totalIncome);
-    devLog(`Account ${account?.name} - Total Expense:`, totalExpense);
-    const finalBalance = initialBalance + totalIncome - totalExpense;
-    devLog(`Account ${account?.name} - Final Balance: ${initialBalance} + ${totalIncome} - ${totalExpense} = ${finalBalance}`);
-    return finalBalance;
+    return Number(account?.balance) || 0;
   };
   const handleDelete = async (id: string, name: string) => {
     try {
@@ -194,7 +176,7 @@ const AccountList = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {accounts?.map(account => {
         // Calculate the real balance based on transactions
-        const calculatedBalance = calculateAccountBalance(account.id);
+        const calculatedBalance = getAccountBalance(account.id);
         // Use calculated balance instead of stored balance for display
         const displayBalance = calculatedBalance;
         const bankInfo = getBankInfo(account.bank);
@@ -297,7 +279,7 @@ const AccountList = () => {
             <DialogTitle>Histórico de Saldo</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto">
-            {selectedAccount && <AccountBalanceHistory accountId={selectedAccount.id} accountName={selectedAccount.name} currentBalance={calculateAccountBalance(selectedAccount.id)} />}
+            {selectedAccount && <AccountBalanceHistory accountId={selectedAccount.id} accountName={selectedAccount.name} currentBalance={getAccountBalance(selectedAccount.id)} />}
           </div>
         </DialogContent>
       </Dialog>
