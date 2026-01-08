@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubcategories } from "@/hooks/useSubcategories";
 
 interface SubcategorySelectorProps {
-  categoryId: string;
+  categoryId: string | undefined;
   value: string;
   onChange: (subcategoryId: string) => void;
   placeholder?: string;
@@ -35,7 +35,7 @@ const SubcategorySelector = ({
   });
 
   useEffect(() => {
-    if (categoryId) {
+    if (categoryId && categoryId.trim() !== '') {
       fetchSubcategories();
     }
   }, [categoryId, fetchSubcategories]);
@@ -71,13 +71,19 @@ const SubcategorySelector = ({
       const { getRandomColor } = await import('@/utils/colorGenerator');
       const randomColor = getRandomColor();
       
+      // Calcular o próximo sort_order
+      const maxSortOrder = subcategories.length > 0 
+        ? Math.max(...subcategories.map((s: any) => s.sort_order || 0))
+        : -1;
+      
       const { data, error } = await supabase
         .from("subcategories")
         .insert([{
           user_id: user.id, 
           category_id: categoryId,
           name: trimmed, 
-          color: randomColor 
+          color: randomColor,
+          sort_order: maxSortOrder + 1
         }])
         .select()
         .limit(1);
@@ -90,10 +96,15 @@ const SubcategorySelector = ({
         onChange(newSubcat.id);
         toast({ title: "Subcategoria criada", description: `"${trimmed}" adicionada com sucesso.` });
         setOpen(false);
+        setQuery(""); // Limpar a query após criar
       }
     } catch (err) {
       console.error("Erro ao criar subcategoria:", err);
-      toast({ title: "Erro", description: "Não foi possível criar a subcategoria.", variant: "destructive" });
+      toast({ 
+        title: "Erro", 
+        description: err instanceof Error ? err.message : "Não foi possível criar a subcategoria.", 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -106,7 +117,7 @@ const SubcategorySelector = ({
           role="combobox"
           aria-expanded={open}
           className={`w-full justify-between ${isMobile ? 'h-8 text-xs' : ''} ${className}`}
-          disabled={loading || !categoryId}
+          disabled={loading || !categoryId || categoryId.trim() === ''}
         >
           {loading ? (
             "Carregando..."
@@ -115,7 +126,7 @@ const SubcategorySelector = ({
           ) : sortedSubcategories.length > 0 ? (
             placeholder
           ) : (
-            "Nenhuma subcategoria disponível"
+            "Clique para criar subcategoria"
           )}
         </Button>
       </PopoverTrigger>
@@ -141,9 +152,14 @@ const SubcategorySelector = ({
           />
           <CommandList className={`${isMobile ? 'max-h-32' : ''}`}>
             <CommandEmpty className={`${isMobile ? 'text-xs py-2' : ''}`}>
-              {query.trim() ? "Nenhuma subcategoria encontrada." : "Nenhuma subcategoria disponível."}
+              {query.trim() 
+                ? "Nenhuma subcategoria encontrada. Pressione Enter para criar." 
+                : sortedSubcategories.length === 0 
+                  ? "Digite o nome da subcategoria para criar" 
+                  : "Nenhuma subcategoria disponível."}
             </CommandEmpty>
 
+            {/* Opção de criar quando há query e não existe */}
             {query.trim() &&
               !sortedSubcategories.some(
                 (c: any) => c.name.toLowerCase() === query.trim().toLowerCase()
@@ -154,11 +170,37 @@ const SubcategorySelector = ({
                     onSelect={() => handleCreateSubcategory(query)}
                     className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
                   >
-                    Criar "{query.trim()}"
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary">+</span>
+                      <span>Criar "{query.trim()}"</span>
+                    </div>
                   </CommandItem>
                 </CommandGroup>
               )}
 
+            {/* Opção de criar quando não há subcategorias e não há query */}
+            {!query.trim() && sortedSubcategories.length === 0 && (
+              <CommandGroup>
+                <CommandItem
+                  value="__create_new"
+                  onSelect={() => {
+                    // Focar no input para o usuário digitar
+                    const input = document.querySelector('[cmdk-input]') as HTMLInputElement;
+                    if (input) {
+                      input.focus();
+                    }
+                  }}
+                  className={`cursor-pointer ${isMobile ? 'text-xs py-1.5' : ''}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-primary">+</span>
+                    <span>Digite para criar uma nova subcategoria</span>
+                  </div>
+                </CommandItem>
+              </CommandGroup>
+            )}
+
+            {/* Lista de subcategorias existentes */}
             {sortedSubcategories.length > 0 && (
               <CommandGroup>
                 {sortedSubcategories.map((subcategory: any) => (

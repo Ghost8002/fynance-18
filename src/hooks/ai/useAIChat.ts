@@ -116,6 +116,35 @@ export const useAIChat = () => {
     }
   };
 
+  const deleteSession = async (sessionId: string) => {
+    if (!user) return;
+
+    try {
+      // sessionId is a date string, convert it to date range
+      const sessionDate = new Date(sessionId);
+      const startOfDay = new Date(sessionDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(sessionDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const { error } = await supabase
+        .from('ai_chat_history')
+        .delete()
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDay.toISOString())
+        .lte('created_at', endOfDay.toISOString());
+
+      if (error) {
+        toast.error('Erro ao excluir conversa');
+        return;
+      }
+
+      toast.success('Conversa excluída com sucesso');
+    } catch (error) {
+      toast.error('Erro ao excluir conversa');
+    }
+  };
+
   const saveChatMessage = async (message: string, aiResponse: string, tokensUsed: number = 0) => {
     if (!user) return;
 
@@ -164,6 +193,7 @@ export const useAIChat = () => {
     clearChatHistory,
     startNewConversation,
     permanentlyDeleteHistory,
+    deleteSession,
     saveChatMessage,
     addToHistory
   };

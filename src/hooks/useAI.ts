@@ -193,6 +193,15 @@ export const useAI = () => {
       devLog('Sending message:', userMessage);
       const financialContext = prepareUserData();
 
+      // Prepare chat history for context - interleave user and assistant messages
+      const conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+      chatHistory.forEach(msg => {
+        conversationHistory.push(
+          { role: 'user' as const, content: msg.message },
+          { role: 'assistant' as const, content: msg.response }
+        );
+      });
+
       // Use environment variable for the URL
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
       
@@ -205,6 +214,7 @@ export const useAI = () => {
         body: JSON.stringify({
           message: userMessage.trim(),
           userData: financialContext,
+          chatHistory: conversationHistory,
           stream: true
         })
       });

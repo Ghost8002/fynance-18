@@ -1,6 +1,7 @@
 import { useState, useEffect, DragEvent } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useSubcategories } from "@/hooks/useSubcategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,9 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, Edit2, Check, X, GripVertical } from "lucide-react";
+import { Trash2, Plus, Edit2, Check, X, GripVertical, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
+import type { Database } from "@/types/database";
+
+type Subcategory = Database['public']['Tables']['subcategories']['Row'];
 
 interface Category {
   id: string;
@@ -50,6 +57,30 @@ const CategorySettings = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
   const [dragOverType, setDragOverType] = useState<'income' | 'expense' | null>(null);
+  
+  // Estados para gerenciamento de subcategorias
+  const [selectedCategoryForSubcategories, setSelectedCategoryForSubcategories] = useState<string>('');
+  const [isSubcategoryDialogOpen, setIsSubcategoryDialogOpen] = useState(false);
+  const [isEditingSubcategory, setIsEditingSubcategory] = useState(false);
+  const [currentSubcategory, setCurrentSubcategory] = useState<Subcategory | null>(null);
+  const [subcategoryName, setSubcategoryName] = useState('');
+  const [subcategoryColor, setSubcategoryColor] = useState('#9CA3AF');
+  const [subcategorySearchQuery, setSubcategorySearchQuery] = useState('');
+  const [deleteSubcategoryId, setDeleteSubcategoryId] = useState<string | null>(null);
+  const [draggedSubcategory, setDraggedSubcategory] = useState<Subcategory | null>(null);
+  const [subcategoryUsageCounts, setSubcategoryUsageCounts] = useState<Record<string, number>>({});
+  
+  const { 
+    subcategories, 
+    loading: subcategoriesLoading, 
+    fetchSubcategories, 
+    createSubcategory, 
+    updateSubcategory, 
+    deleteSubcategory 
+  } = useSubcategories({ 
+    userId: user?.id, 
+    categoryId: selectedCategoryForSubcategories || undefined 
+  });
 
   const predefinedColors = ['#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF', '#EC4899', '#F43F5E', '#6B7280', '#374151', '#1F2937'];
   const incomeCategories = categories.filter((cat: Category) => cat.type === 'income').sort((a: Category, b: Category) => a.sort_order - b.sort_order);
@@ -263,6 +294,216 @@ const CategorySettings = () => {
         description: "Nenhuma duplicata encontrada.",
       });
     }
+  };
+
+  // Handlers para subcategorias
+  useEffect(() => {
+    if (selectedCategoryForSubcategories) {
+      fetchSubcategories();
+      fetchSubcategoryUsageCounts();
+    }
+  }, [selectedCategoryForSubcategories, fetchSubcategories]);
+
+  // Buscar contagem de uso das subcategorias
+  const fetchSubcategoryUsageCounts = async () => {
+    if (!user?.id || !selectedCategoryForSubcategories) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('subcategory_id')
+        .eq('user_id', user.id)
+        .not('subcategory_id', 'is', null);
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data?.forEach((transaction: any) => {
+        if (transaction.subcategory_id) {
+          counts[transaction.subcategory_id] = (counts[transaction.subcategory_id] || 0) + 1;
+        }
+      });
+      
+      setSubcategoryUsageCounts(counts);
+    } catch (error) {
+      console.error('Error fetching subcategory usage counts:', error);
+    }
+  };
+
+  // Ordenar subcategorias por sort_order e filtrar por busca
+  const sortedAndFilteredSubcategories = subcategories
+    .filter((sub: Subcategory) => 
+      subcategorySearchQuery === '' || 
+      sub.name.toLowerCase().includes(subcategorySearchQuery.toLowerCase())
+    )
+    .sort((a: Subcategory, b: Subcategory) => {
+      const sortOrderA = a.sort_order || 0;
+      const sortOrderB = b.sort_order || 0;
+      if (sortOrderA !== sortOrderB) return sortOrderA - sortOrderB;
+      return a.name.localeCompare(b.name);
+    });
+
+  const handleOpenCreateSubcategory = () => {
+    if (!selectedCategoryForSubcategories) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma categoria primeiro.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsEditingSubcategory(false);
+    setCurrentSubcategory(null);
+    setSubcategoryName('');
+    setSubcategoryColor('#9CA3AF');
+    setIsSubcategoryDialogOpen(true);
+  };
+
+  const handleOpenEditSubcategory = (subcategory: Subcategory) => {
+    setIsEditingSubcategory(true);
+    setCurrentSubcategory(subcategory);
+    setSubcategoryName(subcategory.name);
+    setSubcategoryColor(subcategory.color || '#9CA3AF');
+    setIsSubcategoryDialogOpen(true);
+  };
+
+  const handleCreateSubcategory = async () => {
+    if (!subcategoryName.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome da subcategoria é obrigatório.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!selectedCategoryForSubcategories) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma categoria.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Calcular o próximo sort_order
+    const maxSortOrder = subcategories.length > 0 
+      ? Math.max(...subcategories.map((s: Subcategory) => s.sort_order || 0))
+      : -1;
+
+    const result = await createSubcategory({
+      category_id: selectedCategoryForSubcategories,
+      name: subcategoryName.trim(),
+      color: subcategoryColor,
+      sort_order: maxSortOrder + 1,
+    });
+
+    if (result) {
+      toast({
+        title: "Sucesso",
+        description: "Subcategoria criada com sucesso.",
+      });
+      setIsSubcategoryDialogOpen(false);
+      setSubcategoryName('');
+      setSubcategoryColor('#9CA3AF');
+      fetchSubcategoryUsageCounts();
+    }
+  };
+
+  const handleUpdateSubcategory = async () => {
+    if (!currentSubcategory || !subcategoryName.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome da subcategoria é obrigatório.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const result = await updateSubcategory(currentSubcategory.id, {
+      name: subcategoryName.trim(),
+      color: subcategoryColor,
+    });
+
+    if (result) {
+      toast({
+        title: "Sucesso",
+        description: "Subcategoria atualizada com sucesso.",
+      });
+      setIsSubcategoryDialogOpen(false);
+      setIsEditingSubcategory(false);
+      setCurrentSubcategory(null);
+      setSubcategoryName('');
+      setSubcategoryColor('#9CA3AF');
+    }
+  };
+
+  const handleDeleteSubcategory = async (subcategoryId: string) => {
+    await deleteSubcategory(subcategoryId);
+    toast({
+      title: "Sucesso",
+      description: "Subcategoria excluída com sucesso.",
+    });
+    setDeleteSubcategoryId(null);
+    fetchSubcategoryUsageCounts();
+  };
+
+  // Handlers para drag and drop de subcategorias
+  const handleSubcategoryDragStart = (e: DragEvent<HTMLDivElement>, subcategory: Subcategory) => {
+    setDraggedSubcategory(subcategory);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', subcategory.id);
+  };
+
+  const handleSubcategoryDragEnd = () => {
+    setDraggedSubcategory(null);
+  };
+
+  const handleSubcategoryDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleSubcategoryDrop = async (e: DragEvent<HTMLDivElement>, targetSubcategory: Subcategory) => {
+    e.preventDefault();
+    
+    if (!draggedSubcategory || draggedSubcategory.id === targetSubcategory.id) {
+      setDraggedSubcategory(null);
+      return;
+    }
+
+    const draggedIndex = sortedAndFilteredSubcategories.findIndex(s => s.id === draggedSubcategory.id);
+    const targetIndex = sortedAndFilteredSubcategories.findIndex(s => s.id === targetSubcategory.id);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedSubcategory(null);
+      return;
+    }
+
+    // Recalcular sort_order para todas as subcategorias
+    const reordered = [...sortedAndFilteredSubcategories];
+    const [removed] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, removed);
+
+    // Atualizar sort_order de todas as subcategorias afetadas
+    try {
+      for (let i = 0; i < reordered.length; i++) {
+        await updateSubcategory(reordered[i].id, { sort_order: i });
+      }
+      toast({
+        title: "Sucesso",
+        description: "Ordem das subcategorias atualizada.",
+      });
+    } catch (error) {
+      console.error('Error reordering subcategories:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível reordenar as subcategorias.",
+        variant: "destructive"
+      });
+    }
+
+    setDraggedSubcategory(null);
   };
   const CategoryItem = ({
     category
@@ -575,6 +816,242 @@ const CategorySettings = () => {
             </Button>
           </CardContent>}
       </Card>
+
+      <Separator />
+
+      {/* Seção de Gerenciamento de Subcategorias */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Gerenciar Subcategorias</CardTitle>
+          <CardDescription>
+            Organize subcategorias para suas categorias
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="subcategory-category-select">Selecione uma Categoria</Label>
+            <Select 
+              value={selectedCategoryForSubcategories} 
+              onValueChange={setSelectedCategoryForSubcategories}
+            >
+              <SelectTrigger id="subcategory-category-select">
+                <SelectValue placeholder="Escolha uma categoria para gerenciar subcategorias" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category: Category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name} ({category.type === 'income' ? 'Receita' : 'Despesa'})
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedCategoryForSubcategories && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center gap-4">
+                <h4 className="text-md font-medium">Subcategorias ({sortedAndFilteredSubcategories.length})</h4>
+                <Button 
+                  onClick={handleOpenCreateSubcategory}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Adicionar Subcategoria
+                </Button>
+              </div>
+
+              {subcategories.length > 0 && (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar subcategorias..."
+                    value={subcategorySearchQuery}
+                    onChange={(e) => setSubcategorySearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              )}
+
+              {subcategoriesLoading ? (
+                <p className="text-sm text-muted-foreground">Carregando subcategorias...</p>
+              ) : subcategories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma subcategoria cadastrada para esta categoria.</p>
+              ) : sortedAndFilteredSubcategories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma subcategoria encontrada com o termo "{subcategorySearchQuery}".</p>
+              ) : (
+                <div className="space-y-2">
+                  {sortedAndFilteredSubcategories.map((subcategory: Subcategory) => (
+                    <motion.div
+                      key={subcategory.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ 
+                        opacity: draggedSubcategory?.id === subcategory.id ? 0.5 : 1, 
+                        y: 0 
+                      }}
+                      exit={{ opacity: 0, y: -20 }}
+                      draggable
+                      onDragStart={(e) => handleSubcategoryDragStart(e as unknown as DragEvent<HTMLDivElement>, subcategory)}
+                      onDragEnd={handleSubcategoryDragEnd}
+                      onDragOver={handleSubcategoryDragOver}
+                      onDrop={(e) => handleSubcategoryDrop(e as unknown as DragEvent<HTMLDivElement>, subcategory)}
+                      className="flex items-center justify-between p-3 border rounded-lg bg-card cursor-grab active:cursor-grabbing hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <motion.div
+                          whileHover={{ scale: 1.2 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        </motion.div>
+                        <div 
+                          className="w-4 h-4 rounded-full border flex-shrink-0" 
+                          style={{ backgroundColor: subcategory.color || '#9CA3AF' }}
+                        />
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="font-medium truncate">{subcategory.name}</span>
+                          {subcategoryUsageCounts[subcategory.id] > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {subcategoryUsageCounts[subcategory.id]} {subcategoryUsageCounts[subcategory.id] === 1 ? 'uso' : 'usos'}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenEditSubcategory(subcategory)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteSubcategoryId(subcategory.id);
+                          }}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!selectedCategoryForSubcategories && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Selecione uma categoria acima para gerenciar suas subcategorias
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* AlertDialog para confirmar exclusão de subcategoria */}
+      <AlertDialog open={!!deleteSubcategoryId} onOpenChange={(open) => !open && setDeleteSubcategoryId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteSubcategoryId && (() => {
+                const subcatToDelete = sortedAndFilteredSubcategories.find(s => s.id === deleteSubcategoryId);
+                const usageCount = subcategoryUsageCounts[deleteSubcategoryId] || 0;
+                return (
+                  <>
+                    Tem certeza que deseja excluir a subcategoria "{subcatToDelete?.name}"? 
+                    {usageCount > 0 && (
+                      <span className="block mt-2 font-semibold text-foreground">
+                        Esta subcategoria está sendo usada em {usageCount} {usageCount === 1 ? 'transação' : 'transações'}.
+                        As transações não serão excluídas, apenas ficarão sem subcategoria.
+                      </span>
+                    )}
+                    Esta ação não pode ser desfeita.
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteSubcategoryId && handleDeleteSubcategory(deleteSubcategoryId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog para criar/editar subcategoria */}
+      <Dialog open={isSubcategoryDialogOpen} onOpenChange={setIsSubcategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isEditingSubcategory ? 'Editar Subcategoria' : 'Criar Subcategoria'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="subcategory-name">Nome</Label>
+              <Input
+                id="subcategory-name"
+                value={subcategoryName}
+                onChange={(e) => setSubcategoryName(e.target.value)}
+                placeholder="Nome da subcategoria"
+              />
+            </div>
+            <div>
+              <Label htmlFor="subcategory-color">Cor</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="subcategory-color"
+                    type="color"
+                    value={subcategoryColor}
+                    onChange={(e) => setSubcategoryColor(e.target.value)}
+                    className="w-16 h-10 p-1"
+                  />
+                  <span className="text-sm text-muted-foreground">{subcategoryColor}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {predefinedColors.map(color => (
+                    <button
+                      key={color}
+                      className={`w-8 h-8 rounded-full border-2 ${
+                        subcategoryColor === color ? 'border-gray-800' : 'border-gray-300'
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setSubcategoryColor(color)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsSubcategoryDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={isEditingSubcategory ? handleUpdateSubcategory : handleCreateSubcategory}>
+                {isEditingSubcategory ? 'Atualizar' : 'Criar'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>;
 };
 export default CategorySettings;

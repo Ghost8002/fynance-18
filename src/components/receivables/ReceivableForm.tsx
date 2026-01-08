@@ -425,7 +425,10 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
               <Label htmlFor="category">Categoria</Label>
               <CategorySelector
                 value={formData.category_id || ""}
-                onChange={(value) => setFormData({...formData, category_id: value})}
+                onChange={(value) => {
+                  // Limpar subcategoria quando a categoria mudar
+                  setFormData({...formData, category_id: value, subcategory_id: ''});
+                }}
                 categories={categories || []}
                 type="income"
                 placeholder="Selecione uma categoria"

@@ -49,9 +49,12 @@ const TransactionTableRow = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
   const [tagsPopoverOpen, setTagsPopoverOpen] = useState(false);
+  const [subcategoryPopoverOpen, setSubcategoryPopoverOpen] = useState(false);
   const [categoryQuery, setCategoryQuery] = useState("");
   const [tagQuery, setTagQuery] = useState("");
+  const [subcategoryQuery, setSubcategoryQuery] = useState("");
   const [availableTags, setAvailableTags] = useState<any[]>([]);
+  const [availableSubcategories, setAvailableSubcategories] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -70,6 +73,25 @@ const TransactionTableRow = ({
     };
     fetchTags();
   }, [user?.id]);
+
+  // Fetch available subcategories when category changes
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      if (user?.id && transaction.category_id) {
+        const { data } = await supabase
+          .from('subcategories' as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('category_id', transaction.category_id)
+          .order('sort_order')
+          .order('name');
+        if (data) setAvailableSubcategories(data);
+      } else {
+        setAvailableSubcategories([]);
+      }
+    };
+    fetchSubcategories();
+  }, [user?.id, transaction.category_id]);
 
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
@@ -278,6 +300,69 @@ const TransactionTableRow = ({
     }
   };
 
+  const handleSubcategoryChange = async (subcategoryId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ subcategory_id: subcategoryId })
+        .eq('id', transaction.id);
+
+      if (error) throw error;
+
+      await onUpdate(transaction.id, { subcategory_id: subcategoryId });
+      setSubcategoryPopoverOpen(false);
+      setSubcategoryQuery("");
+      toast({
+        title: "Subcategoria atualizada",
+        description: "A subcategoria foi atualizada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error updating subcategory:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a subcategoria.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateSubcategory = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    if (!user?.id) {
+      toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+      return;
+    }
+
+    if (!transaction.category_id) {
+      toast({ title: "Erro", description: "Selecione uma categoria primeiro.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { getRandomColor } = await import('@/utils/colorGenerator');
+      const randomColor = getRandomColor();
+      
+      const { data, error } = await supabase
+        .from("subcategories" as any)
+        .insert([{ user_id: user.id, category_id: transaction.category_id, name: trimmed, color: randomColor, sort_order: 0 }])
+        .select()
+        .limit(1) as any;
+
+      if (error) throw error;
+      const newSubcat = data?.[0];
+      if (newSubcat) {
+        setAvailableSubcategories(prev => [...prev, newSubcat]);
+        await handleSubcategoryChange(newSubcat.id);
+        toast({ title: "Subcategoria criada", description: `"${trimmed}" adicionada com sucesso.` });
+      }
+    } catch (err) {
+      console.error("Erro ao criar subcategoria:", err);
+      toast({ title: "Erro", description: "Não foi possível criar a subcategoria.", variant: "destructive" });
+    }
+  };
+
   // Filter and sort categories
   const filteredCategories = categories.filter((category) => 
     category.type === transaction.type
@@ -388,20 +473,113 @@ const TransactionTableRow = ({
           </Popover>
         </TableCell>
         <TableCell>
-          {transaction.subcategory_id && subcategoryMap[transaction.subcategory_id] ? (
-            <Badge 
-              variant="outline"
-              style={{ 
-                backgroundColor: `${subcategoryMap[transaction.subcategory_id].color}20`, 
-                borderColor: subcategoryMap[transaction.subcategory_id].color,
-                color: subcategoryMap[transaction.subcategory_id].color
-              }}
-            >
-              {subcategoryMap[transaction.subcategory_id].name}
-            </Badge>
-          ) : (
-            <span className="text-muted-foreground text-sm">-</span>
-          )}
+          <Popover open={subcategoryPopoverOpen} onOpenChange={setSubcategoryPopoverOpen}>
+            <PopoverTrigger asChild>
+              <div className="cursor-pointer inline-block">
+                {transaction.subcategory_id && subcategoryMap[transaction.subcategory_id] ? (
+                  <Badge 
+                    variant="outline"
+                    style={{ 
+                      backgroundColor: `${subcategoryMap[transaction.subcategory_id].color}20`, 
+                      borderColor: subcategoryMap[transaction.subcategory_id].color,
+                      color: subcategoryMap[transaction.subcategory_id].color
+                    }}
+                  >
+                    {subcategoryMap[transaction.subcategory_id].name}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Sem subcategoria
+                  </Badge>
+                )}
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="start">
+              <Command
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const exists = availableSubcategories.some(
+                      (s: any) => s.name.toLowerCase() === subcategoryQuery.trim().toLowerCase()
+                    );
+                    if (subcategoryQuery.trim() && !exists && transaction.category_id) {
+                      handleCreateSubcategory(subcategoryQuery);
+                    }
+                  }
+                }}
+              >
+                <CommandInput
+                  placeholder="Buscar ou criar subcategoria..."
+                  value={subcategoryQuery}
+                  onValueChange={setSubcategoryQuery}
+                  disabled={!transaction.category_id}
+                />
+                <CommandList>
+                  <CommandEmpty>
+                    {!transaction.category_id 
+                      ? "Selecione uma categoria primeiro" 
+                      : "Nenhuma subcategoria encontrada."}
+                  </CommandEmpty>
+
+                  {subcategoryQuery.trim() &&
+                    !availableSubcategories.some(
+                      (s: any) => s.name.toLowerCase() === subcategoryQuery.trim().toLowerCase()
+                    ) &&
+                    transaction.category_id && (
+                      <CommandGroup>
+                        <CommandItem
+                          value={`__create_${subcategoryQuery}`}
+                          onSelect={() => handleCreateSubcategory(subcategoryQuery)}
+                          className="cursor-pointer"
+                        >
+                          Criar "{subcategoryQuery.trim()}"
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+
+                  {availableSubcategories.length > 0 && (
+                    <CommandGroup>
+                      <CommandItem
+                        value=""
+                        onSelect={() => handleSubcategoryChange(null)}
+                        className="cursor-pointer"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            !transaction.subcategory_id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        Nenhuma
+                      </CommandItem>
+                      {availableSubcategories.map((subcategory: any) => (
+                        <CommandItem
+                          key={subcategory.id}
+                          value={subcategory.name}
+                          onSelect={() => handleSubcategoryChange(subcategory.id)}
+                          className="cursor-pointer"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              transaction.subcategory_id === subcategory.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: subcategory.color || '#9CA3AF' }}
+                            />
+                            <span>{subcategory.name}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </TableCell>
         <TableCell>
           <Popover open={tagsPopoverOpen} onOpenChange={setTagsPopoverOpen}>

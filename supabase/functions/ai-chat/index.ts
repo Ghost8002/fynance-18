@@ -21,6 +21,7 @@ interface UserFinancialData {
 interface ChatRequest {
   message: string;
   userData?: UserFinancialData;
+  chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
   stream?: boolean;
 }
 
@@ -235,7 +236,7 @@ serve(async (req) => {
     }
 
     const body: ChatRequest = await req.json();
-    const { message, userData, stream = true } = body;
+    const { message, userData, chatHistory = [], stream = true } = body;
 
     if (!message || typeof message !== 'string') {
       throw new Error('Message is required');
@@ -259,6 +260,13 @@ serve(async (req) => {
 
     const systemPrompt = userData ? buildSystemPrompt(userData) : getDefaultSystemPrompt();
 
+    // Build messages array with history and current message
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory,
+      { role: 'user', content: sanitizedMessage }
+    ];
+
     console.log('Calling Lovable AI Gateway...');
     
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -269,10 +277,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: sanitizedMessage }
-        ],
+        messages: messages,
         tools: tools,
         stream: stream,
       }),

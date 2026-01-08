@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Calendar, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Calendar, ArrowLeft, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface ChatSession {
   id: string;
@@ -22,6 +23,7 @@ interface AIChatSessionsProps {
 const AIChatSessions = ({ onSessionSelect, onBack, currentSessionId }: AIChatSessionsProps) => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
   const { user } = useAuth();
 
   const loadSessions = async () => {
@@ -95,6 +97,47 @@ const AIChatSessions = ({ onSessionSelect, onBack, currentSessionId }: AIChatSes
     }
   };
 
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering session selection
+    
+    if (!user) return;
+
+    if (!window.confirm('Tem certeza que deseja excluir esta conversa? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setDeletingSessionId(sessionId);
+
+    try {
+      // sessionId is a date string, convert it to date range
+      const sessionDate = new Date(sessionId);
+      const startOfDay = new Date(sessionDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(sessionDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const { error } = await supabase
+        .from('ai_chat_history')
+        .delete()
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDay.toISOString())
+        .lte('created_at', endOfDay.toISOString());
+
+      if (error) {
+        toast.error('Erro ao excluir conversa');
+        return;
+      }
+
+      toast.success('Conversa excluída com sucesso');
+      // Reload sessions list
+      await loadSessions();
+    } catch (error) {
+      toast.error('Erro ao excluir conversa');
+    } finally {
+      setDeletingSessionId(null);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-border/50">
@@ -146,9 +189,20 @@ const AIChatSessions = ({ onSessionSelect, onBack, currentSessionId }: AIChatSes
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{formatDate(session.created_at)}</span>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {session.message_count} {session.message_count === 1 ? 'mensagem' : 'mensagens'}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {session.message_count} {session.message_count === 1 ? 'mensagem' : 'mensagens'}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => handleDeleteSession(session.id, e)}
+                      disabled={deletingSessionId === session.id}
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {session.last_message}
