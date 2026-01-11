@@ -23,7 +23,7 @@ type Subcategory = Database['public']['Tables']['subcategories']['Row'];
 interface Category {
   id: string;
   name: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   color: string;
   is_default: boolean;
   sort_order: number;
@@ -47,7 +47,7 @@ const CategorySettings = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: '',
-    type: 'expense' as 'income' | 'expense',
+    type: 'expense' as 'income' | 'expense' | 'transfer',
     color: ''
   });
   const [editingCategory, setEditingCategory] = useState({
@@ -56,7 +56,7 @@ const CategorySettings = () => {
   });
   const [showAddForm, setShowAddForm] = useState(false);
   const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
-  const [dragOverType, setDragOverType] = useState<'income' | 'expense' | null>(null);
+  const [dragOverType, setDragOverType] = useState<'income' | 'expense' | 'transfer' | null>(null);
   
   // Estados para gerenciamento de subcategorias
   const [selectedCategoryForSubcategories, setSelectedCategoryForSubcategories] = useState<string>('');
@@ -85,6 +85,7 @@ const CategorySettings = () => {
   const predefinedColors = ['#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16', '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9', '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF', '#EC4899', '#F43F5E', '#6B7280', '#374151', '#1F2937'];
   const incomeCategories = categories.filter((cat: Category) => cat.type === 'income').sort((a: Category, b: Category) => a.sort_order - b.sort_order);
   const expenseCategories = categories.filter((cat: Category) => cat.type === 'expense').sort((a: Category, b: Category) => a.sort_order - b.sort_order);
+  const transferCategories = categories.filter((cat: Category) => cat.type === 'transfer').sort((a: Category, b: Category) => a.sort_order - b.sort_order);
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, category: Category) => {
     setDraggedCategory(category);
@@ -97,7 +98,7 @@ const CategorySettings = () => {
     setDragOverType(null);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>, type: 'income' | 'expense') => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>, type: 'income' | 'expense' | 'transfer') => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setDragOverType(type);
@@ -107,7 +108,7 @@ const CategorySettings = () => {
     setDragOverType(null);
   };
 
-  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetType: 'income' | 'expense') => {
+  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetType: 'income' | 'expense' | 'transfer') => {
     e.preventDefault();
     setDragOverType(null);
 
@@ -125,6 +126,12 @@ const CategorySettings = () => {
       sort_order: 999 // Coloca no final da lista
     });
 
+    const typeLabels = {
+      income: 'Receita',
+      expense: 'Despesa',
+      transfer: 'Transferência'
+    };
+
     if (error) {
       toast({
         title: "Erro",
@@ -134,7 +141,7 @@ const CategorySettings = () => {
     } else {
       toast({
         title: "Sucesso",
-        description: `Categoria "${draggedCategory.name}" movida para ${targetType === 'income' ? 'Receita' : 'Despesa'}`
+        description: `Categoria "${draggedCategory.name}" movida para ${typeLabels[targetType]}`
       });
     }
 
@@ -641,7 +648,7 @@ const CategorySettings = () => {
 
       
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Categorias de Receita */}
         <motion.div
           animate={{
@@ -757,6 +764,64 @@ const CategorySettings = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Categorias de Transferência */}
+        <motion.div
+          animate={{
+            scale: dragOverType === 'transfer' && draggedCategory?.type !== 'transfer' ? 1.02 : 1,
+            boxShadow: dragOverType === 'transfer' && draggedCategory?.type !== 'transfer' 
+              ? "0 0 20px rgba(59, 130, 246, 0.3)" 
+              : "none"
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
+          <Card
+            onDragOver={(e) => handleDragOver(e, 'transfer')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'transfer')}
+            className={`transition-colors duration-300 ${
+              dragOverType === 'transfer' && draggedCategory?.type !== 'transfer'
+                ? 'ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
+                : ''
+            }`}
+          >
+            <CardHeader>
+              <CardTitle className="text-blue-600">Categorias de Transferência</CardTitle>
+              <CardDescription>
+                Categorias para organizar transferências entre contas
+                <AnimatePresence>
+                  {draggedCategory && draggedCategory.type !== 'transfer' && (
+                    <motion.span 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="block text-xs text-blue-600 mt-1"
+                    >
+                      Arraste aqui para mover para Transferência
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 min-h-[100px]">
+              <AnimatePresence mode="popLayout">
+                {transferCategories.length === 0 && !draggedCategory && (
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-muted-foreground text-center py-4"
+                  >
+                    Nenhuma categoria de transferência
+                  </motion.p>
+                )}
+                {transferCategories.map((category: Category) => (
+                  <CategoryItem key={category.id} category={category} />
+                ))}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       <Separator />
@@ -784,7 +849,7 @@ const CategorySettings = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category-type">Tipo</Label>
-                <Select value={newCategory.type} onValueChange={(value: 'income' | 'expense') => setNewCategory({
+                <Select value={newCategory.type} onValueChange={(value: 'income' | 'expense' | 'transfer') => setNewCategory({
               ...newCategory,
               type: value
             })}>
@@ -794,6 +859,7 @@ const CategorySettings = () => {
                   <SelectContent>
                     <SelectItem value="income">Receita</SelectItem>
                     <SelectItem value="expense">Despesa</SelectItem>
+                    <SelectItem value="transfer">Transferência</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -838,17 +904,24 @@ const CategorySettings = () => {
                 <SelectValue placeholder="Escolha uma categoria para gerenciar subcategorias" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category: Category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: category.color }}
-                      />
-                      {category.name} ({category.type === 'income' ? 'Receita' : 'Despesa'})
-                    </div>
-                  </SelectItem>
-                ))}
+                {categories.map((category: Category) => {
+                  const typeLabels: Record<string, string> = {
+                    income: 'Receita',
+                    expense: 'Despesa',
+                    transfer: 'Transferência'
+                  };
+                  return (
+                    <SelectItem key={category.id} value={category.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name} ({typeLabels[category.type] || category.type})
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
