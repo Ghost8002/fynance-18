@@ -156,9 +156,9 @@ const BudgetList = () => {
     return (
       <div className="space-y-4">
         <Card className="flex flex-col items-center justify-center p-4 md:p-6 border-dashed">
-          <Plus size={32} className="text-gray-400 mb-3 md:mb-4" />
-          <h3 className="text-sm md:text-lg font-medium text-gray-700 mb-1 md:mb-2">Criar Orçamento</h3>
-          <p className="text-xs md:text-sm text-gray-500 text-center mb-3 md:mb-4">
+          <Plus size={32} className="text-muted-foreground mb-3 md:mb-4" />
+          <h3 className="text-sm md:text-lg font-medium text-foreground mb-1 md:mb-2">Criar Orçamento</h3>
+          <p className="text-xs md:text-sm text-muted-foreground text-center mb-3 md:mb-4">
             Defina limites de gastos por categoria
           </p>
           <Button size="sm" className="text-xs md:text-sm">Criar Orçamento</Button>
@@ -241,7 +241,7 @@ const BudgetList = () => {
           const isNearLimit = budget.percentage >= 80 && budget.percentage < 100;
           
           return (
-            <Card key={budget.id} className={`${isOverBudget ? "border-red-300 bg-red-50/50" : isNearLimit ? "border-yellow-300 bg-yellow-50/50" : ""} p-3 md:p-6 hover:shadow-md transition-shadow`}>
+            <Card key={budget.id} className={`${isOverBudget ? "border-red-500/50 bg-red-500/10" : isNearLimit ? "border-yellow-500/50 bg-yellow-500/10" : ""} p-3 md:p-6 hover:shadow-md transition-shadow`}>
               <CardHeader className="pb-2 px-0">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0">
@@ -250,10 +250,10 @@ const BudgetList = () => {
                       <Badge 
                         variant={budget.status === 'exceeded' ? 'destructive' : budget.status === 'warning' ? 'secondary' : 'outline'}
                         className={`text-xs ${
-                          budget.status === 'exceeded' ? 'bg-red-100 text-red-800' :
-                          budget.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                          budget.status === 'moderate' ? 'bg-blue-100 text-blue-800' :
-                          'bg-green-100 text-green-800'
+                          budget.status === 'exceeded' ? 'bg-red-500/20 text-red-500 border-red-500/30' :
+                          budget.status === 'warning' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
+                          budget.status === 'moderate' ? 'bg-blue-500/20 text-blue-500 border-blue-500/30' :
+                          'bg-green-500/20 text-green-500 border-green-500/30'
                         }`}
                       >
                         {budget.status === 'exceeded' ? 'Excedido' :
@@ -305,7 +305,7 @@ const BudgetList = () => {
                   />
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-xs md:text-sm text-gray-500">
+                    <span className="text-xs md:text-sm text-muted-foreground">
                       {budget.percentage.toFixed(0)}% utilizado
                     </span>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -320,9 +320,9 @@ const BudgetList = () => {
         })}
 
         <Card className="flex flex-col items-center justify-center p-4 md:p-6 border-dashed hover:border-primary/50 transition-colors">
-          <Plus size={32} className="text-gray-400 mb-3 md:mb-4" />
-          <h3 className="text-sm md:text-lg font-medium text-gray-700 mb-1 md:mb-2">Criar Orçamento</h3>
-          <p className="text-xs md:text-sm text-gray-500 text-center mb-3 md:mb-4">
+          <Plus size={32} className="text-muted-foreground mb-3 md:mb-4" />
+          <h3 className="text-sm md:text-lg font-medium text-foreground mb-1 md:mb-2">Criar Orçamento</h3>
+          <p className="text-xs md:text-sm text-muted-foreground text-center mb-3 md:mb-4">
             Defina limites de gastos por categoria
           </p>
           <Button size="sm" className="text-xs md:text-sm">Criar Orçamento</Button>
