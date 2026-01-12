@@ -1,16 +1,21 @@
 
 import { useState } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRightLeft, Loader2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { ArrowRightLeft, Loader2, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { getCurrentLocalDateString } from "@/utils/dateValidation";
+import { getCurrentLocalDateString, dateToLocalDateString } from "@/utils/dateValidation";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface AccountTransferProps {
   fromAccountId: string;
@@ -28,7 +33,8 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
   const [formData, setFormData] = useState({
     toAccountId: "",
     amount: "",
-    description: "Transferência entre contas"
+    description: "Transferência entre contas",
+    date: new Date()
   });
 
   const availableAccounts = accounts?.filter(acc => acc.id !== fromAccountId) || [];
@@ -82,7 +88,7 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
           type: 'transfer',
           amount: amount,
           description: formData.description || 'Transferência entre contas',
-          date: getCurrentLocalDateString(),
+          date: dateToLocalDateString(formData.date),
           notes: `Transferência de ${fromAccountName} para ${toAccount.name}`
         });
 
@@ -98,7 +104,8 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
       setFormData({
         toAccountId: "",
         amount: "",
-        description: "Transferência entre contas"
+        description: "Transferência entre contas",
+        date: new Date()
       });
       setOpen(false);
       onTransferComplete();
@@ -165,6 +172,33 @@ export const AccountTransfer = ({ fromAccountId, fromAccountName, fromAccountBal
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             />
+          </div>
+          <div className="grid gap-2">
+            <Label>Data</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.date ? format(formData.date, "dd/MM/yyyy", { locale: ptBR }) : "Selecione uma data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.date}
+                  onSelect={(date) => date && setFormData(prev => ({ ...prev, date }))}
+                  initialFocus
+                  className="pointer-events-auto"
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
