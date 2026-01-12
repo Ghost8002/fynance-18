@@ -56,7 +56,7 @@ const Budgets = () => {
     budgets.forEach(budget => {
       const budgetSpent = currentMonthTransactions
         .filter(t => t.category_id === budget.category_id)
-        .reduce((sum, t) => sum + Number(t.amount), 0);
+        .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
       
       const limit = Number(budget.limit_amount);
       const percentage = (budgetSpent / limit) * 100;

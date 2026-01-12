@@ -53,7 +53,7 @@ const BudgetList = () => {
                transactionDate.getFullYear() === currentYear;
       });
       
-      const spent = categoryTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+      const spent = categoryTransactions.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
       const percentage = (spent / Number(budget.limit_amount)) * 100;
       
       let status = 'good';
