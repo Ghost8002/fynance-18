@@ -112,13 +112,12 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
     return (
       <Card className="animate-fade-in h-full bg-card">
         <CardHeader className="pb-2">
-          <CardTitle className="text-card-foreground">Receitas por Categoria</CardTitle>
-          <CardDescription>Distribuição das suas receitas no período</CardDescription>
+          <CardTitle className="text-card-foreground text-base">Receitas por Categoria</CardTitle>
+          <CardDescription className="text-xs">Distribuição de receitas</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[300px]">
+        <CardContent className="flex items-center justify-center h-[160px]">
           <div className="text-center text-muted-foreground">
-            <p>Nenhuma receita encontrada para este período</p>
-            <p className="text-sm mt-2">Adicione transações para ver o gráfico</p>
+            <p className="text-sm">Nenhuma receita no período</p>
           </div>
         </CardContent>
       </Card>
@@ -128,62 +127,59 @@ const filteredTransactions = (selectedPeriod === 'custom' && customDateRange?.fr
   return (
     <Card className="animate-fade-in h-full bg-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-card-foreground">Receitas por Categoria</CardTitle>
-        <CardDescription>Distribuição das suas receitas no período</CardDescription>
+        <CardTitle className="text-card-foreground text-base">Receitas por Categoria</CardTitle>
+        <CardDescription className="text-xs">Distribuição de receitas</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={incomeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={90}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {incomeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                wrapperStyle={{ 
-                  color: isDark ? 'hsl(248 250 252)' : 'hsl(31 41 55)'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="mt-4">
-          <h4 className="font-medium mb-2 text-card-foreground">Resumo de receitas</h4>
-          <ul className="space-y-2">
-            {incomeData.slice(0, 5).map((category) => (
-              <li key={category.name} className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <span
-                    className="w-3 h-3 rounded-full mr-2"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <span className="text-card-foreground text-sm">{category.name}</span>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="font-medium text-card-foreground text-sm">{formatCurrency(category.value)}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {totalIncome > 0 ? ((category.value / totalIncome) * 100).toFixed(1) : '0'}%
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          {incomeData.length > 5 && (
-            <p className="text-xs text-muted-foreground mt-2">
-              E mais {incomeData.length - 5} categorias...
-            </p>
-          )}
+      <CardContent className="pt-0">
+        <div className="flex gap-4">
+          <div className="h-[140px] w-[140px] flex-shrink-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={incomeData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={55}
+                  innerRadius={30}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {incomeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <ul className="space-y-1.5">
+              {incomeData.slice(0, 4).map((category) => (
+                <li key={category.name} className="flex justify-between items-center">
+                  <div className="flex items-center min-w-0">
+                    <span
+                      className="w-2 h-2 rounded-full mr-2 flex-shrink-0"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <span className="text-card-foreground text-xs truncate">{category.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                    <span className="font-medium text-card-foreground text-xs">{formatCurrency(category.value)}</span>
+                    <span className="text-[10px] text-muted-foreground w-8 text-right">
+                      {totalIncome > 0 ? ((category.value / totalIncome) * 100).toFixed(0) : '0'}%
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {incomeData.length > 4 && (
+              <p className="text-[10px] text-muted-foreground mt-2">
+                +{incomeData.length - 4} categorias
+              </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
