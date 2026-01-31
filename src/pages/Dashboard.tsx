@@ -7,6 +7,7 @@ import IncomePieChart from "@/components/dashboard/IncomePieChart";
 import BudgetProgress from "@/components/dashboard/BudgetProgress";
 import GoalTracker from "@/components/dashboard/GoalTracker";
 import CardOverviewWidget from "@/components/dashboard/CardOverviewWidget";
+import BalanceEvolutionChart from "@/components/dashboard/BalanceEvolutionChart";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { usePeriodFilter } from "@/hooks/usePeriodFilter";
 import { useDashboardCustomization } from "@/hooks/useDashboardCustomization";
@@ -188,31 +189,28 @@ const Dashboard = () => {
               />
             )}
 
-            {/* Charts Row */}
-            <div className="grid gap-6 md:grid-cols-2">
-              {isWidgetVisible('expense-chart') && <ExpensePieChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />}
-              {isWidgetVisible('income-chart') && <IncomePieChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />}
-            </div>
+            {/* Balance Evolution Chart - New prominent section */}
+            <BalanceEvolutionChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />
+
+            {/* Charts Row - Compact side by side */}
+            {(isWidgetVisible('expense-chart') || isWidgetVisible('income-chart')) && (
+              <div className="grid gap-4 md:grid-cols-2">
+                {isWidgetVisible('expense-chart') && <ExpensePieChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />}
+                {isWidgetVisible('income-chart') && <IncomePieChart selectedPeriod={selectedPeriod} customDateRange={dateRange} />}
+              </div>
+            )}
 
             {/* Progress and Goals Row */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {isWidgetVisible('budget-progress') && <BudgetProgress />}
               {isWidgetVisible('goal-tracker') && <GoalTracker />}
             </div>
 
-            {/* Card Overview */}
-            {isWidgetVisible('card-overview') && (
-              <div className="grid gap-6 md:grid-cols-1">
-                <CardOverviewWidget />
-              </div>
-            )}
-            
-            {/* Recent Transactions */}
-            {isWidgetVisible('recent-transactions') && (
-              <div className="grid gap-6 md:grid-cols-1">
-                <RecentTransactions />
-              </div>
-            )}
+            {/* Card Overview and Recent Transactions */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              {isWidgetVisible('card-overview') && <CardOverviewWidget />}
+              {isWidgetVisible('recent-transactions') && <RecentTransactions />}
+            </div>
           </>
         )}
       </div>
