@@ -4,9 +4,7 @@ import AppLayout from "@/components/shared/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PeriodSummary } from "@/components/shared/PeriodSummary";
 import ReceivableList from "@/components/receivables/ReceivableList";
-import ReceivableStats from "@/components/receivables/ReceivableStats";
 import DebtList from "@/components/debts/DebtList";
-import DebtStats from "@/components/debts/DebtStats";
 import { useRealtimeData } from "@/context/RealtimeDataContext";
 import { startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 
@@ -77,6 +75,10 @@ const AccountsAndDebts = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
   };
 
+  const goToToday = () => {
+    setCurrentMonth(new Date());
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -115,24 +117,24 @@ const AccountsAndDebts = () => {
           </TabsList>
 
           <TabsContent value="receivables" className="space-y-4">
-            <ReceivableStats payments={filteredPayments} />
             <ReceivableList
               categories={categories}
               accounts={accounts}
               currentMonth={currentMonth}
               onPreviousMonth={goToPreviousMonth}
               onNextMonth={goToNextMonth}
+              onGoToToday={goToToday}
             />
           </TabsContent>
 
           <TabsContent value="debts" className="space-y-4">
-            <DebtStats debts={filteredDebts} />
             <DebtList
               categories={categories}
               accounts={accounts}
               currentMonth={currentMonth}
               onPreviousMonth={goToPreviousMonth}
               onNextMonth={goToNextMonth}
+              onGoToToday={goToToday}
             />
           </TabsContent>
         </Tabs>
