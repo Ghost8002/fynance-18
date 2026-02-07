@@ -116,15 +116,15 @@ const ReceivableStats = ({ payments }: ReceivableStatsProps) => {
       </div>
 
       {stats.overdue > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-500/30 bg-red-500/10">
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
               <div>
-                <p className="font-medium text-red-800">
+                <p className="font-medium text-red-800 dark:text-red-300">
                   Atenção: {stats.overdue} pagamento{stats.overdue > 1 ? 's' : ''} em atraso
                 </p>
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-red-600 dark:text-red-400">
                   Total em atraso: {formatCurrency(stats.overdueAmount)}
                 </p>
               </div>

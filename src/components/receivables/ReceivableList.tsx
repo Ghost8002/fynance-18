@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, Tag } from "lucide-react";
+import { Plus, Edit, Trash2, Check, Search, Repeat, Receipt, X, Loader2, AlertCircle, ChevronLeft, ChevronRight, Tag, Clock, CheckCircle, AlertTriangle, TrendingUp, CalendarDays } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -126,6 +126,7 @@ interface ReceivableListProps {
   currentMonth: Date;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
+  onGoToToday?: () => void;
 }
 
 const ReceivableList: React.FC<ReceivableListProps> = ({
@@ -133,7 +134,8 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
   accounts: propAccounts = [],
   currentMonth,
   onPreviousMonth,
-  onNextMonth
+  onNextMonth,
+  onGoToToday
 }) => {
   const {
     user
@@ -529,36 +531,40 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
     <div className="space-y-4 sm:space-y-6">
       {/* Summary Cards - Grid 2x2 no mobile */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-        <Card>
+        <Card className="border-t-2 border-t-yellow-500 hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Pendente</CardTitle>
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" />
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
             <div className="text-base sm:text-2xl font-bold text-yellow-600">{formatCurrency(totals.pending)}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-t-2 border-t-green-500 hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Recebido</CardTitle>
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
             <div className="text-base sm:text-2xl font-bold text-green-600">{formatCurrency(totals.received)}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-t-2 border-t-red-500 hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Em Atraso</CardTitle>
+            <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
             <div className="text-base sm:text-2xl font-bold text-red-600">{formatCurrency(totals.overdue)}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-t-2 border-t-primary hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
             <CardTitle className="text-xs sm:text-sm font-medium">Total Geral</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
             <div className="text-base sm:text-2xl font-bold">{formatCurrency(totals.total)}</div>
@@ -589,16 +595,27 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
               </Dialog>
             </div>
             
-            <div className="flex items-center justify-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={onPreviousMonth}>
+            <div className="flex items-center justify-center gap-2 bg-muted/50 rounded-lg py-1.5 px-2">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onPreviousMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="text-xs sm:text-sm font-medium min-w-[100px] sm:min-w-[140px] text-center capitalize">
-                {format(currentMonth, "MMM yyyy", { locale: ptBR })}
+              <div className="text-sm sm:text-base font-semibold min-w-[120px] sm:min-w-[160px] text-center capitalize">
+                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
               </div>
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={onNextMonth}>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onNextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
+              {onGoToToday && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-xs ml-1"
+                  onClick={onGoToToday}
+                >
+                  <CalendarDays className="h-3 w-3 mr-1" />
+                  Hoje
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -621,7 +638,18 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
                 </TableHeader>
                 <TableBody>
                   {filteredReceivables.map((receivable: any) => (
-                    <TableRow key={receivable.id}>
+                    <TableRow 
+                      key={receivable.id}
+                      className={
+                        receivable.status === 'received' 
+                          ? 'border-l-4 border-l-green-500' 
+                          : receivable.status === 'pending' && new Date(receivable.due_date) < new Date() 
+                            ? 'border-l-4 border-l-red-500 bg-red-500/5' 
+                            : receivable.status === 'pending' 
+                              ? 'border-l-4 border-l-yellow-500' 
+                              : ''
+                      }
+                    >
                       <TableCell className="font-medium">
                         <div>{receivable.description}</div>
                         {getTagsDisplay(receivable)}
@@ -796,9 +824,9 @@ const ReceivableList: React.FC<ReceivableListProps> = ({
             <DialogTitle>Selecionar Conta</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
-              <p className="text-sm text-yellow-800">
+            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              <p className="text-sm text-yellow-800 dark:text-yellow-300">
                 Este pagamento não possui uma conta associada. Selecione uma conta para permitir a geração automática de transações.
               </p>
             </div>
