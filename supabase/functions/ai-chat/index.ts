@@ -16,6 +16,8 @@ interface UserFinancialData {
   goals: Array<{ id: string; title: string; progress: number; target: number }>;
   accounts: Array<{ id: string; name: string; balance: number; type: string }>;
   totalBalance: number;
+  debtsSummary?: { totalPending: number; count: number; sample: string };
+  receivablesSummary?: { totalPending: number; count: number; sample: string };
 }
 
 interface ChatRequest {
@@ -158,11 +160,115 @@ const tools = [
         }
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_debt",
+      description: "Registrar uma nova dívida (conta a pagar)",
+      parameters: {
+        type: "object",
+        properties: {
+          description: { type: "string", description: "Descrição da dívida" },
+          amount: { type: "number", description: "Valor em reais" },
+          due_date: { type: "string", description: "Data de vencimento (YYYY-MM-DD)" },
+          status: { type: "string", enum: ["pending", "paid", "overdue"], description: "Status (use pending para nova)" },
+          category_name: { type: "string", description: "Nome da categoria (opcional)" },
+          account_name: { type: "string", description: "Nome da conta (opcional)" },
+          notes: { type: "string", description: "Observações (opcional)" }
+        },
+        required: ["description", "amount"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_debts",
+      description: "Listar dívidas (contas a pagar) com filtros opcionais",
+      parameters: {
+        type: "object",
+        properties: {
+          status: { type: "string", enum: ["pending", "paid", "overdue"], description: "Filtrar por status" },
+          description_contains: { type: "string", description: "Texto na descrição" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_debt",
+      description: "Atualizar uma dívida (ex: marcar como paga)",
+      parameters: {
+        type: "object",
+        properties: {
+          debt_description: { type: "string", description: "Texto na descrição da dívida para encontrar" },
+          debt_id: { type: "string", description: "ID da dívida (se conhecido)" },
+          status: { type: "string", enum: ["pending", "paid", "overdue"], description: "Novo status" },
+          paid_date: { type: "string", description: "Data do pagamento (YYYY-MM-DD) quando status=paid" },
+          amount: { type: "number", description: "Novo valor (opcional)" },
+          due_date: { type: "string", description: "Nova data de vencimento (opcional)" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_receivable",
+      description: "Registrar um recebível (conta a receber)",
+      parameters: {
+        type: "object",
+        properties: {
+          description: { type: "string", description: "Descrição do recebível" },
+          amount: { type: "number", description: "Valor em reais" },
+          due_date: { type: "string", description: "Data prevista de recebimento (YYYY-MM-DD)" },
+          status: { type: "string", enum: ["pending", "received"], description: "Status (use pending para novo)" },
+          category_name: { type: "string", description: "Nome da categoria (opcional)" },
+          account_name: { type: "string", description: "Nome da conta (opcional)" },
+          notes: { type: "string", description: "Observações (opcional)" }
+        },
+        required: ["description", "amount"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_receivables",
+      description: "Listar recebíveis (contas a receber) com filtros opcionais",
+      parameters: {
+        type: "object",
+        properties: {
+          status: { type: "string", enum: ["pending", "received"], description: "Filtrar por status" },
+          description_contains: { type: "string", description: "Texto na descrição" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_receivable",
+      description: "Atualizar um recebível (ex: marcar como recebido)",
+      parameters: {
+        type: "object",
+        properties: {
+          receivable_description: { type: "string", description: "Texto na descrição do recebível para encontrar" },
+          receivable_id: { type: "string", description: "ID do recebível (se conhecido)" },
+          status: { type: "string", enum: ["pending", "received"], description: "Novo status" },
+          received_date: { type: "string", description: "Data do recebimento (YYYY-MM-DD) quando status=received" },
+          amount: { type: "number", description: "Novo valor (opcional)" },
+          due_date: { type: "string", description: "Nova data prevista (opcional)" }
+        }
+      }
+    }
   }
 ];
 
 function buildSystemPrompt(userData: UserFinancialData): string {
-  const { monthlyIncome, monthlyExpenses, savingsRate, categories, goals, accounts, totalBalance } = userData;
+  const { monthlyIncome, monthlyExpenses, savingsRate, categories, goals, accounts, totalBalance, debtsSummary, receivablesSummary } = userData;
   
   const topCategories = categories
     .slice(0, 10)
@@ -176,6 +282,14 @@ function buildSystemPrompt(userData: UserFinancialData): string {
   const accountsList = accounts
     .map(acc => `${acc.name}: R$ ${acc.balance.toFixed(2)} (${acc.type}, id: ${acc.id})`)
     .join(', ');
+
+  const debtsText = debtsSummary
+    ? `- Dívidas a pagar: ${debtsSummary.count} itens, total R$ ${debtsSummary.totalPending.toFixed(2)}. Exemplos: ${debtsSummary.sample || 'nenhuma'}`
+    : '';
+
+  const receivablesText = receivablesSummary
+    ? `- Recebíveis: ${receivablesSummary.count} itens, total R$ ${receivablesSummary.totalPending.toFixed(2)}. Exemplos: ${receivablesSummary.sample || 'nenhum'}`
+    : '';
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -192,19 +306,20 @@ DADOS FINANCEIROS DO USUÁRIO:
 - Categorias disponíveis: ${topCategories || 'Nenhuma categoria'}
 - Contas: ${accountsList || 'Nenhuma conta'}
 - Metas: ${goalsProgress || 'Nenhuma meta'}
+${debtsText}
+${receivablesText}
 
-CAPACIDADES:
-Você tem acesso a ferramentas (tools) para executar operações nos dados do usuário.
+CAPACIDADES (ferramentas CRUD):
 Use as ferramentas quando o usuário solicitar:
-- Criar transações: "comprei café por R$ 15", "recebi salário de R$ 5000"
-- Alterar transações: "mude transações do Uber para Transporte"
-- Criar categorias: "crie categoria Freelance"
-- Criar/atualizar metas: "quero juntar R$ 10000 para viagem"
-- Listar/buscar dados: "quais minhas compras no iFood?"
+- Transações: criar, listar, alterar categoria em lote, excluir (create_transaction, list_transactions, update_transactions_by_filter, delete_transaction)
+- Categorias e contas: criar (create_category, create_account)
+- Metas: criar e atualizar (create_goal, update_goal)
+- Dívidas (contas a pagar): criar, listar, atualizar status/pagamento (create_debt, list_debts, update_debt)
+- Recebíveis (contas a receber): criar, listar, atualizar status/recebimento (create_receivable, list_receivables, update_receivable)
 
 INSTRUÇÕES:
 - Responda em português brasileiro
-- Use as ferramentas disponíveis para operações CRUD
+- Use as ferramentas para qualquer operação CRUD solicitada
 - Para datas não especificadas, use a data de hoje
 - Forneça conselhos práticos baseados nos dados
 - Seja encorajador e motivacional

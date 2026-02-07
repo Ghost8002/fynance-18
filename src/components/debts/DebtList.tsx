@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard, ChevronLeft, ChevronRight, Tag, Clock, CheckCircle, AlertTriangle, TrendingDown, CalendarDays } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Edit, Trash2, Check, Search, Filter, Repeat, ArrowRight, Receipt, X, Loader2, AlertCircle, CreditCard, ChevronLeft, ChevronRight, Tag, Clock, CheckCircle, AlertTriangle, TrendingDown } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, isWithinInterval, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -124,13 +125,18 @@ const getSubcategoryColor = (subcategoryId: string, subcategories: any[]) => {
   return subcategory ? subcategory.color : '#9CA3AF';
 };
 
+const MONTHS = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
 interface DebtListProps {
   categories?: Array<{ id: string; name: string; type: string }>;
   accounts?: Array<{ id: string; name: string; type: string }>;
   currentMonth: Date;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
-  onGoToToday?: () => void;
+  onMonthChange?: (date: Date) => void;
 }
 
 const DebtList: React.FC<DebtListProps> = ({
@@ -139,7 +145,7 @@ const DebtList: React.FC<DebtListProps> = ({
   currentMonth,
   onPreviousMonth,
   onNextMonth,
-  onGoToToday
+  onMonthChange
 }) => {
   const {
     user
@@ -561,23 +567,55 @@ const DebtList: React.FC<DebtListProps> = ({
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onPreviousMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="text-sm sm:text-base font-semibold min-w-[120px] sm:min-w-[160px] text-center capitalize">
-                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-              </div>
+              {onMonthChange ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-sm sm:text-base font-semibold min-w-[120px] sm:min-w-[160px] text-center capitalize hover:bg-muted rounded px-2 py-1 transition-colors"
+                    >
+                      {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3" align="center">
+                    <div className="flex flex-col gap-3">
+                      <Select
+                        value={String(currentMonth.getMonth())}
+                        onValueChange={(v) => onMonthChange(new Date(currentMonth.getFullYear(), Number(v), 1))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Mês" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MONTHS.map((m, i) => (
+                            <SelectItem key={m} value={String(i)}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={String(currentMonth.getFullYear())}
+                        onValueChange={(v) => onMonthChange(new Date(Number(v), currentMonth.getMonth(), 1))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Ano" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
+                            <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <div className="text-sm sm:text-base font-semibold min-w-[120px] sm:min-w-[160px] text-center capitalize">
+                  {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                </div>
+              )}
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onNextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              {onGoToToday && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-7 text-xs ml-1"
-                  onClick={onGoToToday}
-                >
-                  <CalendarDays className="h-3 w-3 mr-1" />
-                  Hoje
-                </Button>
-              )}
             </div>
           </div>
         </CardHeader>

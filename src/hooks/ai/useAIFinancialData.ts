@@ -11,6 +11,8 @@ export const useAIFinancialData = () => {
   const { data: accounts } = useSupabaseData('accounts', user?.id);
   const { data: goals } = useSupabaseData('goals', user?.id);
   const { data: categories } = useSupabaseData('categories', user?.id);
+  const { data: debts } = useSupabaseData('debts', user?.id);
+  const { data: receivablePayments } = useSupabaseData('receivable_payments', user?.id);
 
   const prepareUserData = (): UserFinancialData & { 
     categories: Array<{ id: string; name: string; color: string; type: string }>;
@@ -85,6 +87,12 @@ export const useAIFinancialData = () => {
       type: acc.type
     }));
 
+    // Resumo de dívidas (pendentes) e recebíveis para contexto da IA
+    const pendingDebts = debts.filter((d: { status: string }) => d.status === 'pending');
+    const totalDebtsPending = pendingDebts.reduce((sum: number, d: { amount: number }) => sum + Number(d.amount), 0);
+    const pendingReceivables = receivablePayments.filter((r: { status: string }) => r.status === 'pending');
+    const totalReceivablesPending = pendingReceivables.reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
+
     return {
       monthlyIncome,
       monthlyExpenses,
@@ -92,7 +100,21 @@ export const useAIFinancialData = () => {
       categories: formattedCategories,
       accounts: formattedAccounts,
       goals: goalsData,
-      totalBalance
+      totalBalance,
+      debtsSummary: {
+        totalPending: totalDebtsPending,
+        count: pendingDebts.length,
+        sample: pendingDebts.slice(0, 5).map((d: { description: string; amount: number; due_date: string }) =>
+          `${d.description}: R$ ${Number(d.amount).toFixed(2)} (vence ${d.due_date})`
+        ).join('; ')
+      },
+      receivablesSummary: {
+        totalPending: totalReceivablesPending,
+        count: pendingReceivables.length,
+        sample: pendingReceivables.slice(0, 5).map((r: { description: string; amount: number; due_date: string }) =>
+          `${r.description}: R$ ${Number(r.amount).toFixed(2)} (vence ${r.due_date})`
+        ).join('; ')
+      }
     };
   };
 

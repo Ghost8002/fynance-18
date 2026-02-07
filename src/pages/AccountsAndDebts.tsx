@@ -75,8 +75,8 @@ const AccountsAndDebts = () => {
     setCurrentMonth(prev => addMonths(prev, 1));
   };
 
-  const goToToday = () => {
-    setCurrentMonth(new Date());
+  const handleMonthChange = (date: Date) => {
+    setCurrentMonth(startOfMonth(date));
   };
 
   return (
@@ -123,7 +123,7 @@ const AccountsAndDebts = () => {
               currentMonth={currentMonth}
               onPreviousMonth={goToPreviousMonth}
               onNextMonth={goToNextMonth}
-              onGoToToday={goToToday}
+              onMonthChange={handleMonthChange}
             />
           </TabsContent>
 
@@ -134,7 +134,7 @@ const AccountsAndDebts = () => {
               currentMonth={currentMonth}
               onPreviousMonth={goToPreviousMonth}
               onNextMonth={goToNextMonth}
-              onGoToToday={goToToday}
+              onMonthChange={handleMonthChange}
             />
           </TabsContent>
         </Tabs>

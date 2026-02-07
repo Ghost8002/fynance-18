@@ -18,6 +18,8 @@ export const useAICRUD = () => {
   const { data: accounts, update: updateAccount, remove: removeAccount, insert: insertAccount } = useSupabaseData('accounts', user?.id);
   const { data: cards, update: updateCard, remove: removeCard, insert: insertCard } = useSupabaseData('cards', user?.id);
   const { data: goals, update: updateGoal, remove: removeGoal, insert: insertGoal } = useSupabaseData('goals', user?.id);
+  const { data: debts, update: updateDebt, remove: removeDebt, insert: insertDebt } = useSupabaseData('debts', user?.id);
+  const { data: receivablePayments, update: updateReceivable, remove: removeReceivable, insert: insertReceivable } = useSupabaseData('receivable_payments', user?.id);
 
   const executeOperation = async (operation: CRUDOperation): Promise<{ success: boolean; message: string; data?: any }> => {
     try {
@@ -32,6 +34,10 @@ export const useAICRUD = () => {
           return await handleCardOperation(operation);
         case 'goals':
           return await handleGoalOperation(operation);
+        case 'debts':
+          return await handleDebtOperation(operation);
+        case 'receivable_payments':
+          return await handleReceivableOperation(operation);
         default:
           return { success: false, message: `Tabela '${operation.table}' não suportada` };
       }
@@ -86,7 +92,22 @@ export const useAICRUD = () => {
           if (deleteResult.error) throw new Error(deleteResult.error);
           return { success: true, message: 'Transação excluída com sucesso' };
         }
-        throw new Error('ID necessário para exclusão');
+        if (operation.conditions?.description_contains) {
+          const matching = transactions.filter(t =>
+            t.description?.toLowerCase().includes(String(operation.conditions!.description_contains).toLowerCase())
+          );
+          if (matching.length === 0) {
+            return { success: false, message: 'Nenhuma transação encontrada com essa descrição' };
+          }
+          const toDelete = matching.length === 1 ? matching[0] : matching[0];
+          const deleteResult = await removeTransaction(toDelete.id);
+          if (deleteResult.error) throw new Error(deleteResult.error);
+          const msg = matching.length === 1
+            ? 'Transação excluída com sucesso'
+            : `${matching.length} transações encontradas; a primeira foi excluída. Seja mais específico para excluir apenas uma.`;
+          return { success: true, message: msg };
+        }
+        throw new Error('ID ou description_contains necessário para exclusão');
 
       case 'read':
         let filteredTransactions = [...transactions];
@@ -219,6 +240,84 @@ export const useAICRUD = () => {
     }
   };
 
+  const handleDebtOperation = async (operation: CRUDOperation) => {
+    switch (operation.operation) {
+      case 'create':
+        const createResult = await insertDebt({ ...operation.data, user_id: user?.id });
+        if (createResult.error) throw new Error(createResult.error);
+        return { success: true, message: 'Dívida criada com sucesso', data: createResult.data };
+
+      case 'update':
+        if (!operation.id) throw new Error('ID necessário para atualização');
+        const updateResult = await updateDebt(operation.id, operation.data);
+        if (updateResult.error) throw new Error(updateResult.error);
+        return { success: true, message: 'Dívida atualizada com sucesso', data: updateResult.data };
+
+      case 'delete':
+        if (!operation.id) throw new Error('ID necessário para exclusão');
+        const deleteResult = await removeDebt(operation.id);
+        if (deleteResult.error) throw new Error(deleteResult.error);
+        return { success: true, message: 'Dívida excluída com sucesso' };
+
+      case 'read':
+        let filteredDebts = [...debts];
+        if (operation.conditions) {
+          if (operation.conditions.description_contains) {
+            const desc = String(operation.conditions.description_contains).toLowerCase();
+            filteredDebts = debts.filter(d => d.description?.toLowerCase().includes(desc));
+          }
+          if (operation.conditions.status) {
+            filteredDebts = filteredDebts.filter(d => d.status === operation.conditions!.status);
+          }
+        }
+        return { success: true, message: `${filteredDebts.length} dívidas encontradas`, data: filteredDebts };
+
+      default:
+        throw new Error(`Operação '${operation.operation}' não suportada`);
+    }
+  };
+
+  const handleReceivableOperation = async (operation: CRUDOperation) => {
+    switch (operation.operation) {
+      case 'create':
+        const createResult = await insertReceivable({ ...operation.data, user_id: user?.id });
+        if (createResult.error) throw new Error(createResult.error);
+        return { success: true, message: 'Recebível criado com sucesso', data: createResult.data };
+
+      case 'update':
+        if (!operation.id) throw new Error('ID necessário para atualização');
+        const updateResult = await updateReceivable(operation.id, operation.data);
+        if (updateResult.error) throw new Error(updateResult.error);
+        return { success: true, message: 'Recebível atualizado com sucesso', data: updateResult.data };
+
+      case 'delete':
+        if (!operation.id) throw new Error('ID necessário para exclusão');
+        const deleteResult = await removeReceivable(operation.id);
+        if (deleteResult.error) throw new Error(deleteResult.error);
+        return { success: true, message: 'Recebível excluído com sucesso' };
+
+      case 'read':
+        let filteredReceivables = [...receivablePayments];
+        if (operation.conditions) {
+          if (operation.conditions.description_contains) {
+            const desc = String(operation.conditions.description_contains).toLowerCase();
+            filteredReceivables = receivablePayments.filter((r: { description?: string }) =>
+              r.description?.toLowerCase().includes(desc)
+            );
+          }
+          if (operation.conditions.status) {
+            filteredReceivables = filteredReceivables.filter(
+              (r: { status: string }) => r.status === operation.conditions!.status
+            );
+          }
+        }
+        return { success: true, message: `${filteredReceivables.length} recebíveis encontrados`, data: filteredReceivables };
+
+      default:
+        throw new Error(`Operação '${operation.operation}' não suportada`);
+    }
+  };
+
   // Função para interpretar comandos em linguagem natural
   const parseNaturalLanguageCommand = (command: string): CRUDOperation | null => {
     const lowerCommand = command.toLowerCase();
@@ -294,6 +393,8 @@ export const useAICRUD = () => {
     categories,
     accounts,
     cards,
-    goals
+    goals,
+    debts,
+    receivablePayments
   };
 };

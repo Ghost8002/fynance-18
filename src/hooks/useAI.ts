@@ -27,7 +27,7 @@ export const useAI = () => {
   } = useAIChat();
   
   const { prepareUserData, categories, accounts, goals } = useAIFinancialData();
-  const { executeOperation } = useAICRUD();
+  const { executeOperation, debts, receivablePayments } = useAICRUD();
   const [streamingMessage, setStreamingMessage] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
 
@@ -160,6 +160,114 @@ export const useAI = () => {
               }
             };
             break;
+
+          case 'create_debt':
+            const debtCategory = categories.find(c =>
+              c.name.toLowerCase().includes(args.category_name?.toLowerCase() || '')
+            );
+            const debtAccount = accounts.find(a =>
+              a.name.toLowerCase().includes(args.account_name?.toLowerCase() || '')
+            );
+            operation = {
+              operation: 'create',
+              table: 'debts',
+              data: {
+                description: args.description,
+                amount: args.amount,
+                due_date: args.due_date || new Date().toISOString().split('T')[0],
+                status: args.status || 'pending',
+                notes: args.notes,
+                category_id: debtCategory?.id,
+                account_id: debtAccount?.id
+              }
+            };
+            break;
+
+          case 'list_debts':
+            operation = {
+              operation: 'read',
+              table: 'debts',
+              conditions: {
+                ...(args.status && { status: args.status }),
+                ...(args.description_contains && { description_contains: args.description_contains })
+              }
+            };
+            break;
+
+          case 'update_debt':
+            const debtToUpdate = debts.find(d =>
+              d.description?.toLowerCase().includes(args.debt_description?.toLowerCase() || '') || d.id === args.debt_id
+            );
+            if (debtToUpdate) {
+              const debtUpdateData: any = {};
+              if (args.status != null) debtUpdateData.status = args.status;
+              if (args.paid_date != null) debtUpdateData.paid_date = args.paid_date;
+              if (args.amount != null) debtUpdateData.amount = args.amount;
+              if (args.due_date != null) debtUpdateData.due_date = args.due_date;
+              if (Object.keys(debtUpdateData).length > 0) {
+                operation = {
+                  operation: 'update',
+                  table: 'debts',
+                  id: debtToUpdate.id,
+                  data: debtUpdateData
+                };
+              }
+            }
+            break;
+
+          case 'create_receivable':
+            const recvCategory = categories.find(c =>
+              c.name.toLowerCase().includes(args.category_name?.toLowerCase() || '')
+            );
+            const recvAccount = accounts.find(a =>
+              a.name.toLowerCase().includes(args.account_name?.toLowerCase() || '')
+            );
+            operation = {
+              operation: 'create',
+              table: 'receivable_payments',
+              data: {
+                description: args.description,
+                amount: args.amount,
+                due_date: args.due_date || new Date().toISOString().split('T')[0],
+                status: args.status || 'pending',
+                notes: args.notes,
+                category_id: recvCategory?.id,
+                account_id: recvAccount?.id
+              }
+            };
+            break;
+
+          case 'list_receivables':
+            operation = {
+              operation: 'read',
+              table: 'receivable_payments',
+              conditions: {
+                ...(args.status && { status: args.status }),
+                ...(args.description_contains && { description_contains: args.description_contains })
+              }
+            };
+            break;
+
+          case 'update_receivable':
+            const recvToUpdate = receivablePayments.find((r: { description?: string; id: string }) =>
+              r.description?.toLowerCase().includes(args.receivable_description?.toLowerCase() || '') || r.id === args.receivable_id
+            );
+            if (recvToUpdate) {
+              const recvUpdateData: any = {};
+              if (args.status != null) recvUpdateData.status = args.status;
+              if (args.received_date != null) recvUpdateData.received_date = args.received_date;
+              if (args.amount != null) recvUpdateData.amount = args.amount;
+              if (args.due_date != null) recvUpdateData.due_date = args.due_date;
+              if (Object.keys(recvUpdateData).length > 0) {
+                operation = {
+                  operation: 'update',
+                  table: 'receivable_payments',
+                  id: recvToUpdate.id,
+                  data: recvUpdateData
+                };
+              }
+            }
+            break;
         }
 
         if (operation) {
@@ -176,7 +284,7 @@ export const useAI = () => {
     }
 
     return results;
-  }, [categories, accounts, goals, executeOperation]);
+  }, [categories, accounts, goals, debts, receivablePayments, executeOperation]);
 
   // Stream chat response
   const sendMessage = async (userMessage: string) => {
