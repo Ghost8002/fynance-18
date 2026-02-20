@@ -23,4 +23,6 @@ export interface UserFinancialData {
   categories: Array<{ name: string; amount: number; percentage: number }> | Array<{ id: string; name: string; color: string; type: string }>;
   goals: Array<{ title: string; progress: number; target: number }> | Array<{ id: string; title: string; progress: number; target: number }>;
   totalBalance: number;
+  debtsSummary?: { totalPending: number; count: number; sample: string };
+  receivablesSummary?: { totalPending: number; count: number; sample: string };
 }

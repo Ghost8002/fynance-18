@@ -33,7 +33,8 @@ export const useSubscription = () => {
 // Emails com acesso premium sem necessidade de assinatura
 const WHITELISTED_EMAILS = [
   'salesdesouzamatheus@gmail.com',
-  'adonaipereiradasilva8@gmail.com'
+  'adonaipereiradasilva8@gmail.com',
+  'luohonorato@hotmail.com'
 ];
 
 export const SUBSCRIPTION_TIERS = {
