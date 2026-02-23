@@ -362,6 +362,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
                     onSelect={(date) => setFormData({...formData, due_date: date})}
                     initialFocus
                     locale={ptBR}
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -642,6 +643,7 @@ const DebtForm = ({ debt, onClose, onSave }: DebtFormProps) => {
                               onSelect={(date) => setFormData({...formData, recurrence_end_date: date})}
                               initialFocus
                               locale={ptBR}
+                              className="pointer-events-auto"
                             />
                           </PopoverContent>
                         </Popover>

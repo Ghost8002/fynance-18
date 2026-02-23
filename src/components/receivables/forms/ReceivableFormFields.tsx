@@ -112,6 +112,7 @@ const ReceivableFormFields: React.FC<ReceivableFormFieldsProps> = ({
               selected={formData.due_date}
               onSelect={handleDateChange}
               initialFocus
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
