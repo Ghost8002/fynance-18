@@ -73,7 +73,7 @@ export const FinalCTASection = () => {
         }} viewport={{
           once: true
         }} className="mb-6 sm:mb-8">
-            <Link to="/auth" className="inline-block w-full sm:w-auto group">
+            <Link to="/login" className="inline-block w-full sm:w-auto group">
               <Button size="lg" className="button-gradient text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-7 h-auto shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all w-full sm:w-auto relative overflow-hidden">
                 <span className="relative z-10 flex items-center">
                   Quero começar agora
