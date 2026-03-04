@@ -384,9 +384,10 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
                   <Calendar
                     mode="single"
                     selected={formData.due_date}
-                    onSelect={(date) => setFormData({...formData, due_date: date})}
+                    onSelect={(date) => setFormData({ ...formData, due_date: date })}
                     initialFocus
                     locale={ptBR}
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -531,16 +532,19 @@ const ReceivableForm: React.FC<ReceivableFormProps> = ({ receivable, onClose, on
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {formData.recurrence_end_date ? format(formData.recurrence_end_date, "dd/MM/yyyy", { locale: ptBR }) : "Data limite"}
+                              {formData.recurrence_end_date
+                                ? format(formData.recurrence_end_date, "dd/MM/yyyy", { locale: ptBR })
+                                : "Data limite"}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={formData.recurrence_end_date}
-                              onSelect={(date) => setFormData({...formData, recurrence_end_date: date})}
+                              onSelect={(date) => setFormData({ ...formData, recurrence_end_date: date })}
                               initialFocus
                               locale={ptBR}
+                              className="pointer-events-auto"
                             />
                           </PopoverContent>
                         </Popover>
