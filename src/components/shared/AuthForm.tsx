@@ -111,6 +111,11 @@ const AuthForm = () => {
           full_name: fullName.trim()
         });
         if (error) {
+          // If rate limit exceeded, account was likely created — show verification screen
+          if (error.message?.toLowerCase().includes('rate limit') || error.message?.toLowerCase().includes('email rate limit')) {
+            setVerificationEmail(email.trim());
+            return;
+          }
           throw error;
         }
         setVerificationEmail(email.trim());

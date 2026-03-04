@@ -80,11 +80,16 @@ export const AuthForm = () => {
     });
 
     if (error) {
-      toast({
-        title: 'Erro ao criar conta',
-        description: error.message,
-        variant: 'destructive',
-      });
+      // If rate limit exceeded, the account was likely already created — show verification screen anyway
+      if (error.message?.toLowerCase().includes('rate limit') || error.message?.toLowerCase().includes('email rate limit')) {
+        setVerificationEmail(signUpData.email);
+      } else {
+        toast({
+          title: 'Erro ao criar conta',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     } else {
       setVerificationEmail(signUpData.email);
     }
