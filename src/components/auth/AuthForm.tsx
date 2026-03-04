@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import { motion } from 'framer-motion';
+import { Mail, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +18,7 @@ export const AuthForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -83,14 +86,121 @@ export const AuthForm = () => {
         variant: 'destructive',
       });
     } else {
-      toast({
-        title: 'Conta criada com sucesso!',
-        description: 'Verifique seu email para confirmar a conta.',
-      });
+      setVerificationEmail(signUpData.email);
     }
 
     setLoading(false);
   };
+
+  if (verificationEmail) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-muted/20 px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="w-full max-w-md"
+        >
+          <Card className="border-border/50 shadow-xl">
+            <CardContent className="pt-10 pb-8 px-8 text-center space-y-6">
+              {/* Animated icon */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
+                className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 12 }}
+                >
+                  <Mail className="w-10 h-10 text-primary" />
+                </motion.div>
+              </motion.div>
+
+              {/* Success badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-center gap-2 text-emerald-500"
+              >
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm font-medium">Conta criada com sucesso!</span>
+              </motion.div>
+
+              {/* Title */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="space-y-2"
+              >
+                <h2 className="text-xl font-bold text-foreground">Verifique seu e-mail</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Enviamos um link de confirmação para
+                </p>
+                <p className="text-sm font-semibold text-foreground bg-muted/50 rounded-lg py-2 px-4 inline-block">
+                  {verificationEmail}
+                </p>
+              </motion.div>
+
+              {/* Instructions */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="bg-muted/30 rounded-xl p-4 space-y-3 text-left"
+              >
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Próximos passos</p>
+                <div className="space-y-2">
+                  {[
+                    "Abra sua caixa de entrada",
+                    "Clique no link de confirmação",
+                    "Volte aqui e faça login"
+                  ].map((step, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="text-sm text-muted-foreground">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Spam note */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-xs text-muted-foreground/70"
+              >
+                Não encontrou? Verifique a pasta de spam ou lixo eletrônico.
+              </motion.p>
+
+              {/* Back button */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
+              >
+                <Button
+                  variant="outline"
+                  onClick={() => setVerificationEmail(null)}
+                  className="w-full"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar para o login
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
