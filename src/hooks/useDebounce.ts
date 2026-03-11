@@ -95,7 +95,7 @@ export const useDebouncedValidation = <T>(
 ) => {
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<boolean | string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedValidate = useCallback(
     async (value: T): Promise<boolean | string> => {

@@ -177,7 +177,7 @@ const Dashboard = () => {
             )}
 
             {/* Debug Panel - apenas em desenvolvimento */}
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <FinancialDebugPanel
                 transactions={transactions || []}
                 accounts={accounts || []}

@@ -36,7 +36,7 @@ export const useLazyLoad = <T>(
   
   const ref = useRef<HTMLElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Função para carregar dados
   const load = useCallback(async () => {
