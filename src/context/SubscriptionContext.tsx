@@ -34,7 +34,8 @@ export const useSubscription = () => {
 const WHITELISTED_EMAILS = [
   'salesdesouzamatheus@gmail.com',
   'adonaipereiradasilva8@gmail.com',
-  'luohonorato@hotmail.com'
+  'luohonorato@hotmail.com',
+  'edielsonsilvalves@gmail.com'
 ];
 
 export const SUBSCRIPTION_TIERS = {
