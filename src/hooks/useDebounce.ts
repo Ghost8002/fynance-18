@@ -45,7 +45,7 @@ export const useDebouncedAsync = <T extends (...args: any[]) => Promise<any>>(
   asyncCallback: T,
   delay: number
 ): T => {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController>();
 
   const debouncedAsyncCallback = useCallback(
