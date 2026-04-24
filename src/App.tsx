@@ -86,7 +86,7 @@ const AppRoutes = () => {
   
   // When app is installed (standalone mode), show AI Assistant as home for authenticated users
   const getHomeElement = () => {
-    if (!isAuthenticated) return <LandingPage />;
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
     if (isStandalone) return <AIAssistantPage />;
     return <Dashboard />;
   };
