@@ -16,8 +16,8 @@ import { OfflineBanner } from "@/components/shared/OfflineBanner";
 
 
 // Eager loaded pages (critical path)
-import LandingPage from "@/landingpage/LandingPage";
 import Login from "./pages/Login";
+import { Navigate } from "react-router-dom";
 
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
