@@ -16,8 +16,8 @@ import { OfflineBanner } from "@/components/shared/OfflineBanner";
 
 
 // Eager loaded pages (critical path)
+import LandingPage from "@/landingpage/LandingPage";
 import Login from "./pages/Login";
-import { Navigate } from "react-router-dom";
 
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -86,7 +86,7 @@ const AppRoutes = () => {
   
   // When app is installed (standalone mode), show AI Assistant as home for authenticated users
   const getHomeElement = () => {
-    if (!isAuthenticated) return <Navigate to="/login" replace />;
+    if (!isAuthenticated) return <LandingPage />;
     if (isStandalone) return <AIAssistantPage />;
     return <Dashboard />;
   };

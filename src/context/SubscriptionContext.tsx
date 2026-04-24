@@ -36,8 +36,7 @@ const WHITELISTED_EMAILS = [
   'adonaipereiradasilva8@gmail.com',
   'luohonorato@hotmail.com',
   'edielsonsilvalves@gmail.com',
-  'thagilapinheiro22@gmail.com',
-  'admin@admin.com'
+  'thagilapinheiro22@gmail.com'
 ];
 
 export const SUBSCRIPTION_TIERS = {
